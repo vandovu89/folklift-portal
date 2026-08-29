@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Forklift {
+  id              String    @id @default(uuid())
+  
+  // Thông tin nhận diện
+  internalCode    String?
+  stockNo         String?
+  serialNo        String?
+  maker           String
+  model           String
+  year            Int?
+  hour            Int?
+
+  // Phân loại
+  category        String?
+  type            String?
+  powerType       String?
+  productGroup    String?
+
+  // Thông số kỹ thuật
+  mast            String?
+  liftHeight      String?
+  loadCapacity    String?
+  attachment      String?
+  forkLength      String?
+  dimensions      String?
+  weight          String?
+  otherSpecs      String?
+
+  // Nguồn hàng (Nội bộ)
+  purchaseSource  String?
+  sourceUrl       String?
+  offerDeadline   DateTime?
+  purchaseDate    DateTime?
+  supplier        String?
+
+  // Vị trí & Trạng thái
+  location        String?
+  status          String    @default("Draft")
+  
+  // Tình trạng (Cơ bản cho Phase 1)
+  condition       String?
+  engineCondition String?
+
+  // Giá (Bảo mật tùy role)
+  price           Float?
+
+  // Quan hệ
+  images          Image[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Image {
+  id          String   @id @default(uuid())
+  url         String
+  category    String?  // Tổng thể, Kỹ thuật, Tình trạng
+  isPublic    Boolean  @default(false)
+  
+  forkliftId  String
+  forklift    Forklift @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}

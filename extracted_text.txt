@@ -1,0 +1,412 @@
+REQUIREMENT SPECIFICATION
+Hệ thống Quản lý Máy móc Cũ & Bán hàng
+Tài liệu xác nhận yêu cầu nghiệp vụ – Customer Confirmation Draft
+Phiên bản 0.2 – Chỉ tập trung vào phạm vi và yêu cầu nghiệp vụ
+Ngày: 19/08/2026
+1. Mục đích tài liệu
+Tài liệu này dùng để khách hàng xác nhận phạm vi và yêu cầu nghiệp vụ trước khi triển khai. Tài liệu chỉ tập trung vào hệ thống cần làm gì, dữ liệu cần quản lý, quy trình cần hỗ trợ và thông tin cần hiển thị. Các nội dung về công nghệ, kiến trúc hệ thống, timeline, chi phí, man-day và roadmap phát triển không thuộc phạm vi của tài liệu này.
+2. Mục tiêu hệ thống
+Quản lý tập trung thông tin từng máy móc/xe nâng đã qua sử dụng thay cho việc phụ thuộc vào Excel.
+Quản lý thông tin máy theo từng chủng loại và cho phép mỗi chủng loại có bộ thông tin kỹ thuật phù hợp.
+Quản lý tình trạng, kiểm tra, sửa chữa, hình ảnh và lịch sử của từng máy.
+Quản lý vị trí và trạng thái của máy trong toàn bộ quá trình từ nhập hàng đến bán/giao hàng.
+Quản lý thông tin chi phí, giá bán và tình hình kinh doanh của từng máy.
+Từ cùng một dữ liệu quản lý nội bộ, tạo trang thông tin sản phẩm chuyên nghiệp để gửi trực tiếp cho khách hàng.
+Tăng tính rõ ràng, minh bạch, dễ kiểm soát và khả năng truy xuất lịch sử theo từng máy.
+3. Dữ liệu hiện tại
+File TENDER LIST_20260807.xlsx được sử dụng làm dữ liệu tham khảo cho yêu cầu. File hiện có 80 record máy.
+Hạng mục
+Dữ liệu hiện tại
+Số lượng
+80 máy
+Nhà sản xuất
+Toyota, Komatsu, Mitsubishi, Nichiyu, TCM
+Nguồn động lực
+Battery, Diesel, Gasoline
+Kiểu máy
+Counter, Reach và các loại khác
+Thông tin chính
+Maker, Model, Year, Hour, Engine Condition, Condition, Type, Mast, Attachment, Max View, Max Load, Loading Port, Goods Price, Stock No., URL, Offer Deadline
+Các trường trên chỉ là dữ liệu hiện tại. Hệ thống cần bổ sung thêm các thông tin nghiệp vụ được mô tả trong tài liệu này.
+4. Phạm vi chức năng
+Nhóm chức năng
+Nội dung
+Quản lý máy
+Thông tin cơ bản, thông số kỹ thuật, phân loại, vị trí, trạng thái
+Quản lý tình trạng
+Inspection, checklist, lỗi/hư hỏng, ảnh minh chứng
+Quản lý sửa chữa
+Hạng mục sửa chữa, tiến độ, lịch sử, chi phí, ảnh trước/sau
+Quản lý hình ảnh & tài liệu
+Ảnh máy, ảnh inspection, tài liệu liên quan
+Quản lý chi phí & giá
+Giá mua, chi phí phát sinh, tổng giá vốn, giá bán, lợi nhuận
+Quản lý bán hàng
+Khách hàng, inquiry, báo giá, reservation, sale
+Trang sản phẩm công khai
+Catalog, trang chi tiết máy, chia sẻ link/QR, liên hệ
+Dashboard & kiểm soát
+Tình trạng inventory, cảnh báo, lịch sử thay đổi
+5. Người sử dụng và quyền nghiệp vụ
+Vai trò
+Quyền nghiệp vụ dự kiến
+Administrator
+Quản lý toàn bộ dữ liệu và cấu hình nghiệp vụ.
+Manager
+Theo dõi và quản lý inventory, inspection, repair, cost, sales; duyệt các nghiệp vụ cần kiểm soát.
+Sales
+Xem máy, quản lý thông tin bán hàng, khách hàng, inquiry, báo giá và reservation.
+Inspector
+Thực hiện inspection, cập nhật tình trạng, lỗi và hình ảnh.
+Warehouse
+Quản lý vị trí máy, nhập/xuất và cập nhật trạng thái kho.
+Viewer
+Xem các dữ liệu được cấp quyền.
+6. Quản lý thông tin máy
+6.1. Thông tin nhận diện
+Mã máy nội bộ
+Stock No.
+Serial No./Chassis No.
+Nhà sản xuất
+Model
+Năm sản xuất
+Giờ hoạt động
+6.2. Phân loại
+Chủng loại máy
+Loại/kiểu máy
+Nguồn động lực/nhiên liệu
+Nhóm sản phẩm
+Các phân loại bổ sung theo nhu cầu kinh doanh
+6.3. Thông số kỹ thuật
+Mast
+Lift Height / Max View
+Load Capacity / Max Load
+Attachment
+Fork Length
+Kích thước tổng thể
+Trọng lượng
+Các thông số kỹ thuật khác tùy từng chủng loại
+6.4. Thông tin nguồn hàng
+Nguồn mua/tender/auction
+URL nguồn
+Offer Deadline
+Ngày mua
+Thông tin nhà cung cấp/đối tác nếu cần
+7. Quản lý tình trạng máy
+Tình trạng máy không chỉ được lưu dưới dạng một ô ghi chú chung mà cần có các hạng mục để dễ kiểm tra và so sánh.
+Hạng mục
+Thông tin cần quản lý
+Engine
+Tình trạng, khả năng khởi động, tiếng động bất thường, rò rỉ, ghi chú
+Transmission
+Tình trạng vận hành, bất thường, ghi chú
+Hydraulic
+Nâng/hạ, nghiêng, rò rỉ, ghi chú
+Mast
+Tình trạng mast, chain, fork, attachment
+Tire
+Tình trạng từng bánh hoặc đánh giá tổng thể
+Electrical / Battery
+Tình trạng điện, battery và các vấn đề liên quan
+Body
+Trầy xước, móp, hư hỏng ngoại thất
+Safety
+Các hạng mục an toàn
+Overall Condition
+Đánh giá tổng thể và ghi chú
+7.1. Mức đánh giá
+Good
+Fair
+Needs Repair
+NG
+Unknown
+Danh sách mức đánh giá cần được khách hàng xác nhận và có thể thay đổi theo nghiệp vụ thực tế.
+8. Inspection / Kiểm tra máy
+Có checklist kiểm tra theo từng chủng loại máy.
+Người kiểm tra chọn kết quả cho từng hạng mục và có thể ghi chú chi tiết.
+Có thể đính kèm ảnh vào từng hạng mục kiểm tra.
+Lưu ngày giờ kiểm tra và người thực hiện.
+Có thể thực hiện kiểm tra lại sau sửa chữa.
+Có báo cáo tổng hợp kết quả kiểm tra cho từng máy.
+Kết quả inspection có thể được sử dụng làm một phần thông tin công khai cho khách hàng nếu doanh nghiệp cho phép.
+9. Quản lý sửa chữa / bảo dưỡng
+Tạo danh sách các hạng mục cần sửa từ kết quả inspection.
+Ghi nhận nội dung sửa chữa.
+Mức độ ưu tiên.
+Người/đơn vị phụ trách.
+Ngày bắt đầu và ngày hoàn thành.
+Trạng thái sửa chữa.
+Phụ tùng sử dụng.
+Chi phí sửa chữa.
+Ảnh trước và sau sửa chữa.
+Lịch sử sửa chữa/bảo dưỡng của máy.
+10. Hình ảnh và tài liệu
+Mỗi máy cần có một thư viện hình ảnh/tài liệu riêng.
+Nhóm
+Ví dụ
+Ảnh tổng thể
+Front, Rear, Left, Right
+Ảnh kỹ thuật
+Engine, Mast, Fork, Tire, Battery, Attachment
+Ảnh tình trạng
+Damage, leakage, wear, defect
+Ảnh inspection
+Ảnh chụp trong quá trình kiểm tra
+Ảnh Before/After
+Trước và sau sửa chữa
+Tài liệu
+Inspection Report, Invoice, Auction/Tender document, Maintenance record, Other
+Có thể đánh dấu ảnh nào được phép hiển thị cho khách hàng.
+11. Vị trí và trạng thái máy
+11.1. Vị trí
+Khu vực/quốc gia
+Tỉnh/thành phố
+Kho/Yard
+Khu vực trong kho
+Vị trí cụ thể nếu cần
+Lịch sử thay đổi vị trí
+11.2. Trạng thái
+Trạng thái
+Ý nghĩa
+Draft
+Đang tạo/chưa hoàn thiện thông tin
+Incoming
+Đã mua/đang chờ máy về
+Received
+Đã nhận máy
+Inspection
+Đang kiểm tra
+Repair
+Đang sửa chữa
+Ready
+Đã sẵn sàng để bán
+Published
+Đang được công khai bán
+Negotiating
+Đang trao đổi/đàm phán với khách
+Reserved
+Đã giữ chỗ
+Sold
+Đã bán
+Delivered
+Đã giao
+Hold
+Tạm dừng
+Cancelled
+Hủy
+Khách hàng cần xác nhận danh sách trạng thái và điều kiện chuyển trạng thái.
+12. Giá mua, chi phí và giá bán
+Giá mua/Goods Price.
+Auction/Tender fee nếu có.
+Chi phí vận chuyển.
+Chi phí inspection.
+Chi phí sửa chữa.
+Chi phí phụ tùng.
+Các chi phí khác.
+Tổng giá vốn.
+Giá bán/Asking Price.
+Giá bán thực tế.
+Lợi nhuận dự kiến.
+Lợi nhuận thực tế.
+Thông tin giá vốn, chi phí và lợi nhuận là dữ liệu nội bộ và cần được giới hạn theo quyền người dùng.
+13. Trang thông tin máy dành cho khách hàng
+Mỗi máy có thể tạo một trang thông tin riêng để nhân viên gửi trực tiếp cho khách hàng.
+13.1. Nội dung dự kiến
+Hình ảnh máy.
+Nhà sản xuất / Model.
+Năm sản xuất.
+Giờ hoạt động.
+Loại máy / nhiên liệu.
+Thông số kỹ thuật.
+Tình trạng máy.
+Kết quả kiểm tra được phép công khai.
+Thông tin sửa chữa được phép công khai.
+Giá bán hoặc thông tin liên hệ tùy chính sách.
+Stock No. hoặc mã tham chiếu.
+Thông tin liên hệ doanh nghiệp.
+13.2. Chia sẻ
+URL riêng cho từng máy.
+Copy link.
+QR Code.
+Chia sẻ qua các kênh liên lạc mà doanh nghiệp sử dụng.
+13.3. Thông tin không công khai
+Giá mua
+Chi phí sửa chữa chi tiết
+Tổng giá vốn
+Lợi nhuận/margin
+Thông tin nhà cung cấp nếu không được phép
+Ghi chú nội bộ
+14. Danh mục máy công khai
+Danh sách các máy đang được phép bán công khai.
+Tìm kiếm theo mã máy, Stock No., maker, model.
+Lọc theo chủng loại, nhiên liệu, năm, giờ hoạt động, tải trọng, vị trí, giá.
+Sắp xếp theo các tiêu chí phù hợp.
+Chỉ hiển thị các máy có trạng thái/thiết lập cho phép public.
+15. Khách hàng và yêu cầu mua hàng
+15.1. Thông tin khách hàng
+Tên công ty
+Người liên hệ
+Email
+Điện thoại
+LINE/WhatsApp hoặc kênh liên hệ khác
+Ghi chú
+15.2. Inquiry
+Khách có thể gửi yêu cầu ngay trên trang của máy.
+Inquiry tự động gắn với máy mà khách đang xem.
+Lưu ngày giờ, nội dung yêu cầu và thông tin liên hệ.
+Nhân viên có thể cập nhật trạng thái xử lý.
+Có lịch sử trao đổi/xử lý.
+15.3. Trạng thái inquiry dự kiến
+New
+Contacted
+Negotiating
+Quoted
+Won
+Lost
+16. Báo giá, giữ chỗ và bán hàng
+Tạo báo giá từ inquiry.
+Báo giá gắn với khách hàng và máy.
+Có thể cập nhật giá và điều kiện bán.
+Có thể đánh dấu máy đã được giữ chỗ.
+Khi hoàn tất bán, lưu thông tin giao dịch.
+Lưu khách hàng, máy, giá bán, người phụ trách và ngày bán.
+Theo dõi trạng thái từ inquiry → quotation → reservation → sold → delivered.
+17. Lịch sử máy / Timeline
+Mỗi máy cần có lịch sử xuyên suốt vòng đời.
+Sự kiện
+Ví dụ
+Purchase
+Mua máy từ tender/auction
+Received
+Máy về kho
+Inspection
+Kiểm tra máy
+Repair
+Phát sinh/sửa chữa hạng mục
+Location Change
+Chuyển yard/kho
+Published
+Đưa máy lên bán
+Inquiry
+Khách hỏi máy
+Price Change
+Thay đổi giá
+Reserved
+Khách giữ máy
+Sold
+Hoàn tất bán
+Delivered
+Hoàn tất giao
+18. Dashboard và kiểm soát
+Tổng số máy hiện có.
+Số máy theo từng trạng thái.
+Số máy theo chủng loại/nhà sản xuất.
+Số máy theo vị trí.
+Máy đang inspection/repair.
+Máy đã sẵn sàng bán.
+Máy đang public.
+Máy đang đàm phán/reserved/sold.
+Máy tồn kho lâu.
+Inquiry chưa xử lý.
+Tổng giá trị inventory và các chỉ số kinh doanh phù hợp với quyền người dùng.
+19. Lịch sử thay đổi và kiểm soát
+Ghi nhận ai đã thực hiện thay đổi.
+Ghi nhận thời gian thay đổi.
+Đối với dữ liệu quan trọng, lưu giá trị trước và sau khi thay đổi.
+Các trường cần kiểm soát gồm: status, location, condition, inspection, price, cost, customer và sales.
+Người dùng không có quyền không được sửa/xóa lịch sử.
+20. Phân biệt thông tin nội bộ và thông tin khách hàng
+Thông tin
+Nội bộ
+Khách hàng
+Maker / Model / Year / Hours
+✓
+✓
+Thông số kỹ thuật
+✓
+✓
+Tình trạng máy
+✓
+✓
+Ảnh máy được phép public
+✓
+✓
+Inspection summary được phép public
+✓
+✓
+Repair history được phép public
+✓
+✓
+Giá mua
+✓
+✗
+Chi phí sửa chữa chi tiết
+✓
+✗
+Tổng giá vốn
+✓
+✗
+Lợi nhuận / Margin
+✓
+✗
+Supplier / Auction information
+✓
+Theo chính sách
+Internal notes
+✓
+✗
+21. Quy tắc nghiệp vụ cần xác nhận
+Một máy có thể được bán cho nhiều khách cùng lúc hay chỉ một inquiry active tại một thời điểm?
+Ai có quyền chuyển máy sang Ready/P​​ublished?
+Có bắt buộc inspection trước khi Published không?
+Có bắt buộc repair trước khi Published nếu inspection phát hiện lỗi không? CÓ
+Giá bán có công khai trên public page không? CÓ
+Có cần hiển thị tình trạng theo mức Good/Fair/Needs Repair/NG không? CÓ
+Inspection checklist có giống nhau cho mọi loại máy hay thay đổi theo category?
+Khách hàng có được xem toàn bộ inspection report hay chỉ summary? Mở hết những thông tin xe và giá cho khách a
+Repair history nào được phép công khai?
+Có cần quản lý bảo hành không? KO 
+Có cần quản lý vận chuyển/giao hàng và chứng từ không? 
+Có cần quản lý supplier/vendor không?
+Có cần nhiều currency không? KO
+Có cần hỗ trợ tiếng Nhật và tiếng Anh ngoài tiếng Việt không? TIẾNG VIỆT và Tiếng Anh
+Có cần gửi thông báo inquiry tự động cho sales không?
+Có cần quotation theo mẫu cố định của công ty không? KO
+Có cần quản lý invoice/accounting hay chỉ sales information? ko cần quản lý invoice
+Có cần tích hợp các nguồn tender/auction khác ngoài file hiện tại không? KO
+Có cần QR Code dán trực tiếp trên từng máy không? CÓ
+22. Tiêu chí xác nhận phạm vi
+Khách hàng xác nhận các nhóm chức năng trong tài liệu.
+Khách hàng xác nhận danh sách thông tin bắt buộc của một máy.
+Khách hàng xác nhận các trạng thái và workflow.
+Khách hàng xác nhận nội dung inspection và repair.
+Khách hàng xác nhận thông tin nào được public và thông tin nào chỉ nội bộ.
+Khách hàng xác nhận cách khách hàng liên hệ từ trang máy.
+Khách hàng xác nhận các nghiệp vụ quotation/reservation/sales có nằm trong phạm vi hay không.
+Các yêu cầu phát sinh sau khi xác nhận tài liệu này sẽ được xem xét như yêu cầu bổ sung/thay đổi phạm vi.
+23. Xác nhận
+Sau khi review, vui lòng xác nhận các nội dung trên hoặc ghi chú các điểm cần thay đổi/bổ sung.
+Hạng mục
+Xác nhận
+Phạm vi chức năng
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Thông tin máy
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Inspection / Condition
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Repair / Maintenance
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Public Product Page
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Customer / Inquiry
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Quotation / Sales
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Dashboard / History
+☐ Đồng ý  ☐ Cần chỉnh sửa
+Ghi chú / yêu cầu bổ sung:
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
