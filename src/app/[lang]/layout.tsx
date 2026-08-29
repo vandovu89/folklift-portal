@@ -12,13 +12,16 @@ export const metadata: Metadata = {
   description: "Hệ thống quản lý và bán xe nâng",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }>) {
+  const resolvedParams = await params;
   return (
-    <html lang="vi">
+    <html lang={resolvedParams.lang}>
       <body className={`${inter.variable}`}>
         {children}
       </body>

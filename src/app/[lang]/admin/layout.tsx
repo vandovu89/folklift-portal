@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaTractor, FaChartPie, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import styles from './admin.module.css';
 
@@ -11,6 +11,16 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch(e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className={styles.adminLayout}>
@@ -42,7 +52,7 @@ export default function AdminLayout({
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
-          <button className={styles.navItem} style={{ width: '100%', textAlign: 'left' }}>
+          <button onClick={handleLogout} className={styles.navItem} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}>
             <FaSignOutAlt /> Đăng xuất
           </button>
         </div>

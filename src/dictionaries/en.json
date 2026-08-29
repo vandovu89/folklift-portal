@@ -1,0 +1,32 @@
+{
+  "common": {
+    "search": "Search",
+    "all": "All",
+    "view_detail": "View Details",
+    "contact": "Contact Now",
+    "back": "Go Back"
+  },
+  "home": {
+    "title": "Forklift Catalog",
+    "subtitle": "Search and discover high-quality forklifts with transparent and detailed information.",
+    "search_placeholder": "Enter maker, model or stock no...",
+    "empty_state": "No matching forklifts found."
+  },
+  "machine": {
+    "specifications": "Specifications",
+    "maker": "Maker",
+    "model": "Model",
+    "year": "Year",
+    "hour": "Hours",
+    "powerType": "Power Type",
+    "category": "Category",
+    "mast": "Mast",
+    "attachment": "Attachment",
+    "liftHeight": "Max Lift Height (mm)",
+    "loadCapacity": "Max Load (kg)",
+    "condition": "Condition",
+    "engineCondition": "Engine Condition",
+    "location": "Location",
+    "price": "Asking Price"
+  }
+}

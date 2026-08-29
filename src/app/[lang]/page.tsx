@@ -1,10 +1,15 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
+import { getDictionary } from '@/dictionaries';
+import LangSwitcher from '@/components/LangSwitcher';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PublicCatalog() {
+export default async function PublicCatalog({ params }: { params: Promise<{ lang: 'en' | 'vi' }> }) {
+  const resolvedParams = await params;
+  const dict = await getDictionary(resolvedParams.lang);
+
   const forklifts = await prisma.forklift.findMany({
     where: { status: 'Published' },
     orderBy: { createdAt: 'desc' }
@@ -12,19 +17,22 @@ export default async function PublicCatalog() {
 
   return (
     <div>
-      <header style={{ padding: '3rem 5%', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', color: 'white', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 800 }}>Tâm Phát Forklift</h1>
-        <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>Danh mục xe nâng chất lượng cao, giá tốt nhất thị trường</p>
+      <header style={{ padding: '3rem 5%', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', color: 'white', textAlign: 'center', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}>
+          <LangSwitcher currentLang={resolvedParams.lang} />
+        </div>
+        <h1 style={{ fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 800 }}>{dict.home.title}</h1>
+        <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>{dict.home.subtitle}</p>
       </header>
 
       <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>Danh sách xe đang bán ({forklifts.length})</h2>
+          <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{dict.home.title} ({forklifts.length})</h2>
         </div>
 
         {forklifts.length === 0 ? (
           <div className="glass-panel" style={{ padding: '4rem', textAlign: 'center' }}>
-            <h3 style={{ color: '#666' }}>Hiện tại chưa có xe nâng nào được đăng bán.</h3>
+            <h3 style={{ color: '#666' }}>{dict.home.empty_state}</h3>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
@@ -50,10 +58,10 @@ export default async function PublicCatalog() {
 
                   <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: '800', color: 'var(--danger)', fontSize: '1.15rem' }}>
-                      {fl.price ? `${fl.price.toLocaleString('vi-VN')} ₫` : 'Liên hệ'}
+                      {fl.price ? `${fl.price.toLocaleString('vi-VN')} ₫` : dict.common.contact}
                     </div>
-                    <Link href={`/machine/${fl.id}`} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                      Xem Chi Tiết
+                    <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                      {dict.common.view_detail}
                     </Link>
                   </div>
                 </div>

@@ -1,0 +1,32 @@
+{
+  "common": {
+    "search": "Tìm kiếm",
+    "all": "Tất cả",
+    "view_detail": "Xem chi tiết",
+    "contact": "Liên hệ ngay",
+    "back": "Quay lại"
+  },
+  "home": {
+    "title": "Danh sách Xe nâng",
+    "subtitle": "Tìm kiếm và tra cứu các dòng xe nâng chất lượng cao với thông tin minh bạch, chi tiết.",
+    "search_placeholder": "Nhập tên hãng, model hoặc mã xe...",
+    "empty_state": "Không tìm thấy xe nâng nào phù hợp."
+  },
+  "machine": {
+    "specifications": "Thông số Kỹ thuật",
+    "maker": "Hãng sản xuất",
+    "model": "Model",
+    "year": "Năm sản xuất",
+    "hour": "Giờ hoạt động",
+    "powerType": "Nhiên liệu",
+    "category": "Loại xe",
+    "mast": "Khung nâng",
+    "attachment": "Phụ kiện",
+    "liftHeight": "Chiều cao nâng (mm)",
+    "loadCapacity": "Tải trọng (kg)",
+    "condition": "Tình trạng chung",
+    "engineCondition": "Tình trạng động cơ",
+    "location": "Vị trí",
+    "price": "Giá bán đề xuất"
+  }
+}
