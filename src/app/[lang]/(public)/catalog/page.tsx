@@ -23,15 +23,7 @@ export default async function PublicCatalog({ params }: { params: Promise<{ lang
 
   return (
     <div>
-      <header style={{ padding: '3rem 5%', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', color: 'white', textAlign: 'center', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}>
-          <LangSwitcher currentLang={resolvedParams.lang} />
-        </div>
-        <h1 style={{ fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 800 }}>{dict.home.title}</h1>
-        <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>{dict.home.subtitle}</p>
-      </header>
-
-      <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto' }}>
+      <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto', minHeight: '80vh' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{dict.home.title} ({forklifts.length})</h2>
         </div>

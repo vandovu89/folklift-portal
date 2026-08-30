@@ -27,12 +27,10 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
   return (
     <div>
-      <header style={{ padding: '1rem 5%', background: 'var(--surface)', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href={`/${resolvedParams.lang}`} style={{ color: 'var(--primary)', fontWeight: '600' }}>&larr; {dict.common.back}</Link>
-        <LangSwitcher currentLang={resolvedParams.lang} />
-      </header>
-      
       <main style={{ padding: '3rem 5%', maxWidth: '1200px', margin: '0 auto' }}>
+        <Link href={`/${resolvedParams.lang}/catalog`} style={{ color: 'var(--primary)', fontWeight: '600', display: 'inline-block', marginBottom: '1.5rem', textDecoration: 'none' }}>
+          &larr; {dict.common.back}
+        </Link>
         <div className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
           
           <div style={{ flex: '1 1 500px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>

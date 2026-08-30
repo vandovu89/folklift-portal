@@ -6,6 +6,22 @@
     "contact": "Liên hệ ngay",
     "back": "Quay lại"
   },
+  "nav": {
+    "home": "Trang chủ",
+    "catalog": "Sản phẩm",
+    "about": "Về chúng tôi",
+    "policies": "Chính sách",
+    "contact": "Liên hệ"
+  },
+  "footer": {
+    "company_name": "Công ty TNHH Kyowa Forklift Việt Nam",
+    "address": "Lô 1, Khu Công Nghiệp ABC, TP Hà Nội",
+    "hotline": "Hotline: 090 123 4567",
+    "email": "Email: contact@kyowaforklift.vn",
+    "quick_links": "Liên kết nhanh",
+    "follow_us": "Kết nối với chúng tôi",
+    "rights": "© 2026 Kyowa Forklift. All rights reserved."
+  },
   "home": {
     "title": "Danh sách Xe nâng",
     "subtitle": "Tìm kiếm và tra cứu các dòng xe nâng chất lượng cao với thông tin minh bạch, chi tiết.",

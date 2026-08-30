@@ -105,6 +105,33 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.hover-lift {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.hover-lift-sm {
+  transition: transform 0.3s ease;
+}
+.hover-lift-sm:hover {
+  transform: translateY(-10px);
+}
+
+.hover-scale {
+  transition: transform 0.5s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
   background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);

@@ -3,8 +3,24 @@
     "search": "Search",
     "all": "All",
     "view_detail": "View Details",
-    "contact": "Contact Now",
-    "back": "Go Back"
+    "contact": "Contact Us",
+    "back": "Back"
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Products",
+    "about": "About Us",
+    "policies": "Policies",
+    "contact": "Contact"
+  },
+  "footer": {
+    "company_name": "Kyowa Forklift Vietnam Co., Ltd",
+    "address": "Lot 1, ABC Industrial Zone, Hanoi City",
+    "hotline": "Hotline: (+84) 90 123 4567",
+    "email": "Email: contact@kyowaforklift.vn",
+    "quick_links": "Quick Links",
+    "follow_us": "Follow Us",
+    "rights": "© 2026 Kyowa Forklift. All rights reserved."
   },
   "home": {
     "title": "Forklift Catalog",
