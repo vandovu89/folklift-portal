@@ -15,17 +15,19 @@ export default function LangSwitcher({ currentLang }: { currentLang: string }) {
   };
 
   return (
-    <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.5rem', borderRadius: '8px' }}>
+    <div style={{ display: 'inline-flex', gap: '0.2rem', alignItems: 'center', background: 'var(--surface-border)', padding: '0.3rem', borderRadius: '10px' }}>
       <Link 
         href={getNewPath('vi')} 
         style={{ 
-          padding: '0.2rem 0.6rem', 
-          borderRadius: '4px', 
+          padding: '0.4rem 0.8rem', 
+          borderRadius: '8px', 
           background: currentLang === 'vi' ? 'white' : 'transparent',
-          color: currentLang === 'vi' ? 'var(--primary)' : 'white',
+          color: currentLang === 'vi' ? 'var(--primary)' : '#64748b',
           textDecoration: 'none',
-          fontWeight: 'bold',
-          fontSize: '0.85rem'
+          fontWeight: currentLang === 'vi' ? '700' : '600',
+          fontSize: '0.85rem',
+          boxShadow: currentLang === 'vi' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+          transition: 'all 0.2s'
         }}
       >
         VI
@@ -33,13 +35,15 @@ export default function LangSwitcher({ currentLang }: { currentLang: string }) {
       <Link 
         href={getNewPath('en')} 
         style={{ 
-          padding: '0.2rem 0.6rem', 
-          borderRadius: '4px', 
+          padding: '0.4rem 0.8rem', 
+          borderRadius: '8px', 
           background: currentLang === 'en' ? 'white' : 'transparent',
-          color: currentLang === 'en' ? 'var(--primary)' : 'white',
+          color: currentLang === 'en' ? 'var(--primary)' : '#64748b',
           textDecoration: 'none',
-          fontWeight: 'bold',
-          fontSize: '0.85rem'
+          fontWeight: currentLang === 'en' ? '700' : '600',
+          fontSize: '0.85rem',
+          boxShadow: currentLang === 'en' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+          transition: 'all 0.2s'
         }}
       >
         EN
