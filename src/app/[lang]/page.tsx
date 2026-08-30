@@ -12,7 +12,13 @@ export default async function PublicCatalog({ params }: { params: Promise<{ lang
 
   const forklifts = await prisma.forklift.findMany({
     where: { status: 'Published' },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    include: {
+      media: {
+        where: { isPublic: true, fileType: 'IMAGE' },
+        take: 1
+      }
+    }
   });
 
   return (
@@ -38,8 +44,13 @@ export default async function PublicCatalog({ params }: { params: Promise<{ lang
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {forklifts.map((fl) => (
               <div key={fl.id} className="glass-panel" style={{ overflow: 'hidden', transition: 'var(--transition)' }}>
-                <div style={{ height: '220px', background: 'var(--surface-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                  [ Hình ảnh {fl.maker} ]
+                <div style={{ height: '220px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', borderBottom: '1px solid var(--surface-border)' }}>
+                  {fl.media && fl.media.length > 0 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={fl.media[0].url} alt={fl.model} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    `[ Hình ảnh ${fl.maker} ]`
+                  )}
                 </div>
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>

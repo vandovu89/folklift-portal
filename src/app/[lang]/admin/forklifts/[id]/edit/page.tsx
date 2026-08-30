@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../forklifts.module.css';
+import MediaManager from '@/components/MediaManager';
 
 export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -221,6 +222,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           </button>
         </div>
       </form>
+
+      <MediaManager forkliftId={resolvedParams.id} />
     </div>
   );
 }

@@ -10,7 +10,12 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
   const dict = await getDictionary(resolvedParams.lang);
   
   const forklift = await prisma.forklift.findUnique({
-    where: { id: resolvedParams.id }
+    where: { id: resolvedParams.id },
+    include: {
+      media: {
+        where: { isPublic: true, fileType: 'IMAGE' }
+      }
+    }
   });
 
   if (!forklift) {
@@ -30,8 +35,23 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
       <main style={{ padding: '3rem 5%', maxWidth: '1200px', margin: '0 auto' }}>
         <div className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
           
-          <div style={{ flex: '1 1 500px', background: 'var(--surface-border)', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <h2>[ Hình Ảnh Chi Tiết ]</h2>
+          <div style={{ flex: '1 1 500px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+            {forklift.media && forklift.media.length > 0 ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={forklift.media[0].url} alt="Main" style={{ width: '100%', height: '400px', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px' }} />
+                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                  {forklift.media.slice(1).map((m) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={m.id} src={m.url} alt="Thumb" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #ddd' }} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-border)', color: '#888', borderRadius: '8px' }}>
+                Chưa có hình ảnh public
+              </div>
+            )}
           </div>
 
           <div style={{ flex: '1 1 400px', padding: '2.5rem' }}>
