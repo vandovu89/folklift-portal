@@ -150,7 +150,7 @@ export default function AddForkliftPage() {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Giá Bán Đề Xuất (VND)</label>
+              <label className="form-label">Giá Bán Đề Xuất (JPY)</label>
               <input type="number" name="price" value={formData.price} onChange={handleChange} className="form-control" />
             </div>
           </div>

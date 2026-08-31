@@ -4,6 +4,7 @@ import QRCodeComponent from './QRCodeComponent';
 import { notFound } from 'next/navigation';
 import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
+import PublicImageSlider from '@/components/PublicImageSlider';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: 'en' | 'vi' }> }) {
   const resolvedParams = await params;
@@ -22,8 +23,9 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
     notFound();
   }
 
-  // URL giả định cho QR Code
-  const qrUrl = `https://forklift.example.com/machine/${forklift.id}`;
+  // Lấy domain hiện tại để tạo QR code (Ưu tiên NEXT_PUBLIC_BASE_URL, nếu không có thì dùng hardcode tạm)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://folklift.hdsoft.io.vn';
+  const qrUrl = `${baseUrl}/${resolvedParams.lang}/machine/${forklift.id}`;
 
   return (
     <div>
@@ -34,22 +36,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
         <div className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
           
           <div style={{ flex: '1 1 500px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
-            {forklift.media && forklift.media.length > 0 ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={forklift.media[0].url} alt="Main" style={{ width: '100%', height: '400px', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px' }} />
-                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                  {forklift.media.slice(1).map((m) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img key={m.id} src={m.url} alt="Thumb" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer', border: '1px solid #ddd' }} />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-border)', color: '#888', borderRadius: '8px' }}>
-                Chưa có hình ảnh public
-              </div>
-            )}
+            <PublicImageSlider media={forklift.media} />
           </div>
 
           <div style={{ flex: '1 1 400px', padding: '2.5rem' }}>
@@ -67,7 +54,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <div style={{ margin: '2rem 0', padding: '1.5rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
               <div style={{ fontSize: '0.9rem', color: '#666' }}>{dict.machine.price}:</div>
               <div style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--danger)' }}>
-                {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} ₫` : dict.common.contact}
+                {forklift.price ? `¥ ${forklift.price.toLocaleString('ja-JP')}` : dict.common.contact}
               </div>
             </div>
 

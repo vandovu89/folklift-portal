@@ -4,14 +4,40 @@ import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 
+import PublicCatalogFilter from './PublicCatalogFilter';
+
 export const dynamic = 'force-dynamic';
 
-export default async function PublicCatalog({ params }: { params: Promise<{ lang: 'en' | 'vi' }> }) {
+export default async function PublicCatalog({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ lang: 'en' | 'vi' }>,
+  searchParams: Promise<{ q?: string, maker?: string, powerType?: string }>
+}) {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const dict = await getDictionary(resolvedParams.lang);
 
+  const whereClause: any = { status: 'Published' };
+
+  if (resolvedSearchParams.q) {
+    whereClause.OR = [
+      { maker: { contains: resolvedSearchParams.q } },
+      { model: { contains: resolvedSearchParams.q } }
+    ];
+  }
+
+  if (resolvedSearchParams.maker) {
+    whereClause.maker = resolvedSearchParams.maker;
+  }
+
+  if (resolvedSearchParams.powerType) {
+    whereClause.powerType = resolvedSearchParams.powerType;
+  }
+
   const forklifts = await prisma.forklift.findMany({
-    where: { status: 'Published' },
+    where: whereClause,
     orderBy: { createdAt: 'desc' },
     include: {
       media: {
@@ -24,6 +50,9 @@ export default async function PublicCatalog({ params }: { params: Promise<{ lang
   return (
     <div>
       <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto', minHeight: '80vh' }}>
+        
+        <PublicCatalogFilter lang={resolvedParams.lang} />
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{dict.home.title} ({forklifts.length})</h2>
         </div>
@@ -55,13 +84,13 @@ export default async function PublicCatalog({ params }: { params: Promise<{ lang
                       <FaCalendarAlt /> {fl.year || 'N/A'}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      {fl.powerType === 'Battery' ? <FaBatteryFull /> : <FaGasPump />} {fl.powerType}
+                      {fl.powerType === 'BATTERY' ? <FaBatteryFull /> : <FaGasPump />} {fl.powerType}
                     </div>
                   </div>
 
                   <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: '800', color: 'var(--danger)', fontSize: '1.15rem' }}>
-                      {fl.price ? `${fl.price.toLocaleString('vi-VN')} ₫` : dict.common.contact}
+                      {fl.price ? `¥ ${fl.price.toLocaleString('ja-JP')}` : dict.common.contact}
                     </div>
                     <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
                       {dict.common.view_detail}
