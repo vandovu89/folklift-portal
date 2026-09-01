@@ -6,16 +6,16 @@ export default async function PublicLayout({
   params
 }: {
   children: React.ReactNode;
-  params: Promise<{ lang: 'en' | 'vi' }>;
+  params: Promise<{ lang: string }>;
 }) {
   const resolvedParams = await params;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--background)' }}>
-      <PublicNavbar lang={resolvedParams.lang} />
+      <PublicNavbar lang={resolvedParams.lang as 'en' | 'vi'} />
       <div style={{ flex: 1 }}>
         {children}
       </div>
-      <PublicFooter lang={resolvedParams.lang} />
+      <PublicFooter lang={resolvedParams.lang as 'en' | 'vi'} />
     </div>
   );
 }

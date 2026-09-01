@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getDictionary } from '@/dictionaries';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 
-export default async function HomePage({ params }: { params: Promise<{ lang: 'en' | 'vi' }> }) {
+export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang);
+  const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
   const featuredForklifts = await prisma.forklift.findMany({
     where: { status: 'Published' },

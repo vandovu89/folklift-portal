@@ -1,9 +1,9 @@
 import { getDictionary } from '@/dictionaries';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 
-export default async function ContactPage({ params }: { params: Promise<{ lang: 'en' | 'vi' }> }) {
+export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang);
+  const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
   return (
     <div style={{ background: 'var(--background)', minHeight: '80vh' }}>

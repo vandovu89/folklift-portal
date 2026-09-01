@@ -12,12 +12,12 @@ export default async function PublicCatalog({
   params,
   searchParams
 }: { 
-  params: Promise<{ lang: 'en' | 'vi' }>,
+  params: Promise<{ lang: string }>,
   searchParams: Promise<{ q?: string, maker?: string, powerType?: string }>
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
-  const dict = await getDictionary(resolvedParams.lang);
+  const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
   const whereClause: any = { status: 'Published' };
 
@@ -51,7 +51,7 @@ export default async function PublicCatalog({
     <div>
       <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto', minHeight: '80vh' }}>
         
-        <PublicCatalogFilter lang={resolvedParams.lang} />
+        <PublicCatalogFilter lang={resolvedParams.lang as 'en' | 'vi'} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{dict.home.title} ({forklifts.length})</h2>

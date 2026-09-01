@@ -6,9 +6,9 @@ import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 import PublicImageSlider from '@/components/PublicImageSlider';
 
-export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: 'en' | 'vi' }> }) {
+export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang);
+  const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
   
   const forklift = await prisma.forklift.findUnique({
     where: { id: resolvedParams.id },

@@ -1,8 +1,8 @@
 import { getDictionary } from '@/dictionaries';
 
-export default async function AboutPage({ params }: { params: Promise<{ lang: 'en' | 'vi' }> }) {
+export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
-  const dict = await getDictionary(resolvedParams.lang);
+  const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
   return (
     <div style={{ background: 'white', minHeight: '80vh' }}>
