@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import fs from 'fs';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -11,19 +16,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const media = await prisma.media.findUnique({ where: { id: mediaId } });
     if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Xóa file vật lý
-    const fileName = media.url.split('/').pop();
-    if (fileName) {
-      const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+    // Xóa file trên Cloudinary
+    if (media.publicId) {
+      await cloudinary.uploader.destroy(media.publicId);
     }
 
     await prisma.media.delete({ where: { id: mediaId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Delete error:', error);
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
   }
 }

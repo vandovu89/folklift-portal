@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Forklift {
@@ -67,6 +67,7 @@ model Media {
   fileType    String   // 'IMAGE' hoặc 'DOCUMENT'
   category    String?  // Tổng thể, Kỹ thuật, Tình trạng, Inspection Report...
   isPublic    Boolean  @default(false)
+  publicId    String?  // Dùng cho Cloudinary
   
   forkliftId  String
   forklift    Forklift @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
