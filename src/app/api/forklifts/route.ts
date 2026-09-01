@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         category: body.category,
         type: body.type,
         powerType: body.powerType,
-        status: body.status || 'Draft',
+        status: body.status || 'Published',
         price: body.price ? parseFloat(body.price) : null,
       },
     });

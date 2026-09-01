@@ -72,7 +72,7 @@ export async function POST(request: Request) {
           price: row[15] ? parseFloat(String(row[15])) : null,
           sourceUrl: row[18] ? String(row[18]) : null,
           offerDeadline: parseExcelDate(row[19]),
-          status: 'Draft',
+          status: 'Published',
         }
       });
       imported++;

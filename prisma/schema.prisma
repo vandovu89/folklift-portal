@@ -44,7 +44,7 @@ model Forklift {
 
   // Vị trí & Trạng thái
   location        String?
-  status          String    @default("Draft")
+  status          String    @default("Published")
   
   // Tình trạng (Cơ bản cho Phase 1)
   condition       String?

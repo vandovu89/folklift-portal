@@ -17,7 +17,7 @@ export default function AddForkliftPage() {
     hour: '',
     powerType: 'DIESEL',
     category: '',
-    status: 'Draft',
+    status: 'Published',
     price: '',
     mast: '',
     attachment: '',
