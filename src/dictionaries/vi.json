@@ -43,6 +43,13 @@
     "condition": "Tình trạng chung",
     "engineCondition": "Tình trạng động cơ",
     "location": "Vị trí",
+    "serialNo": "Số Serial",
+    "type": "Kiểu dáng",
+    "productGroup": "Nhóm sản phẩm",
+    "forkLength": "Chiều dài nĩa (mm)",
+    "dimensions": "Kích thước (DxRxC)",
+    "weight": "Trọng lượng (kg)",
+    "otherSpecs": "Thông số khác",
     "price": "Giá bán đề xuất"
   }
 }

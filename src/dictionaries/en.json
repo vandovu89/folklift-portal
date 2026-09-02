@@ -43,6 +43,13 @@
     "condition": "Condition",
     "engineCondition": "Engine Condition",
     "location": "Location",
+    "serialNo": "Serial No",
+    "type": "Type",
+    "productGroup": "Product Group",
+    "forkLength": "Fork Length (mm)",
+    "dimensions": "Dimensions (LxWxH)",
+    "weight": "Weight (kg)",
+    "otherSpecs": "Other Specs",
     "price": "Asking Price"
   }
 }

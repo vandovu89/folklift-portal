@@ -64,26 +64,33 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
               <tbody>
-                <tr>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{dict.machine.maker}</td>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{forklift.maker}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{dict.machine.model}</td>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{forklift.model}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{dict.machine.year}</td>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{forklift.year || '-'}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{dict.machine.hour}</td>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{forklift.hour || '-'}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{dict.machine.powerType}</td>
-                  <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{forklift.powerType || '-'}</td>
-                </tr>
+                {[
+                  { label: dict.machine.maker, value: forklift.maker },
+                  { label: dict.machine.model, value: forklift.model },
+                  { label: dict.machine.serialNo, value: forklift.serialNo },
+                  { label: dict.machine.year, value: forklift.year },
+                  { label: dict.machine.hour, value: forklift.hour },
+                  { label: dict.machine.powerType, value: forklift.powerType },
+                  { label: dict.machine.category, value: forklift.category },
+                  { label: dict.machine.type, value: forklift.type },
+                  { label: dict.machine.productGroup, value: forklift.productGroup },
+                  { label: dict.machine.mast, value: forklift.mast },
+                  { label: dict.machine.liftHeight, value: forklift.liftHeight },
+                  { label: dict.machine.loadCapacity, value: forklift.loadCapacity },
+                  { label: dict.machine.attachment, value: forklift.attachment },
+                  { label: dict.machine.forkLength, value: forklift.forkLength },
+                  { label: dict.machine.dimensions, value: forklift.dimensions },
+                  { label: dict.machine.weight, value: forklift.weight },
+                  { label: dict.machine.condition, value: forklift.condition },
+                  { label: dict.machine.engineCondition, value: forklift.engineCondition },
+                  { label: dict.machine.location, value: forklift.location },
+                  { label: dict.machine.otherSpecs, value: forklift.otherSpecs },
+                ].map((spec, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{spec.label}</td>
+                    <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
 
