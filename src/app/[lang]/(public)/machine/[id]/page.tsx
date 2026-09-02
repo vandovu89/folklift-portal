@@ -58,11 +58,21 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem', borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '0.3rem' }}>
-              {dict.machine.specifications}
-            </h3>
-            
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+            <div style={{ marginTop: '3rem' }}>
+              <button className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
+                {dict.common.contact}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-panel" style={{ marginTop: '2rem', padding: '2.5rem' }}>
+          <h3 style={{ marginBottom: '2rem', fontSize: '1.5rem', borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '0.5rem' }}>
+            {dict.machine.specifications}
+          </h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 {[
                   { label: dict.machine.maker, value: forklift.maker },
@@ -75,6 +85,18 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.type, value: forklift.type },
                   { label: dict.machine.productGroup, value: forklift.productGroup },
                   { label: dict.machine.mast, value: forklift.mast },
+                ].map((spec, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '45%' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                {[
                   { label: dict.machine.liftHeight, value: forklift.liftHeight },
                   { label: dict.machine.loadCapacity, value: forklift.loadCapacity },
                   { label: dict.machine.attachment, value: forklift.attachment },
@@ -87,18 +109,12 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.otherSpecs, value: forklift.otherSpecs },
                 ].map((spec, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666' }}>{spec.label}</td>
-                    <td style={{ padding: '0.8rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
+                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '45%' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            <div style={{ marginTop: '3rem' }}>
-              <button className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
-                {dict.common.contact}
-              </button>
-            </div>
           </div>
         </div>
       </main>
