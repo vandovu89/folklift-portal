@@ -11,11 +11,13 @@ export default function PublicCatalogFilter({ lang }: { lang: 'en' | 'vi' }) {
   const [q, setQ] = useState(searchParams.get('q') || '');
   const [maker, setMaker] = useState(searchParams.get('maker') || '');
   const [powerType, setPowerType] = useState(searchParams.get('powerType') || '');
+  const [category, setCategory] = useState(searchParams.get('category') || '');
 
   useEffect(() => {
     setQ(searchParams.get('q') || '');
     setMaker(searchParams.get('maker') || '');
     setPowerType(searchParams.get('powerType') || '');
+    setCategory(searchParams.get('category') || '');
   }, [searchParams]);
 
   const handleFilter = (e: React.FormEvent) => {
@@ -24,6 +26,7 @@ export default function PublicCatalogFilter({ lang }: { lang: 'en' | 'vi' }) {
     if (q.trim()) params.set('q', q.trim());
     if (maker) params.set('maker', maker);
     if (powerType) params.set('powerType', powerType);
+    if (category) params.set('category', category);
     
     router.push(`/${lang}/catalog?${params.toString()}`);
   };
@@ -41,6 +44,22 @@ export default function PublicCatalogFilter({ lang }: { lang: 'en' | 'vi' }) {
           placeholder={lang === 'vi' ? "Tên máy, model..." : "Model name..."}
           style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
         />
+      </div>
+      <div style={{ flex: '1 1 120px' }}>
+        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>
+          {lang === 'vi' ? 'Loại xe' : 'Type'}
+        </label>
+        <select 
+          value={category} 
+          onChange={e => setCategory(e.target.value)} 
+          className="form-control"
+          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
+        >
+          <option value="">-- {lang === 'vi' ? 'Tất cả' : 'All'} --</option>
+          <option value="COUNTER">Counter</option>
+          <option value="REACH">Reach</option>
+          <option value="OTHER">Other</option>
+        </select>
       </div>
       <div style={{ flex: '1 1 150px' }}>
         <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>

@@ -5,10 +5,11 @@ import ForkliftFilter from './ForkliftFilter';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ForkliftsPage({ searchParams }: { searchParams: Promise<{ q?: string, status?: string }> }) {
+export default async function ForkliftsPage({ searchParams }: { searchParams: Promise<{ q?: string, status?: string, category?: string }> }) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q || '';
   const status = resolvedParams.status || '';
+  const category = resolvedParams.category || '';
 
   const whereClause: any = {};
   
@@ -23,6 +24,10 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
   
   if (status) {
     whereClause.status = status;
+  }
+  
+  if (category) {
+    whereClause.category = category;
   }
 
   const forklifts = await prisma.forklift.findMany({

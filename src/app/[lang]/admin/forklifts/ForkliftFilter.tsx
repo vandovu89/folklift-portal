@@ -10,11 +10,13 @@ export default function ForkliftFilter() {
   
   const [q, setQ] = useState(searchParams.get('q') || '');
   const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [category, setCategory] = useState(searchParams.get('category') || '');
 
   // Reset form nếu URL bị thay đổi từ bên ngoài (ví dụ back button)
   useEffect(() => {
     setQ(searchParams.get('q') || '');
     setStatus(searchParams.get('status') || '');
+    setCategory(searchParams.get('category') || '');
   }, [searchParams]);
 
   const handleFilter = (e: React.FormEvent) => {
@@ -22,6 +24,7 @@ export default function ForkliftFilter() {
     const params = new URLSearchParams();
     if (q.trim()) params.set('q', q.trim());
     if (status) params.set('status', status);
+    if (category) params.set('category', category);
     
     router.push(`/admin/forklifts?${params.toString()}`);
   };
@@ -38,6 +41,17 @@ export default function ForkliftFilter() {
           className="form-control" 
           placeholder="Nhập từ khóa tìm kiếm..." 
         />
+      </div>
+      <div style={{ width: '150px' }}>
+        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+          Loại (Type 2)
+        </label>
+        <select value={category} onChange={e => setCategory(e.target.value)} className="form-control">
+          <option value="">-- Tất cả --</option>
+          <option value="COUNTER">Counter (Ngồi lái)</option>
+          <option value="REACH">Reach (Đứng lái)</option>
+          <option value="OTHER">Other (Khác)</option>
+        </select>
       </div>
       <div style={{ width: '200px' }}>
         <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>

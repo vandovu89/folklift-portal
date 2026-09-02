@@ -13,7 +13,7 @@ export default async function PublicCatalog({
   searchParams
 }: { 
   params: Promise<{ lang: string }>,
-  searchParams: Promise<{ q?: string, maker?: string, powerType?: string }>
+  searchParams: Promise<{ q?: string, maker?: string, powerType?: string, category?: string }>
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
@@ -34,6 +34,10 @@ export default async function PublicCatalog({
 
   if (resolvedSearchParams.powerType) {
     whereClause.powerType = resolvedSearchParams.powerType;
+  }
+
+  if (resolvedSearchParams.category) {
+    whereClause.category = resolvedSearchParams.category;
   }
 
   const forklifts = await prisma.forklift.findMany({
