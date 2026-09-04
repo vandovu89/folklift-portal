@@ -31,7 +31,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       }}>
         <div style={{ maxWidth: '900px', animation: 'fadeInUp 1s ease-out' }}>
           <span style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Kyowa Forklift Vietnam
+            Việt Nhật
           </span>
           <h1 style={{ fontSize: '4.5rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             {resolvedParams.lang === 'vi' ? 'Giải Pháp Nâng Hạ Toàn Diện' : 'Comprehensive Forklift Solutions'}

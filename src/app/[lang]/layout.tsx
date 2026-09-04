@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Forklift Portal",
-  description: "Hệ thống quản lý và bán xe nâng",
+  title: "Việt Nhật Forklift",
+  description: "Hệ thống phân phối và bán xe nâng Việt Nhật",
 };
 
 export default async function RootLayout({

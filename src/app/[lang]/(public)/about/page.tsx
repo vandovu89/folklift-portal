@@ -10,9 +10,9 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
         <h1 style={{ fontSize: '3rem', fontWeight: 800 }}>{dict.nav.about}</h1>
       </div>
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '5rem 5%', fontSize: '1.1rem', lineHeight: 1.8, color: '#333' }}>
-        <h2 style={{ color: 'var(--primary)', marginBottom: '1.5rem', fontSize: '2rem' }}>Câu chuyện của Kyowa Forklift</h2>
+        <h2 style={{ color: 'var(--primary)', marginBottom: '1.5rem', fontSize: '2rem' }}>Câu chuyện của Việt Nhật</h2>
         <p style={{ marginBottom: '2rem' }}>
-          Kyowa Forklift được thành lập với sứ mệnh mang đến giải pháp nâng hạ tối ưu nhất cho các doanh nghiệp Việt Nam. 
+          Việt Nhật được thành lập với sứ mệnh mang đến giải pháp nâng hạ tối ưu nhất cho các doanh nghiệp Việt Nam. 
           Kế thừa công nghệ và quy chuẩn khắt khe từ Nhật Bản, chúng tôi cam kết chất lượng trên từng chiếc xe nâng được bán ra.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', marginTop: '4rem' }}>

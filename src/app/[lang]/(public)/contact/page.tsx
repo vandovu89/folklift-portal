@@ -1,5 +1,5 @@
 import { getDictionary } from '@/dictionaries';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaUniversity } from 'react-icons/fa';
 
 export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
@@ -15,7 +15,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
         <div style={{ flex: '1 1 400px' }}>
           <h2 style={{ fontSize: '2rem', color: 'var(--foreground)', marginBottom: '1rem', fontWeight: 800 }}>Hãy liên hệ với chúng tôi</h2>
           <p style={{ color: '#666', marginBottom: '3rem', fontSize: '1.1rem', lineHeight: 1.6 }}>
-            Đội ngũ tư vấn của Kyowa Forklift luôn sẵn sàng giải đáp mọi thắc mắc của bạn về sản phẩm, dịch vụ và kỹ thuật.
+            Đội ngũ tư vấn của Việt Nhật luôn sẵn sàng giải đáp mọi thắc mắc của bạn về sản phẩm, dịch vụ và kỹ thuật.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -30,11 +30,11 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             </div>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
               <div style={{ width: '50px', height: '50px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
-                <FaPhoneAlt color="var(--primary)" size={20} />
+                <FaUniversity color="var(--primary)" size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.3rem', color: 'var(--foreground)' }}>Hotline Hỗ trợ</h3>
-                <p style={{ color: '#666', lineHeight: 1.5 }}>{dict.footer.hotline}</p>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.3rem', color: 'var(--foreground)' }}>Tài khoản ngân hàng</h3>
+                <p style={{ color: '#666', lineHeight: 1.5 }}>{dict.footer.bank}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>

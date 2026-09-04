@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getDictionary } from '@/dictionaries';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaUniversity } from 'react-icons/fa';
 
 export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
   const dict = await getDictionary(lang);
@@ -11,9 +11,9 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
         
         {/* Company Info */}
         <div>
-          <h3 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '1.5rem', color: '#38bdf8' }}>
-            KYOWA<span style={{ color: 'white' }}>FORKLIFT</span>
-          </h3>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
+          </div>
           <p style={{ opacity: 0.8, marginBottom: '2rem', lineHeight: 1.6, fontSize: '1.1rem' }}>
             {dict.footer.company_name}
           </p>
@@ -25,9 +25,9 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaPhoneAlt color="#38bdf8" />
+              <FaUniversity color="#38bdf8" />
             </div>
-            <span style={{ flex: 1, lineHeight: 1.5 }}>{dict.footer.hotline}</span>
+            <span style={{ flex: 1, lineHeight: 1.5 }}>{dict.footer.bank}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

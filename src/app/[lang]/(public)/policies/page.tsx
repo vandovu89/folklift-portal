@@ -17,7 +17,7 @@ export default async function PoliciesPage({ params }: { params: Promise<{ lang:
             Chính Sách Bảo Hành
           </h2>
           <p style={{ marginBottom: '1rem' }}>
-            Tất cả xe nâng được mua tại Kyowa Forklift đều được bảo hành chính hãng từ <strong>6 tháng đến 12 tháng</strong> (tùy thuộc vào dòng xe và thỏa thuận trên hợp đồng).
+            Tất cả xe nâng được mua tại Việt Nhật đều được bảo hành chính hãng từ <strong>6 tháng đến 12 tháng</strong> (tùy thuộc vào dòng xe và thỏa thuận trên hợp đồng).
           </p>
           <ul style={{ paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             <li>Bảo hành 100% chi phí linh kiện và nhân công nếu lỗi thuộc về nhà sản xuất.</li>
