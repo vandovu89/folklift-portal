@@ -2,10 +2,23 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import LangSwitcher from '@/components/LangSwitcher';
 
 export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: any }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: `/${lang}`, label: dict.nav.home, exact: true },
+    { href: `/${lang}/catalog`, label: dict.nav.catalog },
+    { href: `/${lang}/about`, label: dict.nav.about },
+    { href: `/${lang}/policies`, label: dict.nav.policies },
+    { href: `/${lang}/contact`, label: dict.nav.contact },
+  ];
+
+  const isActive = (href: string, exact?: boolean) =>
+    exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <nav style={{
@@ -22,11 +35,22 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
 
         {/* Desktop Nav */}
         <div className="nav-desktop" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <Link href={`/${lang}`} style={{ fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' }}>{dict.nav.home}</Link>
-          <Link href={`/${lang}/catalog`} style={{ fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' }}>{dict.nav.catalog}</Link>
-          <Link href={`/${lang}/about`} style={{ fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' }}>{dict.nav.about}</Link>
-          <Link href={`/${lang}/policies`} style={{ fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' }}>{dict.nav.policies}</Link>
-          <Link href={`/${lang}/contact`} style={{ fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' }}>{dict.nav.contact}</Link>
+          {navLinks.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'color 0.2s',
+                color: isActive(link.href, link.exact) ? 'var(--primary)' : 'var(--foreground)',
+                borderBottom: isActive(link.href, link.exact) ? '2px solid var(--primary)' : '2px solid transparent',
+                paddingBottom: '2px',
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
           <div style={{ borderLeft: '1px solid var(--surface-border)', paddingLeft: '1.5rem', display: 'flex', alignItems: 'center' }}>
             <LangSwitcher currentLang={lang} />
           </div>
@@ -55,20 +79,22 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
           boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
           display: 'flex', flexDirection: 'column', padding: '1rem 5%', gap: '0.25rem'
         }}>
-          {[
-            { href: `/${lang}`, label: dict.nav.home },
-            { href: `/${lang}/catalog`, label: dict.nav.catalog },
-            { href: `/${lang}/about`, label: dict.nav.about },
-            { href: `/${lang}/policies`, label: dict.nav.policies },
-            { href: `/${lang}/contact`, label: dict.nav.contact },
-          ].map(item => (
+          {navLinks.map(link => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={link.href}
+              href={link.href}
               onClick={() => setMenuOpen(false)}
-              style={{ padding: '0.75rem 1rem', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none', borderRadius: '8px', display: 'block' }}
+              style={{
+                padding: '0.75rem 1rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                borderRadius: '8px',
+                display: 'block',
+                color: isActive(link.href, link.exact) ? 'var(--primary)' : 'var(--foreground)',
+                background: isActive(link.href, link.exact) ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+              }}
             >
-              {item.label}
+              {link.label}
             </Link>
           ))}
         </div>
