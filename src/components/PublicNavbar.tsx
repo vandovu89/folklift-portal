@@ -13,8 +13,8 @@ export default async function PublicNavbar({ lang }: { lang: 'en' | 'vi' }) {
       padding: '1.2rem 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
     }}>
-      <Link href={`/${lang}`} style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', letterSpacing: '-0.5px' }}>
-        KYOWA<span style={{ color: 'var(--foreground)' }}>FORKLIFT</span>
+      <Link href={`/${lang}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+        <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
       </Link>
       
       <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
