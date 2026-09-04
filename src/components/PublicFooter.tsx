@@ -11,12 +11,12 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
         
         {/* Company Info */}
         <div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '50px', width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+            <p style={{ opacity: 0.9, lineHeight: 1.4, fontSize: '1rem', margin: 0, fontWeight: 600 }}>
+              {dict.footer.company_name}
+            </p>
           </div>
-          <p style={{ opacity: 0.8, marginBottom: '2rem', lineHeight: 1.6, fontSize: '1.1rem' }}>
-            {dict.footer.company_name}
-          </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaMapMarkerAlt color="#38bdf8" />
