@@ -23,17 +23,18 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     <div>
       {/* Hero Section */}
       <section style={{ 
-        height: '85vh', minHeight: '600px',
+      height: '85vh', minHeight: '500px',
         background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(37, 99, 235, 0.8) 100%), url("https://images.unsplash.com/photo-1586528116311-ad8ed7c80a30?q=80&w=2070&auto=format&fit=crop")',
-        backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'white', textAlign: 'center', padding: '2rem'
+        color: 'white', textAlign: 'center', padding: '2rem',
+        overflowX: 'hidden'
       }}>
         <div style={{ maxWidth: '900px', animation: 'fadeInUp 1s ease-out' }}>
           <span style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
             Việt Nhật
           </span>
-          <h1 style={{ fontSize: '4.5rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 8vw, 4.5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             {resolvedParams.lang === 'vi' ? 'Giải Pháp Nâng Hạ Toàn Diện' : 'Comprehensive Forklift Solutions'}
           </h1>
           <p style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}>

@@ -1,5 +1,6 @@
 import PublicNavbar from '@/components/PublicNavbar';
 import PublicFooter from '@/components/PublicFooter';
+import { getDictionary } from '@/dictionaries';
 
 export default async function PublicLayout({
   children,
@@ -9,13 +10,15 @@ export default async function PublicLayout({
   params: Promise<{ lang: string }>;
 }) {
   const resolvedParams = await params;
+  const lang = resolvedParams.lang as 'en' | 'vi';
+  const dict = await getDictionary(lang);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--background)' }}>
-      <PublicNavbar lang={resolvedParams.lang as 'en' | 'vi'} />
+      <PublicNavbar lang={lang} dict={dict} />
       <div style={{ flex: 1 }}>
         {children}
       </div>
-      <PublicFooter lang={resolvedParams.lang as 'en' | 'vi'} />
+      <PublicFooter lang={lang} />
     </div>
   );
 }

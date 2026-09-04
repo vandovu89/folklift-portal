@@ -232,3 +232,17 @@ h1, h2, h3, h4, h5, h6 {
 .table tr:hover td {
   background-color: rgba(0,0,0,0.01);
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-desktop { display: none !important; }
+  .nav-mobile-controls { display: flex !important; }
+
+  .hero-title { font-size: clamp(2rem, 8vw, 4.5rem) !important; }
+  .hero-desc { font-size: 1rem !important; }
+
+  .admin-container { padding: 1rem !important; }
+
+  /* Override fixed background on iOS */
+  .hero-section { background-attachment: scroll !important; }
+}
