@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 
-export default function InquiriesPage({ params }: { params: { lang: string } }) {
+export default function InquiriesPage({ params }: { params: Promise<{ lang: string }> }) {
+  const resolvedParams = use(params);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -70,7 +71,7 @@ export default function InquiriesPage({ params }: { params: { lang: string } }) 
                   <td>{iq.email || '-'}</td>
                   <td>
                     {iq.forklift ? (
-                      <Link href={`/${params.lang}/machine/${iq.forkliftId}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                      <Link href={`/${resolvedParams.lang}/machine/${iq.forkliftId}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
                         {iq.forklift.maker} {iq.forklift.model}
                       </Link>
                     ) : (
@@ -84,7 +85,7 @@ export default function InquiriesPage({ params }: { params: { lang: string } }) 
                     </span>
                   </td>
                   <td>
-                    <Link href={`/${params.lang}/admin/inquiries/${iq.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', textDecoration: 'none' }}>
+                    <Link href={`/${resolvedParams.lang}/admin/inquiries/${iq.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', textDecoration: 'none' }}>
                       Chi tiết
                     </Link>
                   </td>

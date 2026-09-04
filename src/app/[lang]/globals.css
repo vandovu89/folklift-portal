@@ -208,3 +208,27 @@ h1, h2, h3, h4, h5, h6 {
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--accent); }
 .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
 .badge-neutral { background: var(--surface-border); color: var(--foreground); }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.table th {
+  background-color: var(--surface-hover);
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table tr:hover td {
+  background-color: rgba(0,0,0,0.01);
+}
