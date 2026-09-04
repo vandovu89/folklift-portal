@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 import PublicImageSlider from '@/components/PublicImageSlider';
+import InquiryForm from './InquiryForm';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -58,10 +59,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            <div style={{ marginTop: '3rem' }}>
-              <button className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
-                {dict.common.contact}
-              </button>
+            <div style={{ marginTop: '2rem' }}>
+              <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} />
             </div>
           </div>
         </div>

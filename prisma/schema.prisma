@@ -55,9 +55,28 @@ model Forklift {
 
   // Quan hệ
   media           Media[]
+  inquiries       Inquiry[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model Inquiry {
+  id           String    @id @default(uuid())
+  customerName String
+  phone        String?
+  email        String?
+  company      String?
+  message      String?
+  status       String    @default("New") // New, Contacted, Negotiating, Quoted, Won, Lost
+  
+  forkliftId   String?
+  forklift     Forklift? @relation(fields: [forkliftId], references: [id], onDelete: SetNull)
+  
+  notes        String?   // Ghi chú nội bộ cho Sales
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Media {

@@ -51,5 +51,16 @@
     "weight": "Trọng lượng (kg)",
     "otherSpecs": "Thông số khác",
     "price": "Giá bán đề xuất"
+  },
+  "inquiry": {
+    "title": "Yêu cầu báo giá / Liên hệ mua xe",
+    "name": "Họ và tên",
+    "phone": "Số điện thoại",
+    "email": "Email",
+    "company": "Tên công ty",
+    "message": "Ghi chú / Yêu cầu thêm",
+    "submit": "Gửi yêu cầu",
+    "sending": "Đang gửi...",
+    "success_message": "Yêu cầu của bạn đã được gửi thành công. Chúng tôi sẽ liên hệ lại sớm nhất!"
   }
 }

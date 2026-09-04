@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaTractor, FaChartPie, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers } from 'react-icons/fa';
 import styles from './admin.module.css';
 
 export default function AdminLayout({
@@ -42,6 +42,12 @@ export default function AdminLayout({
             className={`${styles.navItem} ${pathname.startsWith('/admin/forklifts') ? styles.active : ''}`}
           >
             <FaTractor /> Quản lý Xe nâng
+          </Link>
+          <Link 
+            href="/admin/inquiries" 
+            className={`${styles.navItem} ${pathname.startsWith('/admin/inquiries') ? styles.active : ''}`}
+          >
+            <FaUsers /> Khách hàng
           </Link>
           <Link 
             href="/admin/settings" 
