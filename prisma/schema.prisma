@@ -62,21 +62,26 @@ model Forklift {
 }
 
 model Inquiry {
-  id           String    @id @default(uuid())
-  customerName String
-  phone        String?
-  email        String?
-  company      String?
-  message      String?
-  status       String    @default("New") // New, Contacted, Negotiating, Quoted, Won, Lost
+  id             String        @id @default(uuid())
+  customerName   String
+  phone          String?
+  email          String?
+  company        String?
+  message        String?
+  status         String        @default("New") // New, Contacted, Negotiating, Quoted, Won, Lost
   
-  forkliftId   String?
-  forklift     Forklift? @relation(fields: [forkliftId], references: [id], onDelete: SetNull)
+  forkliftId     String?
+  forklift       Forklift?     @relation(fields: [forkliftId], references: [id], onDelete: SetNull)
   
-  notes        String?   // Ghi chú nội bộ cho Sales
+  facebookPageId String?
+  facebookPage   FacebookPage? @relation(fields: [facebookPageId], references: [id], onDelete: SetNull)
+
+  chatSession    ChatSession?
+
+  notes          String?       // Ghi chú nội bộ cho Sales
   
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Media {
@@ -93,3 +98,46 @@ model Media {
   
   createdAt   DateTime @default(now())
 }
+
+model FacebookPage {
+  id          String        @id @default(uuid())
+  pageId      String        @unique // Meta Facebook Page ID
+  pageName    String                // Tên gợi nhớ
+  accessToken String                // Page Access Token riêng của Page
+  isActive    Boolean       @default(true) // Bật/tắt bot cho page này
+  greeting    String?               // Lời chào mở đầu tuỳ chỉnh cho page
+
+  sessions    ChatSession[]
+  inquiries   Inquiry[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ChatSession {
+  id             String        @id @default(uuid())
+  channel        String        @default("MESSENGER") // "MESSENGER" | "WEB"
+  senderId       String        // Facebook PSID hoặc web session ID
+
+  facebookPageId String?
+  facebookPage   FacebookPage? @relation(fields: [facebookPageId], references: [id], onDelete: SetNull)
+
+  messages       ChatMessage[]
+
+  inquiryId      String?       @unique
+  inquiry        Inquiry?      @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  role      String      // "user" | "assistant"
+  content   String
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime    @default(now())
+}
+

@@ -58,6 +58,7 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
                 <th>SĐT</th>
                 <th>Email</th>
                 <th>Xe quan tâm</th>
+                <th>Nguồn</th>
                 <th>Ngày gửi</th>
                 <th>Trạng thái</th>
                 <th>Hành động</th>
@@ -76,6 +77,35 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
                       </Link>
                     ) : (
                       <span style={{ color: '#888' }}>Liên hệ chung</span>
+                    )}
+                  </td>
+                  <td>
+                    {iq.facebookPage ? (
+                      <span style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '0.25rem', 
+                        background: 'rgba(24, 119, 242, 0.1)', 
+                        color: '#1877F2', 
+                        padding: '0.2rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600
+                      }}>
+                        FB: {iq.facebookPage.pageName}
+                      </span>
+                    ) : (
+                      <span style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        background: 'rgba(0,0,0,0.05)', 
+                        color: 'var(--muted)', 
+                        padding: '0.2rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.8rem'
+                      }}>
+                        Website
+                      </span>
                     )}
                   </td>
                   <td>{new Date(iq.createdAt).toLocaleDateString('vi-VN')}</td>

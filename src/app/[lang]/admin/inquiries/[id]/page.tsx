@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
+import { FaFacebook } from 'react-icons/fa';
 
 export default function InquiryDetailPage({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = use(params);
@@ -87,6 +88,18 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
                 <td style={{ fontWeight: 600 }}>{inquiry.email || 'N/A'}</td>
               </tr>
               <tr>
+                <td style={{ color: '#666', padding: '0.5rem 0' }}>Nguồn khách:</td>
+                <td>
+                  {inquiry.facebookPage ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#1877F2', fontWeight: 600 }}>
+                      <FaFacebook /> Fanpage: {inquiry.facebookPage.pageName}
+                    </span>
+                  ) : (
+                    <span style={{ fontWeight: 600 }}>Website Form</span>
+                  )}
+                </td>
+              </tr>
+              <tr>
                 <td style={{ color: '#666', padding: '0.5rem 0' }}>Công ty:</td>
                 <td style={{ fontWeight: 600 }}>{inquiry.company || 'N/A'}</td>
               </tr>
@@ -114,6 +127,36 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
               <Link href={`/${resolvedParams.lang}/machine/${inquiry.forklift.id}`} target="_blank" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none' }}>
                 Xem chi tiết xe
               </Link>
+            </div>
+          )}
+
+          {/* Lịch sử trò chuyện với AI Chatbot nếu có */}
+          {inquiry.chatSession?.messages && inquiry.chatSession.messages.length > 0 && (
+            <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(24, 119, 242, 0.03)', borderRadius: '12px', border: '1px solid rgba(24, 119, 242, 0.15)' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1877F2' }}>
+                <FaFacebook /> Lịch sử trò chuyện với AI Bot ({inquiry.chatSession.messages.length} tin)
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto', padding: '0.5rem' }}>
+                {inquiry.chatSession.messages.map((m: any) => (
+                  <div key={m.id} style={{
+                    alignSelf: m.role === 'user' ? 'flex-start' : 'flex-end',
+                    maxWidth: '85%',
+                    background: m.role === 'user' ? '#F3F4F6' : '#EFF6FF',
+                    color: '#1F2937',
+                    padding: '0.65rem 0.9rem',
+                    borderRadius: '12px',
+                    borderBottomLeftRadius: m.role === 'user' ? '2px' : '12px',
+                    borderBottomRightRadius: m.role === 'user' ? '12px' : '2px',
+                    fontSize: '0.88rem',
+                    border: `1px solid ${m.role === 'user' ? '#E5E7EB' : '#DBEAFE'}`
+                  }}>
+                    <div style={{ fontSize: '0.72rem', color: '#6B7280', marginBottom: '0.2rem', fontWeight: 600 }}>
+                      {m.role === 'user' ? inquiry.customerName || 'Khách hàng' : 'AI Trợ lý'} • {new Date(m.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>{m.content}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

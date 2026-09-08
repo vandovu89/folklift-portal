@@ -19,6 +19,12 @@ export async function GET(request: Request) {
             internalCode: true,
             stockNo: true,
           }
+        },
+        facebookPage: {
+          select: {
+            pageName: true,
+            pageId: true,
+          }
         }
       }
     });

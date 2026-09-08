@@ -10,7 +10,15 @@ export async function GET(
     const inquiry = await prisma.inquiry.findUnique({
       where: { id },
       include: {
-        forklift: true
+        forklift: true,
+        facebookPage: true,
+        chatSession: {
+          include: {
+            messages: {
+              orderBy: { createdAt: 'asc' }
+            }
+          }
+        }
       }
     });
 
