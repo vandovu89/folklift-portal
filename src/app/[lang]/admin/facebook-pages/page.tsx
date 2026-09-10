@@ -16,7 +16,10 @@ import {
   FaCheckCircle, 
   FaTimesCircle,
   FaComments,
-  FaUserFriends
+  FaUserFriends,
+  FaHistory,
+  FaTrashAlt,
+  FaCode
 } from 'react-icons/fa';
 
 interface FacebookPageItem {
@@ -31,6 +34,18 @@ interface FacebookPageItem {
     sessions: number;
     inquiries: number;
   };
+}
+
+interface BotLogItem {
+  id: string;
+  pageId?: string | null;
+  pageName?: string | null;
+  eventType: string;
+  senderId?: string | null;
+  message?: string | null;
+  details?: string | null;
+  status: string;
+  createdAt: string;
 }
 
 export default function FacebookPagesAdminPage({ params }: { params: Promise<{ lang: string }> }) {
@@ -57,6 +72,13 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
   const [testResults, setTestResults] = useState<{ [key: string]: { success: boolean; msg: string } }>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // Bot Logs states
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [logs, setLogs] = useState<BotLogItem[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [autoRefreshLogs, setAutoRefreshLogs] = useState(true);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+
   // Webhook domain
   const [origin, setOrigin] = useState('');
 
@@ -66,6 +88,48 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
     }
     fetchPages();
   }, []);
+
+  // Auto refresh logs when modal is open
+  useEffect(() => {
+    let timer: any;
+    if (showLogsModal && autoRefreshLogs) {
+      timer = setInterval(() => {
+        fetch('/api/bot-logs')
+          .then(r => r.json())
+          .then(d => { if (d.success) setLogs(d.logs); })
+          .catch(() => {});
+      }, 3000);
+    }
+    return () => clearInterval(timer);
+  }, [showLogsModal, autoRefreshLogs]);
+
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const res = await fetch('/api/bot-logs');
+      const data = await res.json();
+      if (data.success) {
+        setLogs(data.logs);
+      }
+    } catch (err) {
+      console.error('Failed to fetch logs', err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ nhật ký log hoạt động?')) return;
+    try {
+      const res = await fetch('/api/bot-logs', { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setLogs([]);
+      }
+    } catch {
+      alert('Xóa log thất bại');
+    }
+  };
 
   const fetchPages = async () => {
     setLoading(true);
@@ -236,13 +300,24 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
           </p>
         </div>
 
-        <button 
-          onClick={openAddModal} 
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <FaPlus /> Thêm Fanpage mới
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => { setShowLogsModal(true); fetchLogs(); }}
+            className="btn btn-outline"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg, #fff)' }}
+            title="Xem lịch sử Webhook và nhật ký bot"
+          >
+            <FaHistory style={{ color: '#2563EB' }} /> Nhật ký hoạt động (Logs)
+          </button>
+
+          <button 
+            onClick={openAddModal} 
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <FaPlus /> Thêm Fanpage mới
+          </button>
+        </div>
       </div>
 
       {/* Metric Cards */}
@@ -675,6 +750,208 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
           </div>
         </div>
       )}
+
+      {/* Modal Xem Nhật ký hoạt động Bot (Live Logs) */}
+      {showLogsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'var(--card-bg, #fff)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '920px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FaHistory style={{ color: '#2563EB' }} /> Nhật ký hoạt động Bot (Live Logs)
+                </h3>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                  Theo dõi thời gian thực tin nhắn khách gửi đến, phản hồi của AI và trạng thái gửi về Facebook.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={autoRefreshLogs}
+                    onChange={(e) => setAutoRefreshLogs(e.target.checked)}
+                  />
+                  Tự động làm mới (3s)
+                </label>
+
+                <button
+                  onClick={fetchLogs}
+                  className="btn btn-outline"
+                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                  <FaSync className={logsLoading ? 'spin' : ''} /> Làm mới
+                </button>
+
+                <button
+                  onClick={handleClearLogs}
+                  className="btn btn-outline"
+                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.82rem', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                  title="Xóa lịch sử log"
+                >
+                  <FaTrashAlt /> Xóa log
+                </button>
+
+                <button
+                  onClick={() => setShowLogsModal(false)}
+                  style={{ background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer', color: 'var(--muted)', marginLeft: '0.5rem' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body - Log Stream */}
+            <div style={{ padding: '1.25rem', overflowY: 'auto', flex: 1, background: '#F9FAFB' }}>
+              {logsLoading && logs.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
+                  Đang tải nhật ký hoạt động...
+                </div>
+              ) : logs.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+                  <FaHistory style={{ fontSize: '2.5rem', color: '#9CA3AF', marginBottom: '0.75rem' }} />
+                  <p style={{ fontWeight: 600, margin: '0 0 0.25rem 0' }}>Chưa có sự kiện nào được ghi nhận</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', margin: 0 }}>
+                    Khi có yêu cầu Webhook từ Meta hoặc khách nhắn tin vào Fanpage, toàn bộ tiến trình sẽ hiển thị trực tiếp tại đây.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {logs.map((log) => {
+                    const isExpanded = expandedLogId === log.id;
+                    const eventBadgeColor = 
+                      log.eventType === 'MESSAGE_IN' ? { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'TIN NHẮN ĐẾN' } :
+                      log.eventType === 'AI_REPLY' ? { bg: '#F5F3FF', text: '#6D28D9', border: '#DDD6FE', label: 'AI PHẢN HỒI' } :
+                      log.eventType === 'SEND_SUCCESS' ? { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0', label: 'GỬI FB THÀNH CÔNG' } :
+                      log.eventType === 'SEND_ERROR' ? { bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA', label: 'LỖI GỬI FB' } :
+                      log.eventType === 'PAGE_NOT_FOUND' ? { bg: '#FFFBEB', text: '#B45309', border: '#FDE68A', label: 'PAGE CHƯA KẾT NỐI' } :
+                      log.eventType === 'BOT_DISABLED' ? { bg: '#F3F4F6', text: '#4B5563', border: '#E5E7EB', label: 'BOT ĐANG TẮT' } :
+                      log.eventType === 'VERIFY' ? { bg: '#F0FDFA', text: '#0F766E', border: '#99F6E4', label: 'XÁC THỰC WEBHOOK' } :
+                      { bg: '#FEF2F2', text: '#DC2626', border: '#FCA5A5', label: log.eventType };
+
+                    return (
+                      <div 
+                        key={log.id} 
+                        style={{ 
+                          background: '#fff', 
+                          borderRadius: '10px', 
+                          border: `1px solid ${log.status === 'ERROR' ? '#FECACA' : '#E5E7EB'}`, 
+                          padding: '0.85rem 1rem',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '4px',
+                              background: eventBadgeColor.bg,
+                              color: eventBadgeColor.text,
+                              border: `1px solid ${eventBadgeColor.border}`
+                            }}>
+                              {eventBadgeColor.label}
+                            </span>
+
+                            {log.pageName && (
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1F2937' }}>
+                                {log.pageName}
+                              </span>
+                            )}
+
+                            {log.pageId && (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--muted)', background: '#F3F4F6', padding: '0.1rem 0.35rem', borderRadius: '3px' }}>
+                                ID: {log.pageId}
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+                            {new Date(log.createdAt).toLocaleString('vi-VN')}
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                          {log.message}
+                        </div>
+
+                        {log.details && (
+                          <div style={{ marginTop: '0.5rem' }}>
+                            <button
+                              onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                              style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                color: '#2563EB', 
+                                fontSize: '0.78rem', 
+                                cursor: 'pointer', 
+                                padding: 0, 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '0.25rem' 
+                              }}
+                            >
+                              <FaCode /> {isExpanded ? 'Ẩn chi tiết kỹ thuật' : 'Xem chi tiết kỹ thuật'}
+                            </button>
+
+                            {isExpanded && (
+                              <pre style={{
+                                marginTop: '0.4rem',
+                                background: '#1E293B',
+                                color: '#F8FAFC',
+                                padding: '0.75rem',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                overflowX: 'auto',
+                                maxHeight: '200px'
+                              }}>
+                                {log.details}
+                              </pre>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -141,3 +141,15 @@ model ChatMessage {
   createdAt DateTime    @default(now())
 }
 
+model BotLog {
+  id        String   @id @default(uuid())
+  pageId    String?  // Meta Page ID
+  pageName  String?  // Tên Fanpage gợi nhớ
+  eventType String   // "VERIFY" | "MESSAGE_IN" | "AI_REPLY" | "SEND_SUCCESS" | "SEND_ERROR" | "ERROR"
+  senderId  String?  // Facebook PSID
+  message   String?  // Nội dung tóm tắt
+  details   String?  // Chi tiết hoặc lỗi
+  status    String   @default("INFO") // "SUCCESS" | "WARNING" | "ERROR" | "INFO"
+  createdAt DateTime @default(now())
+}
+
