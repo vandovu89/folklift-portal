@@ -27,127 +27,168 @@ export interface ForkliftSearchResult {
 }
 
 /**
- * Chuẩn hóa chuỗi tìm kiếm tải trọng (hỗ trợ cả "2000kg" và "2 tấn")
+ * Chuẩn hóa loại nhiên liệu từ tiếng Việt hoặc tiếng Anh sang các giá trị lưu trong DB (BATTERY, DIESEL, GASOLINE)
  */
-function normalizeCapacityTerms(input?: string): string[] {
+function normalizePowerType(input?: string): string[] {
   if (!input) return [];
   const clean = input.toLowerCase().trim();
-  const terms: string[] = [clean];
-
-  // Nếu nhập dạng kg (ví dụ: 2500kg, 2500 kg, 2000kg)
-  const kgMatch = clean.match(/(\d+)\s*kg/);
-  if (kgMatch) {
-    const kg = parseInt(kgMatch[1], 10);
-    const ton = kg / 1000;
-    terms.push(`${ton} tấn`, `${ton}t`, `${ton}`, `${kg}`);
-    if (ton % 1 === 0) terms.push(`${ton}.0 tấn`);
+  if (clean.includes('điện') || clean.includes('dien') || clean.includes('battery') || clean.includes('pin') || clean.includes('acquy') || clean.includes('ắc quy')) {
+    return ['BATTERY', 'điện', 'dien'];
   }
-
-  // Nếu nhập dạng tấn (ví dụ: 2.5 tấn, 2.5t, 3 tấn)
-  const tonMatch = clean.match(/(\d+(\.\d+)?)\s*(tấn|t|tan)/);
-  if (tonMatch) {
-    const ton = parseFloat(tonMatch[1]);
-    const kg = Math.round(ton * 1000);
-    terms.push(`${ton}`, `${kg}`, `${ton} tấn`, `${ton}t`);
+  if (clean.includes('dầu') || clean.includes('dau') || clean.includes('diesel')) {
+    return ['DIESEL', 'dầu', 'dau'];
   }
-
-  return Array.from(new Set(terms));
+  if (clean.includes('xăng') || clean.includes('xang') || clean.includes('gas') || clean.includes('gasoline')) {
+    return ['GASOLINE', 'xăng', 'xang', 'gas'];
+  }
+  return [input.trim().toUpperCase(), input.trim()];
 }
 
 /**
- * Tra cứu kho xe nâng thực tế từ Database theo tiêu chí khách hàng
+ * Chuẩn hóa kiểu dáng vận hành (ngồi lái / đứng lái) sang các giá trị lưu trong DB (COUNTER, REACH)
  */
-export async function searchForkliftsInDb(criteria: {
+function normalizeCategory(input?: string): string[] {
+  if (!input) return [];
+  const clean = input.toLowerCase().trim();
+  if (clean.includes('ngồi') || clean.includes('ngoi') || clean.includes('counter')) {
+    return ['COUNTER', 'ngồi lái', 'ngoi lai'];
+  }
+  if (clean.includes('đứng') || clean.includes('dung') || clean.includes('reach')) {
+    return ['REACH', 'đứng lái', 'dung lai'];
+  }
+  return [input.trim().toUpperCase(), input.trim()];
+}
+
+/**
+ * Trích xuất số kg từ tải trọng (ví dụ: "2.5 tấn" -> 2500, "1500kg" -> 1500, "3 tấn" -> 3000)
+ */
+function parseCapacityKg(input?: string | number | null): number | null {
+  if (input === null || input === undefined) return null;
+  if (typeof input === 'number') return input;
+  const clean = input.toString().toLowerCase().trim();
+  const tonMatch = clean.match(/(\d+(\.\d+)?)\s*(tấn|t|tan)/);
+  if (tonMatch) return Math.round(parseFloat(tonMatch[1]) * 1000);
+  const numMatch = clean.match(/\d+(\.\d+)?/);
+  if (numMatch) {
+    const val = parseFloat(numMatch[0]);
+    if (val < 20) return Math.round(val * 1000); // Nhập số tấn viết tắt như "2", "2.5", "3"
+    return Math.round(val);
+  }
+  return null;
+}
+
+/**
+ * Trích xuất milimet (mm) từ chiều cao nâng (ví dụ: "3m" -> 3000, "4.5 mét" -> 4500, "4000" -> 4000)
+ */
+function parseLiftHeightMm(input?: string | number | null): number | null {
+  if (input === null || input === undefined) return null;
+  if (typeof input === 'number') return input;
+  const clean = input.toString().toLowerCase().trim();
+  const mMatch = clean.match(/(\d+(\.\d+)?)\s*(m|mét|met)/);
+  if (mMatch) return Math.round(parseFloat(mMatch[1]) * 1000);
+  const numMatch = clean.match(/\d+(\.\d+)?/);
+  if (numMatch) {
+    const val = parseFloat(numMatch[0]);
+    if (val < 20) return Math.round(val * 1000); // Ví dụ "3", "4.5"
+    return Math.round(val);
+  }
+  return null;
+}
+
+export interface SearchForkliftsCriteria {
   maker?: string;
   powerType?: string;
   category?: string;
   loadCapacity?: string;
+  minCapacityKg?: number;
+  maxCapacityKg?: number;
+  minLiftHeightMm?: number;
+  maxLiftHeightMm?: number;
   keyword?: string;
   minYear?: number;
   maxYear?: number;
   minPrice?: number;
   maxPrice?: number;
   maxResults?: number;
-}): Promise<ForkliftSearchResult[]> {
+}
+
+/**
+ * Tra cứu kho xe nâng thực tế từ Database theo tiêu chí khách hàng với bộ chuẩn hóa thông minh
+ */
+export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Promise<ForkliftSearchResult[]> {
   try {
-    const where: any = {
-      status: 'Published'
-    };
+    const andConditions: any[] = [];
 
     // Lọc theo hãng sản xuất
-    if (criteria.maker) {
-      where.maker = { contains: criteria.maker.trim(), mode: 'insensitive' };
+    if (criteria.maker && criteria.maker.trim()) {
+      andConditions.push({
+        maker: { contains: criteria.maker.trim(), mode: 'insensitive' }
+      });
     }
 
-    // Lọc theo loại nhiên liệu (Điện, Dầu, Xăng/Gas)
-    if (criteria.powerType) {
-      where.powerType = { contains: criteria.powerType.trim(), mode: 'insensitive' };
+    // Lọc theo loại nhiên liệu (Điện, Dầu, Xăng/Gas) - Tự động map BATTERY / DIESEL / GASOLINE
+    if (criteria.powerType && criteria.powerType.trim()) {
+      const powerTypes = normalizePowerType(criteria.powerType);
+      if (powerTypes.length > 0) {
+        andConditions.push({
+          OR: powerTypes.map(pt => ({ powerType: { contains: pt, mode: 'insensitive' } }))
+        });
+      }
     }
 
-    // Lọc theo phân loại xe (ngồi lái, đứng lái, reach truck, counter...)
-    if (criteria.category) {
-      where.OR = where.OR || [];
-      where.OR.push(
-        { category: { contains: criteria.category.trim(), mode: 'insensitive' } },
-        { type: { contains: criteria.category.trim(), mode: 'insensitive' } }
-      );
+    // Lọc theo kiểu dáng xe (ngồi lái, đứng lái, reach truck, counter...)
+    if (criteria.category && criteria.category.trim()) {
+      const categories = normalizeCategory(criteria.category);
+      if (categories.length > 0) {
+        andConditions.push({
+          OR: [
+            ...categories.map(c => ({ category: { contains: c, mode: 'insensitive' } })),
+            ...categories.map(c => ({ type: { contains: c, mode: 'insensitive' } }))
+          ]
+        });
+      }
     }
 
     // Lọc theo khoảng năm sản xuất
     if (criteria.minYear || criteria.maxYear) {
-      where.year = {};
-      if (criteria.minYear) where.year.gte = Number(criteria.minYear);
-      if (criteria.maxYear) where.year.lte = Number(criteria.maxYear);
+      const yearCond: any = {};
+      if (criteria.minYear) yearCond.gte = Number(criteria.minYear);
+      if (criteria.maxYear) yearCond.lte = Number(criteria.maxYear);
+      andConditions.push({ year: yearCond });
     }
 
     // Lọc theo khoảng giá
     if (criteria.minPrice || criteria.maxPrice) {
-      where.price = {};
-      if (criteria.minPrice) where.price.gte = Number(criteria.minPrice);
-      if (criteria.maxPrice) where.price.lte = Number(criteria.maxPrice);
-    }
-
-    // Lọc theo tải trọng (thông minh với cả kg và tấn)
-    if (criteria.loadCapacity) {
-      const capTerms = normalizeCapacityTerms(criteria.loadCapacity);
-      const capConditions = capTerms.map(t => ({
-        loadCapacity: { contains: t, mode: 'insensitive' as const }
-      }));
-      if (where.OR) {
-        where.AND = [{ OR: capConditions }];
-      } else {
-        where.OR = capConditions;
-      }
+      const priceCond: any = {};
+      if (criteria.minPrice) priceCond.gte = Number(criteria.minPrice);
+      if (criteria.maxPrice) priceCond.lte = Number(criteria.maxPrice);
+      andConditions.push({ price: priceCond });
     }
 
     // Lọc theo từ khóa tìm kiếm tổng hợp (Model, Mã nội bộ, Mã kho, Serial...)
-    if (criteria.keyword) {
+    if (criteria.keyword && criteria.keyword.trim()) {
       const kw = criteria.keyword.trim();
-      const kwConditions = [
-        { model: { contains: kw, mode: 'insensitive' as const } },
-        { internalCode: { contains: kw, mode: 'insensitive' as const } },
-        { stockNo: { contains: kw, mode: 'insensitive' as const } },
-        { serialNo: { contains: kw, mode: 'insensitive' as const } },
-        { maker: { contains: kw, mode: 'insensitive' as const } },
-        { category: { contains: kw, mode: 'insensitive' as const } },
-        { type: { contains: kw, mode: 'insensitive' as const } }
-      ];
-
-      if (where.AND) {
-        where.AND.push({ OR: kwConditions });
-      } else if (where.OR) {
-        where.AND = [{ OR: where.OR }, { OR: kwConditions }];
-        delete where.OR;
-      } else {
-        where.OR = kwConditions;
-      }
+      andConditions.push({
+        OR: [
+          { model: { contains: kw, mode: 'insensitive' } },
+          { internalCode: { contains: kw, mode: 'insensitive' } },
+          { stockNo: { contains: kw, mode: 'insensitive' } },
+          { serialNo: { contains: kw, mode: 'insensitive' } },
+          { maker: { contains: kw, mode: 'insensitive' } },
+          { attachment: { contains: kw, mode: 'insensitive' } },
+          { otherSpecs: { contains: kw, mode: 'insensitive' } }
+        ]
+      });
     }
 
-    const takeCount = criteria.maxResults && criteria.maxResults > 0 ? criteria.maxResults : 5;
+    const where: any = { status: 'Published' };
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
 
-    const forklifts = await prisma.forklift.findMany({
+    // Lấy ứng viên xe phù hợp từ database
+    const candidates = await prisma.forklift.findMany({
       where,
-      take: takeCount,
       orderBy: [
         { year: 'desc' },
         { createdAt: 'desc' }
@@ -160,9 +201,62 @@ export async function searchForkliftsInDb(criteria: {
       }
     });
 
+    // Lọc số học tải trọng (kg) và chiều cao nâng (mm)
+    const targetCapKg = criteria.loadCapacity ? parseCapacityKg(criteria.loadCapacity) : null;
+    let minCap = criteria.minCapacityKg ? Number(criteria.minCapacityKg) : null;
+    let maxCap = criteria.maxCapacityKg ? Number(criteria.maxCapacityKg) : null;
+
+    // Nếu khách đưa tải trọng cụ thể mà không truyền min/max: áp dụng khoảng phù hợp (dung sai ~ 20%)
+    if (targetCapKg && !minCap && !maxCap) {
+      minCap = Math.round(targetCapKg * 0.85);
+      maxCap = Math.round(targetCapKg * 1.2);
+    }
+
+    const minHeight = criteria.minLiftHeightMm ? Number(criteria.minLiftHeightMm) : null;
+    const maxHeight = criteria.maxLiftHeightMm ? Number(criteria.maxLiftHeightMm) : null;
+
+    let filtered = candidates.filter(f => {
+      // Kiểm tra tải trọng
+      if (minCap !== null || maxCap !== null) {
+        const itemCap = parseCapacityKg(f.loadCapacity);
+        if (itemCap !== null) {
+          if (minCap !== null && itemCap < minCap) return false;
+          if (maxCap !== null && itemCap > maxCap) return false;
+        }
+      }
+
+      // Kiểm tra chiều cao nâng
+      if (minHeight !== null || maxHeight !== null) {
+        const itemHeight = parseLiftHeightMm(f.liftHeight);
+        if (itemHeight !== null) {
+          if (minHeight !== null && itemHeight < minHeight) return false;
+          if (maxHeight !== null && itemHeight > maxHeight) return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Fallback: nếu lọc tải trọng/chiều cao quá hẹp ra 0 xe, nhưng có xe cùng hãng/nhiên liệu -> trả về candidates để gợi ý
+    if (filtered.length === 0 && (minCap !== null || maxCap !== null) && candidates.length > 0) {
+      filtered = candidates;
+    }
+
+    // Sắp xếp ưu tiên: nếu có tải trọng mục tiêu, ưu tiên xe có tải trọng gần nhất
+    if (targetCapKg) {
+      filtered.sort((a, b) => {
+        const capA = parseCapacityKg(a.loadCapacity) || 0;
+        const capB = parseCapacityKg(b.loadCapacity) || 0;
+        return Math.abs(capA - targetCapKg) - Math.abs(capB - targetCapKg);
+      });
+    }
+
+    const takeCount = criteria.maxResults && criteria.maxResults > 0 ? criteria.maxResults : 5;
+    const finalForklifts = filtered.slice(0, takeCount);
+
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
 
-    return forklifts.map(f => ({
+    return finalForklifts.map(f => ({
       id: f.id,
       internalCode: f.internalCode,
       stockNo: f.stockNo,
@@ -289,29 +383,45 @@ const tools: any = [
     functionDeclarations: [
       {
         name: 'searchForklifts',
-        description: 'Tìm kiếm danh sách xe nâng trong kho theo nhiều tiêu chí linh hoạt: hãng, năm sản xuất (minYear/maxYear), tải trọng nâng (kg hoặc tấn), nhiên liệu (điện/dầu), khoảng giá (minPrice/maxPrice), hoặc từ khóa model/mã xe.',
+        description: 'Tìm kiếm danh sách xe nâng trong kho theo nhiều tiêu chí kỹ thuật: hãng, năm sản xuất, tải trọng (kg hoặc tấn), nhiên liệu (điện/dầu), kiểu dáng (ngồi lái/đứng lái), chiều cao nâng (mét hoặc mm), khoảng giá hoặc từ khóa.',
         parameters: {
           type: 'OBJECT',
           properties: {
             maker: {
               type: 'STRING',
-              description: 'Hãng sản xuất xe nâng (Toyota, Komatsu, TCM, Mitsubishi, Nichiyu, Sumitomo...)'
+              description: 'Hãng sản xuất xe nâng viết hoa (TOYOTA, KOMATSU, TCM, MITSUBISHI, NICHIYU, SUMITOMO...)'
             },
             powerType: {
               type: 'STRING',
-              description: 'Loại nhiên liệu hoặc động cơ (Điện, Dầu, Xăng/Gas, Battery, Diesel...)'
+              description: 'Loại nhiên liệu chuẩn hóa: BATTERY (xe nâng điện, bình ắc quy, pin), DIESEL (xe nâng dầu), GASOLINE (xe nâng xăng/gas).'
             },
             category: {
               type: 'STRING',
-              description: 'Phân loại kiểu dáng (ngồi lái, đứng lái, reach truck, counter...)'
+              description: 'Kiểu dáng điều khiển chuẩn hóa: COUNTER (xe ngồi lái, counter balance), REACH (xe đứng lái, reach truck).'
+            },
+            minCapacityKg: {
+              type: 'INTEGER',
+              description: 'Tải trọng nâng tối thiểu tính bằng KG (Ví dụ: "trên 2 tấn" -> 2000; "từ 2.5 tấn trở lên" -> 2500; "tầm 1.5 đến 2.5 tấn" -> 1500).'
+            },
+            maxCapacityKg: {
+              type: 'INTEGER',
+              description: 'Tải trọng nâng tối đa tính bằng KG (Ví dụ: "dưới 3 tấn" -> 3000; "tầm 1.5 đến 2.5 tấn" -> 2500).'
             },
             loadCapacity: {
               type: 'STRING',
-              description: 'Tải trọng nâng (ví dụ: 1.5 tấn, 2 tấn, 2.5 tấn, 3 tấn, 2500kg, 3000kg...)'
+              description: 'Tải trọng nâng cụ thể dạng chuỗi (Ví dụ: "1500", "2000", "2500", "3000", "1.5 tấn", "2 tấn", "2.5 tấn", "3 tấn").'
+            },
+            minLiftHeightMm: {
+              type: 'INTEGER',
+              description: 'Chiều cao nâng tối thiểu tính bằng milimet (Ví dụ: "cao 3m" -> 3000; "cao trên 4m" -> 4000; "cao 4.5 mét" -> 4500).'
+            },
+            maxLiftHeightMm: {
+              type: 'INTEGER',
+              description: 'Chiều cao nâng tối đa tính bằng milimet (mm).'
             },
             minYear: {
               type: 'INTEGER',
-              description: 'Năm sản xuất tối thiểu (ví dụ: 2020 nếu khách hỏi "sau năm 2020")'
+              description: 'Năm sản xuất tối thiểu (Ví dụ: "đời từ 2018 trở lên" -> 2018; "sau năm 2020" -> 2020)'
             },
             maxYear: {
               type: 'INTEGER',
@@ -323,11 +433,11 @@ const tools: any = [
             },
             maxPrice: {
               type: 'NUMBER',
-              description: 'Mức giá tối đa bằng VNĐ (ví dụ: 300000000 nếu khách hỏi dưới 300 triệu)'
+              description: 'Mức giá tối đa bằng VNĐ (Ví dụ: "dưới 300 triệu" -> 300000000)'
             },
             keyword: {
               type: 'STRING',
-              description: 'Từ khóa tìm kiếm model hoặc mã xe (ví dụ: 7FD25, 8FB25, VN-01, mã kho...)'
+              description: 'Từ khóa tìm kiếm model hoặc mã xe hoặc bộ công tác (Ví dụ: 7FD25, 8FB25, VN-01, gật gù, side shift, dịch giá...)'
             }
           }
         }
@@ -439,10 +549,19 @@ Bạn là Chuyên viên Tư vấn Kỹ thuật & Bán hàng AI của "${params.p
 Bạn am hiểu sâu sắc về các dòng xe nâng (Toyota, Komatsu, TCM, Mitsubishi, Nichiyu...) và có quyền truy cập trực tiếp vào hệ thống cơ sở dữ liệu kho xe của công ty.
 
 QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
-1. Khi khách hỏi tìm xe (hãng, đời xe, năm sản xuất, tải trọng, chạy điện hay dầu, khoảng giá):
-   - LUÔN gọi tool 'searchForklifts' với các bộ lọc chính xác (maker, minYear, maxYear, loadCapacity, powerType, minPrice, maxPrice, keyword).
+1. Khi khách hỏi tìm xe (hãng, đời xe, năm sản xuất, tải trọng, chạy điện hay dầu, ngồi lái hay đứng lái, chiều cao nâng, khoảng giá):
+   - BẮT BUỘC phân tích sâu yêu cầu của khách và quy đổi chính xác sang các tham số chuẩn khi gọi 'searchForklifts':
+     + Nhiên liệu/Động cơ: "điện" / "ắc quy" / "pin" -> powerType: "BATTERY"; "dầu" / "diesel" -> powerType: "DIESEL"; "xăng" / "gas" -> powerType: "GASOLINE".
+     + Kiểu dáng vận hành: "ngồi lái" -> category: "COUNTER"; "đứng lái" / "reach truck" -> category: "REACH".
+     + Tải trọng (Quy đổi TẤN sang KG: 1 tấn = 1000kg):
+       * Khách hỏi tải trọng cụ thể: "xe 1.5 tấn" -> loadCapacity: "1500"; "xe 2 tấn" -> loadCapacity: "2000"; "xe 2.5 tấn" -> loadCapacity: "2500"; "xe 3 tấn" -> loadCapacity: "3000".
+       * Khách hỏi khoảng hoặc điều kiện: "trên 2 tấn" -> minCapacityKg: 2000; "dưới 3 tấn" -> maxCapacityKg: 3000; "tầm 1.5 đến 2.5 tấn" -> minCapacityKg: 1500, maxCapacityKg: 2500.
+     + Chiều cao nâng (Quy đổi MÉT sang MILIMET: 1m = 1000mm):
+       * "cao 3m" -> minLiftHeightMm: 3000; "trên 4m" -> minLiftHeightMm: 4000; "cao 4.5 mét" -> minLiftHeightMm: 4500.
+     + Hãng sản xuất (maker): Giữ tên hãng chuẩn: TOYOTA, KOMATSU, TCM, MITSUBISHI, NICHIYU, SUMITOMO.
+     + Năm sản xuất & Giá: "đời từ 2018" -> minYear: 2018; "dưới 200 triệu" -> maxPrice: 200000000.
    - Tuyệt đối không bịa đặt thông tin xe nếu trong kho không có.
-   - Khi có kết quả tìm kiếm, tóm tắt thông số chính (Hãng, Model, Tải trọng, Chiều cao nâng, Năm sản xuất) và gửi link xe để khách xem chi tiết.
+   - Khi có kết quả tìm kiếm, tóm tắt thông số chính (Hãng, Model, Tải trọng, Chiều cao nâng, Năm sản xuất) và gửi kèm đường link xe để khách bấm vào xem chi tiết hình ảnh thực tế.
    - BẮT BUỘC: Sau khi nhận kết quả từ tool, bạn PHẢI tạo câu trả lời bằng văn bản tiếng Việt hoàn chỉnh gửi cho khách hàng. Nếu kho không có xe thỏa mãn tiêu chí (danh sách rỗng), hãy lịch sự thông báo mẫu xe này hiện đang tạm hết và khéo léo xin Tên/Số điện thoại để khi có xe về bên em báo ngay.
 
 2. Khi khách hỏi về MỘT chiếc xe cụ thể (ví dụ: "cho tôi báo giá mã xe A", "xe này nâng tối đa bao nhiêu kg?", "xe cao mấy mét?", "bình điện thế nào?"):
