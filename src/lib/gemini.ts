@@ -676,14 +676,39 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
         // Gửi kết quả tool về cho Gemini để tổng hợp câu trả lời tự nhiên
         const followUp = await chat.sendMessage(toolResponses);
         const followUpResponse = await followUp.response;
-        let reply = followUpResponse.text() || '';
+        let reply = '';
+        try {
+          reply = followUpResponse.text() || '';
+        } catch {
+          reply = '';
+        }
 
-        // Bảo vệ an toàn: nếu Gemini vẫn không trả lời text thì dùng câu văn dự phòng
-        if (!reply || !reply.trim()) {
-          if (foundForklifts.length > 0) {
-            reply = 'Dạ chào quý khách! Em gửi quý khách thông tin các mẫu xe nâng đang có sẵn tại kho phù hợp với nhu cầu bên dưới. Quý khách có thể xem chi tiết hoặc để lại số điện thoại để bên em gửi báo giá tốt nhất nhé!';
+        // Định dạng danh sách xe thành văn bản rõ ràng, dễ đọc trên di động
+        const formatForkliftsText = (list: ForkliftSearchResult[]) => {
+          return list.slice(0, 4).map((f, i) => {
+            const cap = f.loadCapacity ? `Tải: ${f.loadCapacity}kg` : '';
+            const height = f.liftHeight ? `Nâng: ${f.liftHeight}mm` : '';
+            const fuel = f.powerType ? `Máy: ${f.powerType}` : '';
+            const yr = f.year ? `Đời: ${f.year}` : '';
+            const specs = [cap, height, yr, fuel].filter(Boolean).join(' | ');
+            return `🚜 [${i + 1}] ${f.maker} ${f.model} (${specs})\n👉 Xem chi tiết xe: ${f.detailUrl}`;
+          }).join('\n\n');
+        };
+
+        // Đảm bảo tin nhắn phản hồi luôn có danh sách xe đầy đủ
+        if (foundForklifts.length > 0) {
+          const listText = formatForkliftsText(foundForklifts);
+          if (!reply || !reply.trim()) {
+            reply = `Dạ chào quý khách! Em gửi quý khách thông tin các mẫu xe nâng đang có sẵn tại kho phù hợp với nhu cầu:\n\n${listText}\n\nQuý khách ưng ý mẫu nào hoặc muốn xem thêm ảnh/video, cứ nhắn em hoặc để lại số điện thoại để bên em gửi báo giá tốt nhất qua Zalo nhé!`;
           } else {
-            reply = 'Dạ chào quý khách! Hiện tại trong kho của Việt Nhật đang tạm hết dòng xe đúng như tiêu chí này. Quý khách vui lòng để lại số điện thoại hoặc kết nối Zalo để bên em báo ngay khi có đợt xe mới về cảng nhé!';
+            // Nếu AI sinh text nhưng chưa liệt kê link chi tiết của xe, nối danh sách vào cuối
+            if (!reply.includes('/machine/')) {
+              reply = `${reply.trim()}\n\nDanh sách xe gợi ý phù hợp:\n${listText}`;
+            }
+          }
+        } else {
+          if (!reply || !reply.trim()) {
+            reply = 'Dạ chào quý khách! Hiện tại trong kho của Việt Nhật đang tạm hết dòng xe đúng như tiêu chí này. Quý khách vui lòng để lại số điện thoại hoặc kết nối Zalo để khi có đợt xe mới về bên em báo ngay nhé!';
           }
         }
 

@@ -222,15 +222,17 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // 5. Nếu có danh sách xe gợi ý và có ảnh, gửi kèm Generic Template thẻ xe
+        // 5. Nếu có danh sách xe gợi ý, gửi kèm Generic Template thẻ xe (Carousel)
         if (aiResult.foundForklifts && aiResult.foundForklifts.length > 0) {
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
+          const defaultImage = `${baseUrl}/logo.png`;
+
           const cards = aiResult.foundForklifts
-            .filter(f => f.imageUrl)
             .slice(0, 4)
             .map(f => ({
-              title: `${f.maker} ${f.model}`,
-              subtitle: `Tải: ${f.loadCapacity || 'N/A'} | Đời: ${f.year || 'N/A'} | ${f.powerType || ''}`,
-              image_url: f.imageUrl || undefined,
+              title: `${f.maker} ${f.model}`.slice(0, 80),
+              subtitle: `Tải: ${f.loadCapacity ? f.loadCapacity + 'kg' : 'N/A'} | Nâng: ${f.liftHeight ? f.liftHeight + 'mm' : 'N/A'} | Đời: ${f.year || 'N/A'}`.slice(0, 80),
+              image_url: f.imageUrl || defaultImage,
               default_action: {
                 type: 'web_url' as const,
                 url: f.detailUrl
