@@ -1,9 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
+import { logBotActivity } from '@/lib/bot-logger';
 
-// Khởi tạo client Gemini
-const apiKey = process.env.GEMINI_API_KEY || '';
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+// Khởi tạo client Gemini động theo biến môi trường
+function getGenAIClient() {
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  return apiKey ? new GoogleGenerativeAI(apiKey) : null;
+}
 
 export interface ForkliftSearchResult {
   id: string;
@@ -374,6 +377,42 @@ const tools: any = [
 ];
 
 /**
+ * Chuẩn hóa lịch sử chat đảm bảo đúng chuẩn của Gemini:
+ * - Bắt đầu bằng 'user'
+ * - Xen kẽ 'user' và 'model'
+ * - Kết thúc bằng 'model' trước khi gọi sendMessage('user')
+ */
+function sanitizeGeminiHistory(history: Array<{ role: 'user' | 'assistant'; content: string }>) {
+  const contents: any[] = [];
+  let lastRole: string | null = null;
+
+  for (const msg of history) {
+    const role = msg.role === 'assistant' ? 'model' : 'user';
+    // Bỏ qua nếu tin đầu tiên không phải là user
+    if (contents.length === 0 && role !== 'user') {
+      continue;
+    }
+    // Gộp nếu hai lượt cùng role liên tiếp
+    if (role === lastRole) {
+      contents[contents.length - 1].parts[0].text += `\n${msg.content}`;
+    } else {
+      contents.push({
+        role,
+        parts: [{ text: msg.content }]
+      });
+      lastRole = role;
+    }
+  }
+
+  // Kết thúc history bằng 'model' trước khi userMessage mới được gửi qua sendMessage
+  if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+    contents.pop();
+  }
+
+  return contents;
+}
+
+/**
  * Xử lý cuộc trò chuyện với Gemini AI
  */
 export async function processAiChat(params: {
@@ -388,6 +427,7 @@ export async function processAiChat(params: {
   foundForklifts?: ForkliftSearchResult[];
   inquiryCreated?: boolean;
 }> {
+  const genAI = getGenAIClient();
   if (!genAI) {
     return {
       replyText: 'Xin chào quý khách! Hệ thống đang kết nối đến chuyên viên tư vấn. Quý khách vui lòng để lại số điện thoại hoặc liên hệ hotline để được phục vụ nhanh nhất.'
@@ -425,119 +465,127 @@ QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
 ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGreeting}` : ''}
 `.trim();
 
-  try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction,
-      tools
-    });
+  // Thử lần lượt các model được hỗ trợ: gemini-3-flash-preview, gemini-3.1-flash-lite
+  const supportedModels = ['gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
 
-    // Chuyển đổi lịch sử chat cho Gemini SDK
-    const contents: any[] = [];
-    for (const msg of params.history.slice(-8)) {
-      contents.push({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
+  for (const modelName of supportedModels) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction,
+        tools
       });
-    }
-    contents.push({
-      role: 'user',
-      parts: [{ text: params.userMessage }]
-    });
 
-    const chat = model.startChat({
-      history: contents.slice(0, -1)
-    });
+      const cleanHistory = sanitizeGeminiHistory(params.history.slice(-8));
 
-    const result = await chat.sendMessage(params.userMessage);
-    const response = await result.response;
-    const functionCalls = response.functionCalls();
+      const chat = model.startChat({
+        history: cleanHistory
+      });
 
-    let foundForklifts: ForkliftSearchResult[] = [];
-    let inquiryCreated = false;
+      const result = await chat.sendMessage(params.userMessage);
+      const response = await result.response;
+      const functionCalls = response.functionCalls();
 
-    // Vòng lặp xử lý Function Calling
-    if (functionCalls && functionCalls.length > 0) {
-      const toolResponses: any[] = [];
+      let foundForklifts: ForkliftSearchResult[] = [];
+      let inquiryCreated = false;
 
-      for (const call of functionCalls) {
-        if (call.name === 'searchForklifts') {
-          const args = call.args as any;
-          const searchResults = await searchForkliftsInDb(args);
-          foundForklifts = searchResults;
-          toolResponses.push({
-            functionResponse: {
-              name: 'searchForklifts',
-              response: {
-                totalFound: searchResults.length,
-                forklifts: searchResults
+      // Vòng lặp xử lý Function Calling nếu Gemini gọi tool
+      if (functionCalls && functionCalls.length > 0) {
+        const toolResponses: any[] = [];
+
+        for (const call of functionCalls) {
+          if (call.name === 'searchForklifts') {
+            const args = call.args as any;
+            const searchResults = await searchForkliftsInDb(args);
+            foundForklifts = searchResults;
+            toolResponses.push({
+              functionResponse: {
+                name: 'searchForklifts',
+                response: {
+                  totalFound: searchResults.length,
+                  forklifts: searchResults
+                }
               }
+            });
+          } else if (call.name === 'getForkliftDetail') {
+            const args = call.args as any;
+            const detail = await getForkliftDetailInDb(args.identifier);
+            if (detail) {
+              foundForklifts = [{
+                id: detail.id,
+                internalCode: detail.internalCode,
+                stockNo: detail.stockNo,
+                maker: detail.maker,
+                model: detail.model,
+                loadCapacity: detail.loadCapacity,
+                liftHeight: detail.liftHeight,
+                imageUrl: detail.images[0] || null,
+                detailUrl: detail.detailUrl
+              }];
             }
-          });
-        } else if (call.name === 'getForkliftDetail') {
-          const args = call.args as any;
-          const detail = await getForkliftDetailInDb(args.identifier);
-          if (detail) {
-            foundForklifts = [{
-              id: detail.id,
-              internalCode: detail.internalCode,
-              stockNo: detail.stockNo,
-              maker: detail.maker,
-              model: detail.model,
-              loadCapacity: detail.loadCapacity,
-              liftHeight: detail.liftHeight,
-              imageUrl: detail.images[0] || null,
-              detailUrl: detail.detailUrl
-            }];
+            toolResponses.push({
+              functionResponse: {
+                name: 'getForkliftDetail',
+                response: {
+                  found: !!detail,
+                  forklift: detail || 'Không tìm thấy xe nâng với mã hoặc model này trong kho.'
+                }
+              }
+            });
+          } else if (call.name === 'saveCustomerContact') {
+            const args = call.args as any;
+            await createInquiryFromChat({
+              customerName: args.customerName,
+              phone: args.phone,
+              note: args.note,
+              forkliftId: args.forkliftId,
+              facebookPageId: params.facebookPageId,
+              chatSessionId: params.chatSessionId
+            });
+            inquiryCreated = true;
+            toolResponses.push({
+              functionResponse: {
+                name: 'saveCustomerContact',
+                response: { success: true, message: 'Đã lưu thông tin liên hệ của khách hàng vào hệ thống thành công.' }
+              }
+            });
           }
-          toolResponses.push({
-            functionResponse: {
-              name: 'getForkliftDetail',
-              response: {
-                found: !!detail,
-                forklift: detail || 'Không tìm thấy xe nâng với mã hoặc model này trong kho.'
-              }
-            }
-          });
-        } else if (call.name === 'saveCustomerContact') {
-          const args = call.args as any;
-          await createInquiryFromChat({
-            customerName: args.customerName,
-            phone: args.phone,
-            note: args.note,
-            forkliftId: args.forkliftId,
-            facebookPageId: params.facebookPageId,
-            chatSessionId: params.chatSessionId
-          });
-          inquiryCreated = true;
-          toolResponses.push({
-            functionResponse: {
-              name: 'saveCustomerContact',
-              response: { success: true, message: 'Đã lưu thông tin liên hệ của khách hàng vào hệ thống thành công.' }
-            }
-          });
         }
+
+        // Gửi kết quả tool về cho Gemini để tổng hợp câu trả lời tự nhiên
+        const followUp = await chat.sendMessage(toolResponses);
+        const followUpResponse = await followUp.response;
+        return {
+          replyText: followUpResponse.text(),
+          foundForklifts,
+          inquiryCreated
+        };
       }
 
-      // Gửi kết quả tool về cho Gemini để tổng hợp câu trả lời tự nhiên
-      const followUp = await chat.sendMessage(toolResponses);
-      const followUpResponse = await followUp.response;
       return {
-        replyText: followUpResponse.text(),
+        replyText: response.text(),
         foundForklifts,
         inquiryCreated
       };
+    } catch (modelError: any) {
+      console.warn(`[Gemini Model ${modelName} Error]:`, modelError.message);
+      // Nếu là lỗi model cuối cùng thì mới log và trả về fallback
+      if (modelName === supportedModels[supportedModels.length - 1]) {
+        await logBotActivity({
+          eventType: 'ERROR',
+          pageId: params.facebookPageId,
+          pageName: params.pageName,
+          message: `Lỗi xử lý Gemini AI (${modelName}): ${modelError.message}`,
+          details: modelError.stack || modelError,
+          status: 'ERROR'
+        });
+      }
     }
-
-    return {
-      replyText: response.text(),
-      foundForklifts,
-      inquiryCreated
-    };
-  } catch (error: any) {
-    console.error('[Gemini Chat Error]:', error);
-    return {
-      replyText: 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ? Quý khách cũng có thể để lại số điện thoại để bên em gửi báo giá và hình ảnh chi tiết qua Zalo nhé!'
-    };
   }
+
+  // Fallback an toàn nếu tất cả model đều bị lỗi
+  return {
+    replyText: 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ? Quý khách cũng có thể để lại số điện thoại để bên em gửi báo giá và hình ảnh chi tiết qua Zalo nhé!'
+  };
 }
+
