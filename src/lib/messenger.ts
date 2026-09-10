@@ -36,9 +36,13 @@ export async function sendTextMessage(
   text: string,
   quickReplies?: QuickReply[]
 ) {
+  const safeText = (text && text.trim().length > 0)
+    ? text.trim()
+    : 'Dạ chào quý khách! Em đã ghi nhận yêu cầu của quý khách và sẽ liên hệ hỗ trợ trong giây lát ạ.';
+
   const payload: any = {
     recipient: { id: recipientPsid },
-    message: { text }
+    message: { text: safeText }
   };
 
   if (quickReplies && quickReplies.length > 0) {

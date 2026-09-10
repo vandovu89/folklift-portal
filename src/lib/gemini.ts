@@ -443,6 +443,7 @@ QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
    - LUÔN gọi tool 'searchForklifts' với các bộ lọc chính xác (maker, minYear, maxYear, loadCapacity, powerType, minPrice, maxPrice, keyword).
    - Tuyệt đối không bịa đặt thông tin xe nếu trong kho không có.
    - Khi có kết quả tìm kiếm, tóm tắt thông số chính (Hãng, Model, Tải trọng, Chiều cao nâng, Năm sản xuất) và gửi link xe để khách xem chi tiết.
+   - BẮT BUỘC: Sau khi nhận kết quả từ tool, bạn PHẢI tạo câu trả lời bằng văn bản tiếng Việt hoàn chỉnh gửi cho khách hàng. Nếu kho không có xe thỏa mãn tiêu chí (danh sách rỗng), hãy lịch sự thông báo mẫu xe này hiện đang tạm hết và khéo léo xin Tên/Số điện thoại để khi có xe về bên em báo ngay.
 
 2. Khi khách hỏi về MỘT chiếc xe cụ thể (ví dụ: "cho tôi báo giá mã xe A", "xe này nâng tối đa bao nhiêu kg?", "xe cao mấy mét?", "bình điện thế nào?"):
    - LUÔN gọi tool 'getForkliftDetail' với mã xe hoặc model của xe đó để đọc toàn bộ 100% thông số kỹ thuật thực tế từ database.
@@ -503,7 +504,8 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
                 name: 'searchForklifts',
                 response: {
                   totalFound: searchResults.length,
-                  forklifts: searchResults
+                  forklifts: searchResults,
+                  note: searchResults.length === 0 ? 'Hiện không có xe nào trong kho thỏa mãn tiêu chí này. Hãy thông báo lịch sự cho khách và xin SĐT để báo khi có hàng.' : 'Đã tìm thấy xe phù hợp trong kho.'
                 }
               }
             });
@@ -555,15 +557,31 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
         // Gửi kết quả tool về cho Gemini để tổng hợp câu trả lời tự nhiên
         const followUp = await chat.sendMessage(toolResponses);
         const followUpResponse = await followUp.response;
+        let reply = followUpResponse.text() || '';
+
+        // Bảo vệ an toàn: nếu Gemini vẫn không trả lời text thì dùng câu văn dự phòng
+        if (!reply || !reply.trim()) {
+          if (foundForklifts.length > 0) {
+            reply = 'Dạ chào quý khách! Em gửi quý khách thông tin các mẫu xe nâng đang có sẵn tại kho phù hợp với nhu cầu bên dưới. Quý khách có thể xem chi tiết hoặc để lại số điện thoại để bên em gửi báo giá tốt nhất nhé!';
+          } else {
+            reply = 'Dạ chào quý khách! Hiện tại trong kho của Việt Nhật đang tạm hết dòng xe đúng như tiêu chí này. Quý khách vui lòng để lại số điện thoại hoặc kết nối Zalo để bên em báo ngay khi có đợt xe mới về cảng nhé!';
+          }
+        }
+
         return {
-          replyText: followUpResponse.text(),
+          replyText: reply,
           foundForklifts,
           inquiryCreated
         };
       }
 
+      let reply = response.text() || '';
+      if (!reply || !reply.trim()) {
+        reply = 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ?';
+      }
+
       return {
-        replyText: response.text(),
+        replyText: reply,
         foundForklifts,
         inquiryCreated
       };
