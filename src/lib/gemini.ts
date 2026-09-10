@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { logBotActivity } from '@/lib/bot-logger';
+import { getBaseUrl } from '@/lib/url';
 
 // Khởi tạo client Gemini động theo biến môi trường
 function getGenAIClient() {
@@ -254,7 +255,7 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
     const takeCount = criteria.maxResults && criteria.maxResults > 0 ? criteria.maxResults : 5;
     const finalForklifts = filtered.slice(0, takeCount);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
+    const baseUrl = getBaseUrl();
 
     return finalForklifts.map(f => ({
       id: f.id,
@@ -307,7 +308,7 @@ export async function getForkliftDetailInDb(identifier: string) {
 
     if (!forklift) return null;
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
+    const baseUrl = getBaseUrl();
 
     return {
       id: forklift.id,

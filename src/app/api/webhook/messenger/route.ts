@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { sendTextMessage, sendGenericTemplate, sendSenderAction } from '@/lib/messenger';
 import { processAiChat } from '@/lib/gemini';
 import { logBotActivity } from '@/lib/bot-logger';
+import { getBaseUrl } from '@/lib/url';
 
 // GET: Xác thực Webhook với Meta Developer
 export async function GET(req: NextRequest) {
@@ -224,7 +225,7 @@ export async function POST(req: NextRequest) {
 
         // 5. Nếu có danh sách xe gợi ý, gửi kèm Generic Template thẻ xe (Carousel)
         if (aiResult.foundForklifts && aiResult.foundForklifts.length > 0) {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
+          const baseUrl = getBaseUrl();
           const defaultImage = `${baseUrl}/logo.png`;
 
           const cards = aiResult.foundForklifts

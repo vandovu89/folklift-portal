@@ -280,8 +280,8 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  const webhookUrl = `${origin || 'https://vietnhat-forklift.vercel.app'}/api/webhook/messenger`;
-  const verifyToken = 'vietnhat_forklift_secret_token_2026';
+  const webhookUrl = `${origin || process.env.NEXT_PUBLIC_APP_URL || ''}/api/webhook/messenger`;
+  const verifyToken = process.env.NEXT_PUBLIC_META_VERIFY_TOKEN || 'vietnhat_forklift_secret_token_2026';
 
   const totalSessions = pages.reduce((acc, p) => acc + (p._count?.sessions || 0), 0);
   const totalInquiries = pages.reduce((acc, p) => acc + (p._count?.inquiries || 0), 0);
