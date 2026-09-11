@@ -6,15 +6,39 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const resolvedParams = await params;
     const body = await request.json();
     
+    // Extract expenses if present to handle it via relations
+    const expenses = body.expenses;
+    delete body.expenses;
+
     // Convert numbers if present
     if (body.year) body.year = parseInt(body.year);
     if (body.hour) body.hour = parseInt(body.hour);
     if (body.price) body.price = parseFloat(body.price);
+    if (body.costPrice !== undefined) {
+      body.costPrice = body.costPrice ? parseFloat(body.costPrice) : null;
+    }
 
     const updated = await prisma.forklift.update({
       where: { id: resolvedParams.id },
       data: body
     });
+
+    if (expenses !== undefined) {
+      // replace expenses:
+      await prisma.expense.deleteMany({ where: { forkliftId: resolvedParams.id } });
+      if (expenses.length > 0) {
+        await prisma.expense.createMany({
+          data: expenses.map((exp: any) => ({
+            forkliftId: resolvedParams.id,
+            title: exp.title,
+            amount: parseFloat(exp.amount),
+            date: exp.date ? new Date(exp.date) : null,
+            note: exp.note
+          }))
+        });
+      }
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error(error);

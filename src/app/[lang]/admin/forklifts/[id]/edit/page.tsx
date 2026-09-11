@@ -29,8 +29,29 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     condition: '',
     engineCondition: '',
     location: '',
-    sourceUrl: ''
+    sourceUrl: '',
+    costPrice: '',
+    expenses: [] as { title: string, amount: string, date: string, note: string }[]
   });
+
+  const handleExpenseChange = (index: number, field: string, value: string) => {
+    const newExpenses = [...formData.expenses];
+    newExpenses[index] = { ...newExpenses[index], [field]: value };
+    setFormData({ ...formData, expenses: newExpenses });
+  };
+
+  const addExpense = () => {
+    setFormData({
+      ...formData,
+      expenses: [...formData.expenses, { title: '', amount: '', date: '', note: '' }]
+    });
+  };
+
+  const removeExpense = (index: number) => {
+    const newExpenses = [...formData.expenses];
+    newExpenses.splice(index, 1);
+    setFormData({ ...formData, expenses: newExpenses });
+  };
 
   useEffect(() => {
     const fetchForklift = async () => {
@@ -57,7 +78,14 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             condition: found.condition || '',
             engineCondition: found.engineCondition || '',
             location: found.location || '',
-            sourceUrl: found.sourceUrl || ''
+            sourceUrl: found.sourceUrl || '',
+            costPrice: found.costPrice || '',
+            expenses: found.expenses ? found.expenses.map((e: any) => ({
+              title: e.title || '',
+              amount: e.amount ? String(e.amount) : '',
+              date: e.date ? new Date(e.date).toISOString().split('T')[0] : '',
+              note: e.note || ''
+            })) : []
           });
         }
       } catch(e) {
@@ -211,6 +239,37 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div className="form-group">
               <label className="form-label">Giá Bán Đề Xuất (JPY)</label>
               <input type="number" name="price" value={formData.price} onChange={handleChange} className="form-control" />
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3>4. Quản lý Vốn & Chi phí nội bộ</h3>
+          <div className={styles.formGrid}>
+            <div className="form-group">
+              <label className="form-label">Giá vốn mua vào (JPY)</label>
+              <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} className="form-control" />
+            </div>
+          </div>
+          
+          <div style={{ marginTop: '1rem' }}>
+            <label className="form-label">Chi phí phát sinh</label>
+            {formData.expenses.map((exp, index) => (
+              <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                <input required placeholder="Tên chi phí (VD: Vận chuyển)" value={exp.title} onChange={e => handleExpenseChange(index, 'title', e.target.value)} className="form-control" style={{ flex: 2 }} />
+                <input required type="number" placeholder="Số tiền" value={exp.amount} onChange={e => handleExpenseChange(index, 'amount', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
+                <input type="date" value={exp.date} onChange={e => handleExpenseChange(index, 'date', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
+                <input placeholder="Ghi chú" value={exp.note} onChange={e => handleExpenseChange(index, 'note', e.target.value)} className="form-control" style={{ flex: 2 }} />
+                <button type="button" onClick={() => removeExpense(index)} className="btn-danger" style={{ padding: '0.5rem' }}>Xóa</button>
+              </div>
+            ))}
+            <button type="button" onClick={addExpense} className="btn-secondary" style={{ marginTop: '0.5rem' }}>+ Thêm chi phí</button>
+          </div>
+          
+          <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+            <div>Tổng chi phí phát sinh: <strong>{formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0).toLocaleString()} JPY</strong></div>
+            <div style={{ marginTop: '0.5rem', fontSize: '1.1rem', color: '#ffb703' }}>
+              Tổng (Vốn + Chi phí): <strong>{((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString()} JPY</strong>
             </div>
           </div>
         </div>
