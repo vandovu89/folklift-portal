@@ -28,18 +28,21 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
       transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(15px)',
-        borderBottom: '1px solid var(--surface-border)',
+        background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(15px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '1rem 5%',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+        boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
       }}
     >
+      {/* Animated glowing bottom border */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent)', opacity: 0.8 }} className="animated-gradient-text" />
+
       <div style={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-        maxWidth: '1400px', margin: '0 auto'
+        maxWidth: '1400px', margin: '0 auto', position: 'relative'
       }}>
         <Link href={`/${lang}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
         </Link>
 
         {/* Desktop Nav */}
@@ -53,7 +56,8 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
                 fontWeight: 600,
                 textDecoration: 'none',
                 transition: 'all 0.3s ease',
-                color: isActive(link.href, link.exact) ? 'var(--primary)' : 'var(--foreground)',
+                color: isActive(link.href, link.exact) ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                textShadow: isActive(link.href, link.exact) ? '0 0 10px rgba(255,255,255,0.5)' : 'none',
                 position: 'relative',
               }}
             >
@@ -61,7 +65,7 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
               {!link.isCta && isActive(link.href, link.exact) && (
                 <motion.div 
                   layoutId="nav-indicator"
-                  style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '10px' }} 
+                  style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--primary), var(--secondary))', borderRadius: '10px', boxShadow: '0 0 10px var(--primary)' }} 
                 />
               )}
             </Link>
@@ -79,9 +83,9 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.4rem', display: 'flex', flexDirection: 'column', gap: '5px' }}
             aria-label="Toggle menu"
           >
-            <span style={{ display: 'block', width: '24px', height: '2px', background: 'var(--foreground)', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }}></span>
-            <span style={{ display: 'block', width: '24px', height: '2px', background: 'var(--foreground)', transition: 'all 0.3s', opacity: menuOpen ? 0 : 1 }}></span>
-            <span style={{ display: 'block', width: '24px', height: '2px', background: 'var(--foreground)', transition: 'all 0.3s', transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }}></span>
+            <span style={{ display: 'block', width: '24px', height: '2px', background: 'white', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }}></span>
+            <span style={{ display: 'block', width: '24px', height: '2px', background: 'white', transition: 'all 0.3s', opacity: menuOpen ? 0 : 1 }}></span>
+            <span style={{ display: 'block', width: '24px', height: '2px', background: 'white', transition: 'all 0.3s', transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }}></span>
           </button>
         </div>
       </div>
@@ -93,10 +97,10 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
           animate={{ opacity: 1, y: 0 }}
           style={{
             position: 'absolute', top: 'calc(100% + 15px)', left: '5%', right: '5%',
-            background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(15px)', 
-            border: '1px solid var(--surface-border)',
+            background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(15px)', 
+            border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '20px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
             display: 'flex', flexDirection: 'column', padding: '1.5rem', gap: '0.5rem'
           }}
         >
@@ -111,8 +115,8 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
                 textDecoration: 'none',
                 borderRadius: '8px',
                 display: 'block',
-                color: isActive(link.href, link.exact) ? 'var(--primary)' : 'var(--foreground)',
-                background: isActive(link.href, link.exact) ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+                color: isActive(link.href, link.exact) ? 'white' : 'rgba(255,255,255,0.7)',
+                background: isActive(link.href, link.exact) ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
               }}
             >
               {link.label}
