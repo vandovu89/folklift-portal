@@ -91,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--surface-border)', paddingTop: '1.5rem' }}>
                       <div style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '1.4rem' }}>
-                        {fl.price ? `¥ ${fl.price.toLocaleString('ja-JP')}` : dict.common.contact}
+                        {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
                       </div>
                       <span style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>Xem chi tiết &rarr;</span>
                     </div>

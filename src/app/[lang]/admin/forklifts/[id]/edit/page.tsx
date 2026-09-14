@@ -237,7 +237,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Giá Bán Đề Xuất (JPY)</label>
+              <label className="form-label">Giá Bán Đề Xuất (VNĐ)</label>
               <input type="number" name="price" value={formData.price} onChange={handleChange} className="form-control" />
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           <h3>4. Quản lý Vốn & Chi phí nội bộ</h3>
           <div className={styles.formGrid}>
             <div className="form-group">
-              <label className="form-label">Giá vốn mua vào (JPY)</label>
+              <label className="form-label">Giá vốn mua vào (VNĐ)</label>
               <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} className="form-control" />
             </div>
           </div>
@@ -267,9 +267,9 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           </div>
           
           <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-            <div>Tổng chi phí phát sinh: <strong>{formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0).toLocaleString()} JPY</strong></div>
+            <div>Tổng chi phí phát sinh: <strong>{formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0).toLocaleString('vi-VN')} VNĐ</strong></div>
             <div style={{ marginTop: '0.5rem', fontSize: '1.1rem', color: '#ffb703' }}>
-              Tổng (Vốn + Chi phí): <strong>{((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString()} JPY</strong>
+              Tổng (Vốn + Chi phí): <strong>{((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString('vi-VN')} VNĐ</strong>
             </div>
           </div>
         </div>

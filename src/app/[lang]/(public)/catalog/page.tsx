@@ -94,7 +94,7 @@ export default async function PublicCatalog({
 
                   <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: '800', color: 'var(--danger)', fontSize: '1.15rem' }}>
-                      {fl.price ? `¥ ${fl.price.toLocaleString('ja-JP')}` : dict.common.contact}
+                      {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
                     </div>
                     <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
                       {dict.common.view_detail}

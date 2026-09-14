@@ -55,7 +55,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <div style={{ margin: '2rem 0', padding: '1.5rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
               <div style={{ fontSize: '0.9rem', color: '#666' }}>{dict.machine.price}:</div>
               <div style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--danger)' }}>
-                {forklift.price ? `¥ ${forklift.price.toLocaleString('ja-JP')}` : dict.common.contact}
+                {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
               </div>
             </div>
 
