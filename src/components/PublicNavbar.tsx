@@ -42,7 +42,7 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
         maxWidth: '1400px', margin: '0 auto', position: 'relative'
       }}>
         <Link href={`/${lang}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         </Link>
 
         {/* Desktop Nav */}
