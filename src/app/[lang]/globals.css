@@ -2,15 +2,15 @@
   --background: #f4f7f6;
   --foreground: #1e293b;
   
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #60a5fa;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #818cf8;
   
-  --secondary: #10b981;
-  --accent: #f59e0b;
+  --secondary: #9333ea;
+  --accent: #f43f5e;
   
-  --danger: #ef4444;
-  --success: #22c55e;
+  --danger: #e11d48;
+  --success: #10b981;
   
   --surface: #ffffff;
   --surface-hover: #f8fafc;
@@ -90,14 +90,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background-size: 200% auto;
   color: white;
   padding: 0.6rem 1.25rem;
   border-radius: var(--radius-xl);
   font-weight: 600;
   font-size: 0.95rem;
   transition: var(--transition);
-  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -132,9 +133,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+  background-position: right center;
 }
 
 .btn-secondary {
@@ -245,4 +246,35 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Override fixed background on iOS */
   .hero-section { background-attachment: scroll !important; }
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.float-anim {
+  animation: float 4s ease-in-out infinite;
+}
+
+.float-anim-delay {
+  animation: float 4.5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animated-gradient-text {
+  background: linear-gradient(270deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+  background-size: 300% 300%;
+  animation: gradientShift 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getDictionary } from '@/dictionaries';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
+import { FadeIn } from '@/components/animations/FadeIn';
+import { StaggerContainer } from '@/components/animations/StaggerContainer';
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
@@ -22,48 +24,50 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   return (
     <div>
       {/* Hero Section */}
-      <section style={{ 
+      <section className="hero-section" style={{ 
       height: '85vh', minHeight: '500px',
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(37, 99, 235, 0.8) 100%), url("https://images.unsplash.com/photo-1586528116311-ad8ed7c80a30?q=80&w=2070&auto=format&fit=crop")',
-        backgroundSize: 'cover', backgroundPosition: 'center',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(79, 70, 229, 0.8) 100%), url("https://images.unsplash.com/photo-1586528116311-ad8ed7c80a30?q=80&w=2070&auto=format&fit=crop")',
+        backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'white', textAlign: 'center', padding: '2rem',
         overflowX: 'hidden'
       }}>
-        <div style={{ maxWidth: '900px', animation: 'fadeInUp 1s ease-out' }}>
-          <span style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
+        <FadeIn delay={0.2} direction="up" className="hero-content" style={{ maxWidth: '900px' }}>
+          <span className="float-anim" style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
             Việt Nhật
           </span>
-          <h1 style={{ fontSize: 'clamp(2rem, 8vw, 4.5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <h1 className="hero-title animated-gradient-text" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
             {resolvedParams.lang === 'vi' ? 'Giải Pháp Nâng Hạ Toàn Diện' : 'Comprehensive Forklift Solutions'}
           </h1>
-          <p style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}>
+          <p className="hero-desc" style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}>
             {resolvedParams.lang === 'vi' 
               ? 'Chúng tôi chuyên cung cấp các dòng xe nâng chất lượng cao, nhập khẩu trực tiếp. Đảm bảo hiệu suất vượt trội và độ bền bỉ tối đa cho doanh nghiệp của bạn.' 
               : 'We specialize in providing high-quality, directly imported forklifts. Guaranteeing outstanding performance and maximum durability for your business.'}
           </p>
           <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href={`/${resolvedParams.lang}/catalog`} className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', background: 'white', color: 'var(--primary)', fontWeight: 700, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
+            <Link href={`/${resolvedParams.lang}/catalog`} className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', fontWeight: 700 }}>
               {dict.nav.catalog}
             </Link>
             <Link href={`/${resolvedParams.lang}/contact`} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', border: '2px solid rgba(255,255,255,0.5)', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', fontWeight: 700 }}>
               {dict.common.contact}
             </Link>
           </div>
-        </div>
+        </FadeIn>
       </section>
 
       {/* Featured Products */}
       <section style={{ padding: '7rem 5%', background: 'var(--background)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-            <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
-              {resolvedParams.lang === 'vi' ? 'Sản Phẩm Nổi Bật' : 'Featured Products'}
-            </h2>
-            <div style={{ width: '100px', height: '5px', background: 'var(--primary)', margin: '0 auto', borderRadius: '5px' }}></div>
-          </div>
+          <FadeIn direction="up">
+            <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+              <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
+                {resolvedParams.lang === 'vi' ? 'Sản Phẩm Nổi Bật' : 'Featured Products'}
+              </h2>
+              <div style={{ width: '100px', height: '5px', background: 'var(--primary)', margin: '0 auto', borderRadius: '5px' }}></div>
+            </div>
+          </FadeIn>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }}>
+          <StaggerContainer style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }}>
             {featuredForklifts.map(fl => (
               <div key={fl.id} className="glass-panel hover-lift" style={{ overflow: 'hidden', cursor: 'pointer', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -99,7 +103,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 </Link>
               </div>
             ))}
-          </div>
+          </StaggerContainer>
           
           <div style={{ textAlign: 'center', marginTop: '5rem' }}>
             <Link href={`/${resolvedParams.lang}/catalog`} className="btn-primary" style={{ padding: '1.2rem 4rem', borderRadius: '50px', fontSize: '1.1rem', fontWeight: 700, boxShadow: '0 10px 25px rgba(37,99,235,0.3)' }}>
@@ -112,24 +116,26 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Why Choose Us */}
       <section style={{ padding: '8rem 5%', background: 'white' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
-            {resolvedParams.lang === 'vi' ? 'Tại Sao Chọn Chúng Tôi?' : 'Why Choose Us?'}
-          </h2>
-          <div style={{ width: '100px', height: '5px', background: 'var(--primary)', margin: '0 auto 5rem auto', borderRadius: '5px' }}></div>
+          <FadeIn direction="up">
+            <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
+              {resolvedParams.lang === 'vi' ? 'Tại Sao Chọn Chúng Tôi?' : 'Why Choose Us?'}
+            </h2>
+            <div style={{ width: '100px', height: '5px', background: 'var(--primary)', margin: '0 auto 5rem auto', borderRadius: '5px' }}></div>
+          </FadeIn>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
+          <StaggerContainer style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
             {[
               { title: resolvedParams.lang === 'vi' ? 'Chất lượng Đảm bảo' : 'Guaranteed Quality', desc: resolvedParams.lang === 'vi' ? '100% xe nâng được kiểm tra kỹ lưỡng bởi chuyên gia Nhật Bản trước khi giao đến tay khách hàng.' : '100% forklifts are thoroughly inspected by Japanese experts before delivery.', icon: '🏆' },
               { title: resolvedParams.lang === 'vi' ? 'Giá Cả Cạnh Tranh' : 'Competitive Pricing', desc: resolvedParams.lang === 'vi' ? 'Trực tiếp nhập khẩu không qua trung gian, mang đến mức giá tốt nhất cho doanh nghiệp.' : 'Directly imported without intermediaries, bringing the best prices for your business.', icon: '💰' },
               { title: resolvedParams.lang === 'vi' ? 'Hỗ trợ Toàn diện' : 'Comprehensive Support', desc: resolvedParams.lang === 'vi' ? 'Đội ngũ kỹ thuật viên giàu kinh nghiệm luôn sẵn sàng bảo dưỡng và sửa chữa tận nơi.' : 'Experienced technical team always ready for on-site maintenance and repair.', icon: '🛠️' }
             ].map((item, i) => (
-              <div key={i} className="hover-lift-sm" style={{ padding: '3rem 2rem', background: 'var(--background)', borderRadius: '24px', cursor: 'default' }}>
-                <div style={{ fontSize: '4rem', marginBottom: '2rem', filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.1))' }}>{item.icon}</div>
+              <div key={i} className="glass-panel hover-lift-sm" style={{ padding: '3rem 2rem', borderRadius: '24px', cursor: 'default', background: 'var(--surface)' }}>
+                <div className={i % 2 === 0 ? "float-anim" : "float-anim-delay"} style={{ fontSize: '4rem', marginBottom: '2rem', filter: 'drop-shadow(0 10px 10px rgba(79, 70, 229, 0.2))' }}>{item.icon}</div>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--foreground)' }}>{item.title}</h3>
                 <p style={{ color: '#666', lineHeight: 1.7, fontSize: '1.05rem' }}>{item.desc}</p>
               </div>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
     </div>
