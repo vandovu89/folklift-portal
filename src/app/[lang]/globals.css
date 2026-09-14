@@ -278,3 +278,24 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.nav-link {
+  transition: all 0.3s ease;
+}
+.nav-link:hover {
+  color: white !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.footer-link {
+  color: #f8fafc;
+  opacity: 0.8;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+.footer-link:hover {
+  opacity: 1;
+  color: var(--primary-light);
+  transform: translateX(5px);
+}

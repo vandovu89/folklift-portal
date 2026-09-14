@@ -41,11 +41,11 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
         <div>
           <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '2rem', color: '#38bdf8' }}>{dict.footer.quick_links}</h4>
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <li><Link href={`/${lang}`} style={{ color: '#f8fafc', opacity: 0.8, textDecoration: 'none', transition: 'opacity 0.2s' }}>{dict.nav.home}</Link></li>
-            <li><Link href={`/${lang}/catalog`} style={{ color: '#f8fafc', opacity: 0.8, textDecoration: 'none', transition: 'opacity 0.2s' }}>{dict.nav.catalog}</Link></li>
-            <li><Link href={`/${lang}/about`} style={{ color: '#f8fafc', opacity: 0.8, textDecoration: 'none', transition: 'opacity 0.2s' }}>{dict.nav.about}</Link></li>
-            <li><Link href={`/${lang}/policies`} style={{ color: '#f8fafc', opacity: 0.8, textDecoration: 'none', transition: 'opacity 0.2s' }}>{dict.nav.policies}</Link></li>
-            <li><Link href={`/${lang}/contact`} style={{ color: '#f8fafc', opacity: 0.8, textDecoration: 'none', transition: 'opacity 0.2s' }}>{dict.nav.contact}</Link></li>
+            <li><Link href={`/${lang}`} className="footer-link">{dict.nav.home}</Link></li>
+            <li><Link href={`/${lang}/catalog`} className="footer-link">{dict.nav.catalog}</Link></li>
+            <li><Link href={`/${lang}/about`} className="footer-link">{dict.nav.about}</Link></li>
+            <li><Link href={`/${lang}/policies`} className="footer-link">{dict.nav.policies}</Link></li>
+            <li><Link href={`/${lang}/contact`} className="footer-link">{dict.nav.contact}</Link></li>
           </ul>
         </div>
 

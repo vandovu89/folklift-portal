@@ -51,11 +51,10 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
             <Link
               key={link.href}
               href={link.href}
-              className={link.isCta ? "btn-primary" : ""}
+              className={link.isCta ? "btn-primary" : "nav-link"}
               style={link.isCta ? { padding: '0.6rem 1.5rem', borderRadius: '50px' } : {
                 fontWeight: 600,
                 textDecoration: 'none',
-                transition: 'all 0.3s ease',
                 color: isActive(link.href, link.exact) ? 'white' : 'rgba(255, 255, 255, 0.7)',
                 textShadow: isActive(link.href, link.exact) ? '0 0 10px rgba(255,255,255,0.5)' : 'none',
                 position: 'relative',
