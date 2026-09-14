@@ -27,18 +27,16 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
-        position: 'sticky', top: '20px', zIndex: 100,
-        padding: '0 5%',
+        position: 'sticky', top: 0, zIndex: 100,
+        background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(15px)',
+        borderBottom: '1px solid var(--surface-border)',
+        padding: '1rem 5%',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
       }}
     >
-      <div className="glass-panel" style={{ 
+      <div style={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-        maxWidth: '1200px', margin: '0 auto',
-        padding: '0.8rem 2rem',
-        borderRadius: '50px',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
-        background: 'rgba(255, 255, 255, 0.85)',
-        border: '1px solid rgba(255, 255, 255, 0.6)'
+        maxWidth: '1400px', margin: '0 auto'
       }}>
         <Link href={`/${lang}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
