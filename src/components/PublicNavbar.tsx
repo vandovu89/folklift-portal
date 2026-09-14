@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import LangSwitcher from '@/components/LangSwitcher';
 
 export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: any }) {
@@ -14,21 +15,31 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
     { href: `/${lang}/catalog`, label: dict.nav.catalog },
     { href: `/${lang}/about`, label: dict.nav.about },
     { href: `/${lang}/policies`, label: dict.nav.policies },
-    { href: `/${lang}/contact`, label: dict.nav.contact },
+    { href: `/${lang}/contact`, label: dict.nav.contact, isCta: true },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 
   return (
-    <nav style={{
-      position: 'sticky', top: 0, zIndex: 100,
-      background: 'rgba(255, 255, 255, 0.97)', backdropFilter: 'blur(10px)',
-      borderBottom: '1px solid var(--surface-border)',
-      padding: '1rem 5%',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1400px', margin: '0 auto' }}>
+    <motion.nav 
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+      style={{
+        position: 'sticky', top: '20px', zIndex: 100,
+        padding: '0 5%',
+      }}
+    >
+      <div className="glass-panel" style={{ 
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+        maxWidth: '1200px', margin: '0 auto',
+        padding: '0.8rem 2rem',
+        borderRadius: '50px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+        background: 'rgba(255, 255, 255, 0.85)',
+        border: '1px solid rgba(255, 255, 255, 0.6)'
+      }}>
         <Link href={`/${lang}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         </Link>
@@ -39,16 +50,22 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
             <Link
               key={link.href}
               href={link.href}
-              style={{
+              className={link.isCta ? "btn-primary" : ""}
+              style={link.isCta ? { padding: '0.6rem 1.5rem', borderRadius: '50px' } : {
                 fontWeight: 600,
                 textDecoration: 'none',
-                transition: 'color 0.2s',
+                transition: 'all 0.3s ease',
                 color: isActive(link.href, link.exact) ? 'var(--primary)' : 'var(--foreground)',
-                borderBottom: isActive(link.href, link.exact) ? '2px solid var(--primary)' : '2px solid transparent',
-                paddingBottom: '2px',
+                position: 'relative',
               }}
             >
               {link.label}
+              {!link.isCta && isActive(link.href, link.exact) && (
+                <motion.div 
+                  layoutId="nav-indicator"
+                  style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '10px' }} 
+                />
+              )}
             </Link>
           ))}
           <div style={{ borderLeft: '1px solid var(--surface-border)', paddingLeft: '1.5rem', display: 'flex', alignItems: 'center' }}>
@@ -73,12 +90,18 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
 
       {/* Mobile Dropdown */}
       {menuOpen && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0,
-          background: 'white', borderBottom: '1px solid var(--surface-border)',
-          boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
-          display: 'flex', flexDirection: 'column', padding: '1rem 5%', gap: '0.25rem'
-        }}>
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            position: 'absolute', top: 'calc(100% + 15px)', left: '5%', right: '5%',
+            background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(15px)', 
+            border: '1px solid var(--surface-border)',
+            borderRadius: '20px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            display: 'flex', flexDirection: 'column', padding: '1.5rem', gap: '0.5rem'
+          }}
+        >
           {navLinks.map(link => (
             <Link
               key={link.href}
@@ -97,8 +120,8 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
               {link.label}
             </Link>
           ))}
-        </div>
+        </motion.div>
       )}
-    </nav>
+    </motion.nav>
   );
 }
