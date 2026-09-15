@@ -11,8 +11,6 @@ model Forklift {
   id              String    @id @default(uuid())
   
   // Thông tin nhận diện
-  internalCode    String?
-  stockNo         String?
   serialNo        String?
   maker           String
   model           String

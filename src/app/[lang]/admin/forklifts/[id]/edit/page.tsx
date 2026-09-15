@@ -12,8 +12,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   const [initialLoading, setInitialLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    internalCode: '',
-    stockNo: '',
+    id: '',
     maker: '',
     model: '',
     year: '',
@@ -61,8 +60,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
         const found = all.find((fl: any) => fl.id === resolvedParams.id);
         if (found) {
           setFormData({
-            internalCode: found.internalCode || '',
-            stockNo: found.stockNo || '',
+            id: found.id || '',
             maker: found.maker || '',
             model: found.model || '',
             year: found.year || '',
@@ -160,12 +158,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               <input required name="model" value={formData.model} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
-              <label className="form-label">Mã nội bộ</label>
-              <input name="internalCode" value={formData.internalCode} onChange={handleChange} className="form-control" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Stock No.</label>
-              <input name="stockNo" value={formData.stockNo} onChange={handleChange} className="form-control" />
+              <label className="form-label">ID Hệ Thống</label>
+              <input value={formData.id} readOnly className="form-control" style={{ opacity: 0.6 }} />
             </div>
             <div className="form-group">
               <label className="form-label">Năm SX</label>

@@ -18,8 +18,7 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
     whereClause.OR = [
       { maker: { contains: q } },
       { model: { contains: q } },
-      { stockNo: { contains: q } },
-      { internalCode: { contains: q } }
+      { id: { contains: q } }
     ];
   }
   

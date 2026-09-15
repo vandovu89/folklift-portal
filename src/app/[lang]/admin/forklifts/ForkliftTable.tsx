@@ -87,7 +87,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
                 style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
               />
             </th>
-            <th>Mã Nội Bộ</th>
+            <th>ID Hệ Thống</th>
             <th>Hãng</th>
             <th>Model</th>
             <th>Năm SX</th>
@@ -114,7 +114,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
                     style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
                   />
                 </td>
-                <td><strong>{fl.internalCode || fl.stockNo || '-'}</strong></td>
+                <td><strong title={fl.id}>{fl.id.substring(0, 8)}</strong></td>
                 <td>{fl.maker}</td>
                 <td>{fl.model}</td>
                 <td>{fl.year || '-'}</td>

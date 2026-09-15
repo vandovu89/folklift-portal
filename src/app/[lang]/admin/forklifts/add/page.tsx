@@ -9,8 +9,6 @@ export default function AddForkliftPage() {
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    internalCode: '',
-    stockNo: '',
     maker: '',
     model: '',
     year: '',
@@ -92,14 +90,6 @@ export default function AddForkliftPage() {
             <div className="form-group">
               <label className="form-label">Model *</label>
               <input required name="model" value={formData.model} onChange={handleChange} className="form-control" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Mã nội bộ</label>
-              <input name="internalCode" value={formData.internalCode} onChange={handleChange} className="form-control" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Stock No.</label>
-              <input name="stockNo" value={formData.stockNo} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
               <label className="form-label">Năm SX</label>

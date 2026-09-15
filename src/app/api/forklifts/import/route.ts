@@ -40,18 +40,6 @@ export async function POST(request: Request) {
       
       if (!maker || !model) continue;
 
-      const stockNo = row[1] ? String(row[1]) : null;
-      
-      if (stockNo) {
-        const existing = await prisma.forklift.findFirst({
-          where: { stockNo: stockNo }
-        });
-        if (existing) {
-          skipped++;
-          continue; // Bỏ qua xe trùng lặp
-        }
-      }
-
       const costPrice = row[16] ? parseFloat(String(row[16]).replace(/,/g, '')) : null;
       const expensesRaw = row[17] ? String(row[17]) : "";
       
@@ -76,8 +64,6 @@ export async function POST(request: Request) {
 
       await prisma.forklift.create({
         data: {
-          internalCode: stockNo,
-          stockNo: stockNo,
           maker: String(maker),
           model: String(model),
           year: row[4] ? parseInt(String(row[4])) : null,

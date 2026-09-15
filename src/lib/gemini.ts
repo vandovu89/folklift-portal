@@ -11,8 +11,6 @@ function getGenAIClient() {
 
 export interface ForkliftSearchResult {
   id: string;
-  internalCode?: string | null;
-  stockNo?: string | null;
   maker: string;
   model: string;
   year?: number | null;
@@ -172,8 +170,6 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       andConditions.push({
         OR: [
           { model: { contains: kw, mode: 'insensitive' } },
-          { internalCode: { contains: kw, mode: 'insensitive' } },
-          { stockNo: { contains: kw, mode: 'insensitive' } },
           { serialNo: { contains: kw, mode: 'insensitive' } },
           { maker: { contains: kw, mode: 'insensitive' } },
           { attachment: { contains: kw, mode: 'insensitive' } },
@@ -259,8 +255,6 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
 
     return finalForklifts.map(f => ({
       id: f.id,
-      internalCode: f.internalCode,
-      stockNo: f.stockNo,
       maker: f.maker,
       model: f.model,
       year: f.year,
@@ -292,8 +286,6 @@ export async function getForkliftDetailInDb(identifier: string) {
       where: {
         OR: [
           { id: cleanId },
-          { internalCode: { equals: cleanId, mode: 'insensitive' } },
-          { stockNo: { equals: cleanId, mode: 'insensitive' } },
           { model: { equals: cleanId, mode: 'insensitive' } },
           { model: { contains: cleanId, mode: 'insensitive' } }
         ]
@@ -312,8 +304,6 @@ export async function getForkliftDetailInDb(identifier: string) {
 
     return {
       id: forklift.id,
-      internalCode: forklift.internalCode || 'Đang cập nhật',
-      stockNo: forklift.stockNo || 'Đang cập nhật',
       serialNo: forklift.serialNo || 'Đang cập nhật',
       maker: forklift.maker,
       model: forklift.model,
@@ -451,7 +441,7 @@ const tools: any = [
           properties: {
             identifier: {
               type: 'STRING',
-              description: 'Mã nội bộ (internalCode), mã kho (stockNo), model hoặc ID của xe cần xem chi tiết'
+              description: 'Model hoặc ID của xe cần xem chi tiết'
             }
           },
           required: ['identifier']
@@ -635,8 +625,6 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
             if (detail) {
               foundForklifts = [{
                 id: detail.id,
-                internalCode: detail.internalCode,
-                stockNo: detail.stockNo,
                 maker: detail.maker,
                 model: detail.model,
                 loadCapacity: detail.loadCapacity,

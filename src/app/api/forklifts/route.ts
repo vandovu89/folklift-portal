@@ -21,11 +21,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    const forklift = await prisma.forklift.create({
-      data: {
-        internalCode: body.internalCode,
-        stockNo: body.stockNo,
-        serialNo: body.serialNo,
+      const forklift = await prisma.forklift.create({
+        data: {
+          serialNo: body.serialNo,
         maker: body.maker,
         model: body.model,
         year: body.year ? parseInt(body.year) : null,

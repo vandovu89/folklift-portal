@@ -44,7 +44,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{forklift.maker} {forklift.model}</h1>
-                <p style={{ color: '#888', marginBottom: '1.5rem' }}>Mã kho: {forklift.stockNo || forklift.internalCode || 'N/A'}</p>
+                <p style={{ color: '#888', marginBottom: '1.5rem' }}>ID Hệ thống: {forklift.id.substring(0, 8)}</p>
               </div>
               <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
                 <QRCodeComponent value={qrUrl} />

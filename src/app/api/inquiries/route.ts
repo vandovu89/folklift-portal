@@ -16,8 +16,6 @@ export async function GET(request: Request) {
           select: {
             maker: true,
             model: true,
-            internalCode: true,
-            stockNo: true,
           }
         },
         facebookPage: {
