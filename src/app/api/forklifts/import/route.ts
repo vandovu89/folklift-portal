@@ -52,6 +52,28 @@ export async function POST(request: Request) {
         }
       }
 
+      const costPrice = row[20] ? parseFloat(String(row[20]).replace(/,/g, '')) : null;
+      const expensesRaw = row[21] ? String(row[21]) : "";
+      
+      const parsedExpenses = [];
+      if (expensesRaw) {
+        const lines = expensesRaw.split(/\r?\n/);
+        for (const line of lines) {
+          const parts = line.split(':');
+          if (parts.length >= 2) {
+            const title = parts[0].trim();
+            const amountStr = parts.slice(1).join(':').trim();
+            const amount = parseFloat(amountStr.replace(/,/g, ''));
+            if (title && !isNaN(amount)) {
+              parsedExpenses.push({
+                title,
+                amount
+              });
+            }
+          }
+        }
+      }
+
       await prisma.forklift.create({
         data: {
           internalCode: stockNo,
@@ -73,6 +95,10 @@ export async function POST(request: Request) {
           sourceUrl: row[18] ? String(row[18]) : null,
           offerDeadline: parseExcelDate(row[19]),
           status: 'Published',
+          costPrice: costPrice,
+          expenses: parsedExpenses.length > 0 ? {
+            create: parsedExpenses
+          } : undefined,
         }
       });
       imported++;
