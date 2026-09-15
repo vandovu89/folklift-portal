@@ -40,8 +40,8 @@ export async function POST(request: Request) {
       
       if (!maker || !model) continue;
 
-      const costPrice = row[16] ? parseFloat(String(row[16]).replace(/,/g, '')) : null;
-      const expensesRaw = row[17] ? String(row[17]) : "";
+      const costPrice = row[15] ? parseFloat(String(row[15]).replace(/,/g, '')) : null;
+      const expensesRaw = row[16] ? String(row[16]) : "";
       
       const parsedExpenses = [];
       if (expensesRaw) {
@@ -78,8 +78,6 @@ export async function POST(request: Request) {
           loadCapacity: row[12] ? String(row[12]) : null,
           location: row[13] ? String(row[13]) : null,
           price: row[14] ? parseFloat(String(row[14])) : null,
-          sourceUrl: row[15] ? String(row[15]) : null,
-          offerDeadline: parseExcelDate(row[18]),
           status: 'Published',
           costPrice: costPrice,
           expenses: parsedExpenses.length > 0 ? {
