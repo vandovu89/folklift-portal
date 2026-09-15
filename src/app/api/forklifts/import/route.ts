@@ -35,8 +35,8 @@ export async function POST(request: Request) {
     
     for (let i = 4; i < rawData.length; i++) {
       const row = rawData[i];
-      const maker = row[2];
-      const model = row[3];
+      const maker = row[1];
+      const model = row[2];
       
       if (!maker || !model) continue;
 
@@ -66,20 +66,20 @@ export async function POST(request: Request) {
         data: {
           maker: String(maker),
           model: String(model),
-          year: row[4] ? parseInt(String(row[4])) : null,
-          hour: row[5] ? parseInt(String(row[5])) : null,
-          engineCondition: row[6] ? String(row[6]) : null,
-          condition: row[7] ? String(row[7]) : null,
-          powerType: row[8] ? String(row[8]) : null,
-          category: row[9] ? String(row[9]) : null,
-          mast: row[10] ? String(row[10]) : null,
-          attachment: row[11] ? String(row[11]) : null,
-          liftHeight: row[12] ? String(row[12]) : null,
-          loadCapacity: row[13] ? String(row[13]) : null,
-          location: row[14] ? String(row[14]) : null,
-          price: row[15] ? parseFloat(String(row[15])) : null,
-          sourceUrl: row[18] ? String(row[18]) : null,
-          offerDeadline: parseExcelDate(row[19]),
+          year: row[3] ? parseInt(String(row[3])) : null,
+          hour: row[4] ? parseInt(String(row[4])) : null,
+          engineCondition: row[5] ? String(row[5]) : null,
+          condition: row[6] ? String(row[6]) : null,
+          powerType: row[7] ? String(row[7]) : null,
+          category: row[8] ? String(row[8]) : null,
+          mast: row[9] ? String(row[9]) : null,
+          attachment: row[10] ? String(row[10]) : null,
+          liftHeight: row[11] ? String(row[11]) : null,
+          loadCapacity: row[12] ? String(row[12]) : null,
+          location: row[13] ? String(row[13]) : null,
+          price: row[14] ? parseFloat(String(row[14])) : null,
+          sourceUrl: row[15] ? String(row[15]) : null,
+          offerDeadline: parseExcelDate(row[18]),
           status: 'Published',
           costPrice: costPrice,
           expenses: parsedExpenses.length > 0 ? {
