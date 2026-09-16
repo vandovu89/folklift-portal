@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
+import { getBaseUrl } from '@/lib/url';
 
 export async function GET(request: Request) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' }
     });
     
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://folklift.hdsoft.io.vn';
+    const baseUrl = getBaseUrl();
     
     const data: any[][] = [
       ["NO (pic.#)", "LINK", "MAKER", "MODEL", "YEAR", "HOUR", "ENGINE CONDITION", "CONDITION", "TYPE", "TYPE2", "MAST", "ATTACHMENT", "MAX VIEW", "MAX LOAD", "LOADING PORT", "GOODS PRICE"]

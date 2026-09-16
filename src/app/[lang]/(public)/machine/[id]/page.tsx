@@ -6,6 +6,7 @@ import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
+import { getBaseUrl } from '@/lib/url';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -24,8 +25,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
     notFound();
   }
 
-  // Lấy domain hiện tại để tạo QR code (Ưu tiên NEXT_PUBLIC_BASE_URL, nếu không có thì dùng hardcode tạm)
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://folklift.hdsoft.io.vn';
+  const baseUrl = getBaseUrl();
   const qrUrl = `${baseUrl}/${resolvedParams.lang}/machine/${forklift.id}`;
 
   return (
