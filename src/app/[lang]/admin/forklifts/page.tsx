@@ -40,6 +40,9 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
       <div className={styles.pageHeader}>
         <h1>Quản lý Xe Nâng</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
+          <a href="/api/forklifts/export" download className="btn-secondary" style={{ backgroundColor: '#107c41', color: 'white', borderColor: '#107c41' }}>
+            📤 Export Excel
+          </a>
           <Link href="/admin/forklifts/import" className="btn-secondary" style={{ backgroundColor: '#217346', color: 'white', borderColor: '#217346' }}>
             📥 Import Excel
           </Link>
