@@ -9,7 +9,7 @@ export default function ImportExcelPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{imported: number, skipped: number} | null>(null);
+  const [result, setResult] = useState<{imported: number} | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -33,7 +33,7 @@ export default function ImportExcelPage() {
       
       const data = await res.json();
       if (res.ok) {
-        setResult({ imported: data.imported, skipped: data.skipped });
+        setResult({ imported: data.imported });
         router.refresh(); // Làm mới data ở background
       } else {
         alert(data.error || 'Có lỗi xảy ra khi import');
@@ -80,9 +80,7 @@ export default function ImportExcelPage() {
           <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
             Đã thêm mới: <strong>{result.imported}</strong> xe
           </div>
-          <div style={{ fontSize: '1.1rem', color: '#666', marginBottom: '2rem' }}>
-            Bỏ qua (bị trùng mã StockNo): <strong>{result.skipped}</strong> xe
-          </div>
+
           <Link href="/admin/forklifts" className="btn-primary">
             Quay lại Danh sách Xe
           </Link>
