@@ -10,11 +10,12 @@ export async function GET(request: Request) {
     });
     
     const data: any[][] = [
-      // Rows 1-3: blank (decoration / logo area)
+      // Rows 1-4: blank (decoration / logo area, row 5 = header)
       [],
       [],
       [],
-      // Row 4: header — Col A blank, data from Col B
+      [],
+      // Row 5: header — Col A blank, data from Col B
       [
         "",                             // A: blank
         "NO (pic.#)",                   // B

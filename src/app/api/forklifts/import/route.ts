@@ -18,15 +18,15 @@ export async function POST(request: Request) {
     
     const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
     
-    // Table header at row 4 (index 3), data starts at row 5 (index 4)
-    if (rawData.length <= 4) {
+    // Table header is at row 5 (index 4), data starts at row 6 (index 5)
+    if (rawData.length <= 5) {
       return NextResponse.json({ error: 'File is empty or invalid format' }, { status: 400 });
     }
     
     let imported = 0;
     let skipped = 0;
 
-    for (let i = 4; i < rawData.length; i++) {
+    for (let i = 5; i < rawData.length; i++) {
       const row = rawData[i];
 
       // Col A (0) = blank
