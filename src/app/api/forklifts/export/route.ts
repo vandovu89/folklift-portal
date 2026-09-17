@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       // Row 5: header — Col A blank, data from Col B
       [
         "",                             // A: blank
-        "NO (pic.#)",                   // B
+        "LINK",                         // B
         "MAKER",                        // C
         "MODEL",                        // D
         "SERI NO.",                     // E
