@@ -1,5 +1,6 @@
 import { getDictionary } from '@/dictionaries';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaUniversity } from 'react-icons/fa';
+import ContactForm from './ContactForm';
 
 export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
@@ -50,21 +51,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
         </div>
 
         <div style={{ flex: '1 1 500px', background: 'white', padding: '3rem', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>Họ và Tên</label>
-              <input type="text" className="form-control" placeholder="Nhập tên của bạn" style={{ padding: '1rem', background: 'var(--surface-border)' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>Email / Số điện thoại</label>
-              <input type="text" className="form-control" placeholder="Email hoặc số điện thoại" style={{ padding: '1rem', background: 'var(--surface-border)' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#333' }}>Nội dung lời nhắn</label>
-              <textarea className="form-control" rows={5} placeholder="Bạn cần tư vấn về sản phẩm nào?" style={{ padding: '1rem', background: 'var(--surface-border)', resize: 'vertical' }}></textarea>
-            </div>
-            <button type="button" className="btn-primary" style={{ padding: '1rem', fontSize: '1.1rem', fontWeight: 700, borderRadius: '12px', marginTop: '1rem' }}>Gửi Yêu Cầu</button>
-          </form>
+          <ContactForm />
         </div>
       </div>
     </div>

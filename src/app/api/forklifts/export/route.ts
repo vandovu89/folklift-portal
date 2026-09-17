@@ -1,38 +1,66 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
-import { getBaseUrl } from '@/lib/url';
 
 export async function GET(request: Request) {
   try {
     const forklifts = await prisma.forklift.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: { expenses: { orderBy: { createdAt: 'asc' } } }
     });
     
-    const baseUrl = getBaseUrl();
-    
     const data: any[][] = [
-      ["NO (pic.#)", "LINK", "MAKER", "MODEL", "YEAR", "HOUR", "ENGINE CONDITION", "CONDITION", "TYPE", "TYPE2", "MAST", "ATTACHMENT", "MAX VIEW", "MAX LOAD", "LOADING PORT", "GOODS PRICE"]
+      // Rows 1-3: blank (decoration / logo area)
+      [],
+      [],
+      [],
+      // Row 4: header — Col A blank, data from Col B
+      [
+        "",                             // A: blank
+        "NO (pic.#)",                   // B
+        "MAKER",                        // C
+        "MODEL",                        // D
+        "SERI NO.",                     // E
+        "NĂM SẢN XUẤT",                // F
+        "GIỜ HOẠT ĐỘNG",               // G
+        "TÌNH TRẠNG XE ( BÌNH ẮC QUY )", // H
+        "LOẠI NHIÊN LIỆU",             // I
+        "CHỦNG LOẠI XE",               // J
+        "CHIỀU DÀI CÀNG NÂNG",         // K
+        "PHỤ KIỆN",                    // L
+        "CHIỀU CAO NÂNG TỐI ĐA",      // M
+        "TẢI TRỌNG NÂNG TỐI ĐA",      // N
+        "ĐỊA ĐIỂM",                    // O
+        "GIÁ BÁN",                     // P
+        "GIÁ NHẬP",                    // Q
+        "CHI PHÍ PHÁT SINH"            // R
+      ]
     ];
     
     forklifts.forEach((fl, index) => {
+      const expensesText = fl.expenses && fl.expenses.length > 0
+        ? fl.expenses.map((e) => `${e.title}:${e.amount}`).join('\n')
+        : '';
+
       data.push([
-        index + 1,
-        `${baseUrl}/vi/machine/${fl.id}`,
-        fl.maker,
-        fl.model,
-        fl.year || "",
-        fl.hour || "",
-        fl.engineCondition || "",
-        fl.condition || "",
-        fl.powerType || "",
-        fl.category || "",
-        fl.mast || "",
-        fl.attachment || "",
-        fl.liftHeight || "",
-        fl.loadCapacity || "",
-        fl.location || "",
-        fl.price || ""
+        "",                      // A: blank
+        index + 1,               // B: NO (pic.#)
+        fl.maker,                // C: MAKER
+        fl.model,                // D: MODEL
+        fl.serialNo || "",       // E: SERI NO.
+        fl.year || "",           // F: NĂM SẢN XUẤT
+        fl.hour || "",           // G: GIỜ HOẠT ĐỘNG
+        fl.condition || "",      // H: TÌNH TRẠNG XE
+        fl.powerType || "",      // I: LOẠI NHIÊN LIỆU
+        fl.category || "",       // J: CHỦNG LOẠI XE
+        fl.forkLength || "",     // K: CHIỀU DÀI CÀNG NÂNG
+        fl.attachment || "",     // L: PHỤ KIỆN
+        fl.liftHeight || "",     // M: CHIỀU CAO NÂNG TỐI ĐA
+        fl.loadCapacity || "",   // N: TẢI TRỌNG NÂNG TỐI ĐA
+        fl.location || "",       // O: ĐỊA ĐIỂM
+        fl.price || "",          // P: GIÁ BÁN
+        fl.costPrice || "",      // Q: GIÁ NHẬP
+        expensesText             // R: CHI PHÍ PHÁT SINH
       ]);
     });
     

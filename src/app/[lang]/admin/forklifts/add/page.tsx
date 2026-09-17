@@ -9,20 +9,20 @@ export default function AddForkliftPage() {
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
+    serialNo: '',
     maker: '',
     model: '',
     year: '',
     hour: '',
-    powerType: 'DIESEL',
+    powerType: '',
     category: '',
     status: 'Published',
     price: '',
-    mast: '',
+    forkLength: '',
     attachment: '',
     liftHeight: '',
     loadCapacity: '',
     condition: '',
-    engineCondition: '',
     location: '',
     sourceUrl: '',
     costPrice: '',
@@ -84,7 +84,7 @@ export default function AddForkliftPage() {
           <h3>1. Thông tin Chung & Nhận diện</h3>
           <div className={styles.formGrid}>
             <div className="form-group">
-              <label className="form-label">Hãng sản xuất (Maker) *</label>
+              <label className="form-label">Hãng sản xuất (MAKER) *</label>
               <input required name="maker" value={formData.maker} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
@@ -92,20 +92,24 @@ export default function AddForkliftPage() {
               <input required name="model" value={formData.model} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
-              <label className="form-label">Năm SX</label>
+              <label className="form-label">Số Serial (SERI NO.)</label>
+              <input name="serialNo" value={formData.serialNo} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Năm Sản Xuất</label>
               <input type="number" name="year" value={formData.year} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
-              <label className="form-label">Số Giờ Hoạt Động</label>
+              <label className="form-label">Giờ Hoạt Động</label>
               <input type="number" name="hour" value={formData.hour} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Địa Điểm</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
               <label className="form-label">Nguồn tham khảo (URL)</label>
               <input name="sourceUrl" value={formData.sourceUrl} onChange={handleChange} className="form-control" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Vị trí lưu bãi (Location)</label>
-              <input name="location" value={formData.location} onChange={handleChange} className="form-control" />
             </div>
           </div>
         </div>
@@ -114,36 +118,32 @@ export default function AddForkliftPage() {
           <h3>2. Thông số Kỹ thuật & Tình trạng</h3>
           <div className={styles.formGrid}>
             <div className="form-group">
-              <label className="form-label">Loại xe (Category)</label>
-              <input name="category" value={formData.category} onChange={handleChange} className="form-control" placeholder="Counter, Reach..." />
+              <label className="form-label">Tình trạng xe (Bình ắc quy)</label>
+              <input name="condition" value={formData.condition} onChange={handleChange} className="form-control" placeholder="Hoạt động bình thường..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Loại khung nâng (Mast)</label>
-              <input name="mast" value={formData.mast} onChange={handleChange} className="form-control" placeholder="Double, Triple..." />
+              <label className="form-label">Loại Nhiên Liệu</label>
+              <input name="powerType" value={formData.powerType} onChange={handleChange} className="form-control" placeholder="XE NÂNG ĐIỆN, DIESEL..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Chiều cao nâng (Max View)</label>
-              <input name="liftHeight" value={formData.liftHeight} onChange={handleChange} className="form-control" placeholder="3000..." />
+              <label className="form-label">Chủng Loại Xe</label>
+              <input name="category" value={formData.category} onChange={handleChange} className="form-control" placeholder="NGỒI LÁI, ĐỨNG LÁI..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Tải trọng nâng (Max Load)</label>
-              <input name="loadCapacity" value={formData.loadCapacity} onChange={handleChange} className="form-control" placeholder="2000..." />
+              <label className="form-label">Chiều Dài Càng Nâng</label>
+              <input name="forkLength" value={formData.forkLength} onChange={handleChange} className="form-control" placeholder="1070mm..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Phụ kiện (Attachment)</label>
-              <input name="attachment" value={formData.attachment} onChange={handleChange} className="form-control" placeholder="Normal, Rotating..." />
+              <label className="form-label">Phụ Kiện</label>
+              <input name="attachment" value={formData.attachment} onChange={handleChange} className="form-control" placeholder="CÓ DỊCH CÀNG, KHÔNG..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Nhiên liệu (Power Type)</label>
-              <input name="powerType" value={formData.powerType} onChange={handleChange} className="form-control" placeholder="DIESEL, BATTERY..." />
+              <label className="form-label">Chiều Cao Nâng Tối Đa</label>
+              <input name="liftHeight" value={formData.liftHeight} onChange={handleChange} className="form-control" placeholder="3,000mm..." />
             </div>
             <div className="form-group">
-              <label className="form-label">Tình trạng động cơ (Engine)</label>
-              <input name="engineCondition" value={formData.engineCondition} onChange={handleChange} className="form-control" placeholder="Start..." />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Tình trạng chung (Condition)</label>
-              <input name="condition" value={formData.condition} onChange={handleChange} className="form-control" />
+              <label className="form-label">Tải Trọng Nâng Tối Đa</label>
+              <input name="loadCapacity" value={formData.loadCapacity} onChange={handleChange} className="form-control" placeholder="2,000kg..." />
             </div>
           </div>
         </div>

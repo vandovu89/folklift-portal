@@ -81,9 +81,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.hour, value: forklift.hour },
                   { label: dict.machine.powerType, value: forklift.powerType },
                   { label: dict.machine.category, value: forklift.category },
-                  { label: dict.machine.type, value: forklift.type },
-                  { label: dict.machine.productGroup, value: forklift.productGroup },
-                  { label: dict.machine.mast, value: forklift.mast },
+                  { label: dict.machine.forkLength, value: forklift.forkLength },
                 ].map((spec, index) => (
                   <tr key={index}>
                     <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '45%' }}>{spec.label}</td>
@@ -96,14 +94,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 {[
+                  { label: dict.machine.attachment, value: forklift.attachment },
                   { label: dict.machine.liftHeight, value: forklift.liftHeight },
                   { label: dict.machine.loadCapacity, value: forklift.loadCapacity },
-                  { label: dict.machine.attachment, value: forklift.attachment },
                   { label: dict.machine.forkLength, value: forklift.forkLength },
-                  { label: dict.machine.dimensions, value: forklift.dimensions },
-                  { label: dict.machine.weight, value: forklift.weight },
                   { label: dict.machine.condition, value: forklift.condition },
-                  { label: dict.machine.engineCondition, value: forklift.engineCondition },
                   { label: dict.machine.location, value: forklift.location },
                   { label: dict.machine.otherSpecs, value: forklift.otherSpecs },
                 ].map((spec, index) => (
