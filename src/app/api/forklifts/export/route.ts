@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
+import { getBaseUrl } from '@/lib/url';
 
 export async function GET(request: Request) {
   try {
@@ -32,20 +33,14 @@ export async function GET(request: Request) {
         "CHIỀU CAO NÂNG TỐI ĐA",      // M
         "TẢI TRỌNG NÂNG TỐI ĐA",      // N
         "ĐỊA ĐIỂM",                    // O
-        "GIÁ BÁN",                     // P
-        "GIÁ NHẬP",                    // Q
-        "CHI PHÍ PHÁT SINH"            // R
+        "GIÁ BÁN"                      // P
       ]
     ];
     
-    forklifts.forEach((fl, index) => {
-      const expensesText = fl.expenses && fl.expenses.length > 0
-        ? fl.expenses.map((e) => `${e.title}:${e.amount}`).join('\n')
-        : '';
-
+    forklifts.forEach((fl) => {
       data.push([
         "",                      // A: blank
-        index + 1,               // B: NO (pic.#)
+        `${getBaseUrl()}/vi/machine/${fl.id}`, // B: NO (pic.#) -> Link
         fl.maker,                // C: MAKER
         fl.model,                // D: MODEL
         fl.serialNo || "",       // E: SERI NO.
@@ -59,9 +54,7 @@ export async function GET(request: Request) {
         fl.liftHeight || "",     // M: CHIỀU CAO NÂNG TỐI ĐA
         fl.loadCapacity || "",   // N: TẢI TRỌNG NÂNG TỐI ĐA
         fl.location || "",       // O: ĐỊA ĐIỂM
-        fl.price || "",          // P: GIÁ BÁN
-        fl.costPrice || "",      // Q: GIÁ NHẬP
-        expensesText             // R: CHI PHÍ PHÁT SINH
+        fl.price || ""           // P: GIÁ BÁN
       ]);
     });
     
