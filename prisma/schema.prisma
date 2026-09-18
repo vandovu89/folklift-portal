@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -43,7 +43,7 @@ model Forklift {
 
   // Vị trí & Trạng thái
   location        String?
-  status          String    @default("Published")
+  status          String    @default("Available")
   
   // Tình trạng (Cơ bản cho Phase 1)
   condition       String?

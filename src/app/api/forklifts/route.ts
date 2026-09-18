@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         category: body.category,
         type: body.type,
         powerType: body.powerType,
-        status: body.status || 'Published',
+        status: body.status || 'Available',
         price: body.price ? parseFloat(body.price) : null,
         costPrice: body.costPrice ? parseFloat(body.costPrice) : null,
         expenses: body.expenses && body.expenses.length > 0 ? {

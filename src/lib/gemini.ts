@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+﻿import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { logBotActivity } from '@/lib/bot-logger';
 import { getBaseUrl } from '@/lib/url';
@@ -178,7 +178,7 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       });
     }
 
-    const where: any = { status: 'Published' };
+    const where: any = { status: 'Available' };
     if (andConditions.length > 0) {
       where.AND = andConditions;
     }
@@ -323,7 +323,7 @@ export async function getForkliftDetailInDb(identifier: string) {
       condition: forklift.condition || 'Hoạt động tốt',
       engineCondition: forklift.engineCondition || 'Bảo dưỡng định kỳ',
       location: forklift.location || 'Tại kho Việt Nhật',
-      status: forklift.status === 'Published' ? 'Sẵn sàng giao dịch tại kho' : forklift.status,
+      status: forklift.status === 'Available' ? 'Sẵn sàng giao dịch tại kho' : forklift.status,
       price: forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : 'Giá thỏa thuận / Ưu đãi trực tiếp khi liên hệ',
       images: forklift.media.map(m => m.url),
       detailUrl: `${baseUrl}/vi/machine/${forklift.id}`

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
 
@@ -59,8 +59,8 @@ export async function POST(request: Request) {
       const maker = row[2];
       const model = row[3];
       
-      const validStatuses = ['Draft', 'Incoming', 'Published', 'Reserved', 'Sold'];
-      let finalStatus = 'Published'; // Mặc định như cũ
+      const validStatuses = ['Draft', 'Incoming', 'Available', 'Reserved', 'Sold'];
+      let finalStatus = 'Available'; // Mặc định như cũ
       if (validStatuses.includes(statusRaw)) {
         finalStatus = statusRaw;
       }
