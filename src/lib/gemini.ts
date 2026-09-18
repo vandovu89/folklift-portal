@@ -1,4 +1,4 @@
-﻿import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { logBotActivity } from '@/lib/bot-logger';
 import { getBaseUrl } from '@/lib/url';
