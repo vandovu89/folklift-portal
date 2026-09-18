@@ -16,8 +16,10 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
   
   if (q) {
     whereClause.OR = [
-      { maker: { contains: q } },
-      { model: { contains: q } },
+      { maker: { contains: q, mode: 'insensitive' } },
+      { model: { contains: q, mode: 'insensitive' } },
+      { internalCode: { contains: q, mode: 'insensitive' } },
+      { serialNo: { contains: q, mode: 'insensitive' } },
       { id: { contains: q } }
     ];
   }

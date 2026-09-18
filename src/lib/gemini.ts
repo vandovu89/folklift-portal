@@ -170,6 +170,7 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       andConditions.push({
         OR: [
           { model: { contains: kw, mode: 'insensitive' } },
+          { internalCode: { contains: kw, mode: 'insensitive' } },
           { serialNo: { contains: kw, mode: 'insensitive' } },
           { maker: { contains: kw, mode: 'insensitive' } },
           { attachment: { contains: kw, mode: 'insensitive' } },
@@ -286,6 +287,7 @@ export async function getForkliftDetailInDb(identifier: string) {
       where: {
         OR: [
           { id: cleanId },
+          { internalCode: { equals: cleanId, mode: 'insensitive' } },
           { model: { equals: cleanId, mode: 'insensitive' } },
           { model: { contains: cleanId, mode: 'insensitive' } }
         ]

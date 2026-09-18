@@ -23,8 +23,9 @@ export default async function PublicCatalog({
 
   if (resolvedSearchParams.q) {
     whereClause.OR = [
-      { maker: { contains: resolvedSearchParams.q } },
-      { model: { contains: resolvedSearchParams.q } }
+      { maker: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
+      { model: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
+      { internalCode: { contains: resolvedSearchParams.q, mode: 'insensitive' } }
     ];
   }
 
