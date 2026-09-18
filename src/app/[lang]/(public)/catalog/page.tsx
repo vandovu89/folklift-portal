@@ -21,24 +21,48 @@ export default async function PublicCatalog({
 
   const whereClause: any = { status: { in: ['Available', 'Incoming', 'Reserved'] } };
 
+  const andConditions: any[] = [];
+  
   if (resolvedSearchParams.q) {
-    whereClause.OR = [
-      { maker: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
-      { model: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
-      { internalCode: { contains: resolvedSearchParams.q, mode: 'insensitive' } }
-    ];
+    andConditions.push({
+      OR: [
+        { maker: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
+        { model: { contains: resolvedSearchParams.q, mode: 'insensitive' } },
+        { internalCode: { contains: resolvedSearchParams.q, mode: 'insensitive' } }
+      ]
+    });
   }
 
   if (resolvedSearchParams.maker) {
-    whereClause.maker = resolvedSearchParams.maker;
+    andConditions.push({ maker: resolvedSearchParams.maker });
   }
 
   if (resolvedSearchParams.powerType) {
-    whereClause.powerType = resolvedSearchParams.powerType;
+    const ptClean = resolvedSearchParams.powerType.toLowerCase();
+    if (ptClean === 'battery') {
+      andConditions.push({ OR: [{ powerType: { contains: 'điện', mode: 'insensitive' } }, { powerType: { contains: 'battery', mode: 'insensitive' } }] });
+    } else if (ptClean === 'diesel') {
+      andConditions.push({ OR: [{ powerType: { contains: 'dầu', mode: 'insensitive' } }, { powerType: { contains: 'diesel', mode: 'insensitive' } }] });
+    } else if (ptClean === 'gasoline') {
+      andConditions.push({ OR: [{ powerType: { contains: 'xăng', mode: 'insensitive' } }, { powerType: { contains: 'gas', mode: 'insensitive' } }] });
+    } else {
+      andConditions.push({ powerType: resolvedSearchParams.powerType });
+    }
   }
 
   if (resolvedSearchParams.category) {
-    whereClause.category = resolvedSearchParams.category;
+    const catClean = resolvedSearchParams.category.toLowerCase();
+    if (catClean === 'counter') {
+      andConditions.push({ OR: [{ category: { contains: 'ngồi', mode: 'insensitive' } }, { category: { contains: 'counter', mode: 'insensitive' } }] });
+    } else if (catClean === 'reach') {
+      andConditions.push({ OR: [{ category: { contains: 'đứng', mode: 'insensitive' } }, { category: { contains: 'reach', mode: 'insensitive' } }] });
+    } else {
+      andConditions.push({ category: resolvedSearchParams.category });
+    }
+  }
+
+  if (andConditions.length > 0) {
+    whereClause.AND = andConditions;
   }
 
   const forklifts = await prisma.forklift.findMany({
