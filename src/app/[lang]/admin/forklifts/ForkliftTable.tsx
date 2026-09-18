@@ -26,7 +26,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Published': return <span className="badge badge-success">Đang bán</span>;
+      case 'Available': return <span className="badge badge-success">Đang bán</span>;
       case 'Incoming': return <span className="badge" style={{ backgroundColor: '#f97316', color: 'white' }}>Sắp về</span>;
       case 'Reserved': return <span className="badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã cọc</span>;
       case 'Sold': return <span className="badge" style={{ backgroundColor: '#374151', color: 'white' }}>Đã bán</span>;

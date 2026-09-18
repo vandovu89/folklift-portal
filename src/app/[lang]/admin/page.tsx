@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   const total = await prisma.forklift.count();
-  const published = await prisma.forklift.count({ where: { status: 'Published' } });
+  const published = await prisma.forklift.count({ where: { status: 'Available' } });
 
   return (
     <div>

@@ -11,12 +11,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     delete body.expenses;
 
     // Convert numbers if present
-    if (body.year) body.year = parseInt(body.year);
-    if (body.hour) body.hour = parseInt(body.hour);
-    if (body.price) body.price = parseFloat(body.price);
-    if (body.costPrice !== undefined) {
-      body.costPrice = body.costPrice ? parseFloat(body.costPrice) : null;
-    }
+    if (body.year !== undefined) body.year = body.year ? parseInt(body.year) : null;
+    if (body.hour !== undefined) body.hour = body.hour ? parseInt(body.hour) : null;
+    if (body.price !== undefined) body.price = body.price ? parseFloat(body.price) : null;
+    if (body.costPrice !== undefined) body.costPrice = body.costPrice ? parseFloat(body.costPrice) : null;
 
     const updated = await prisma.forklift.update({
       where: { id: resolvedParams.id },

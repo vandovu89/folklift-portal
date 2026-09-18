@@ -22,7 +22,7 @@ export default function AddForkliftPage() {
     hour: '',
     powerType: '',
     category: '',
-    status: 'Published',
+    status: 'Available',
     price: '',
     forkLength: '',
     attachment: '',
@@ -169,7 +169,7 @@ export default function AddForkliftPage() {
               <select name="status" value={formData.status} onChange={handleChange} className="form-control">
                 <option value="Draft">Draft (Lưu kho / Bản nháp)</option>
                 <option value="Incoming">Incoming (Sắp về kho)</option>
-                <option value="Published">Published (Đang bán / Sẵn sàng)</option>
+                <option value="Available">Available (Đang bán / Sẵn sàng)</option>
                 <option value="Reserved">Reserved (Đã nhận cọc)</option>
                 <option value="Sold">Sold (Đã bán)</option>
               </select>
