@@ -7,8 +7,14 @@ import styles from '../forklifts.module.css';
 export default function AddForkliftPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sources, setSources] = useState<{ id: string, name: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/purchase-sources').then(res => res.json()).then(data => setSources(data));
+  }, []);
   
   const [formData, setFormData] = useState({
+    purchaseSource: '',
     serialNo: '',
     maker: '',
     model: '',
@@ -83,6 +89,13 @@ export default function AddForkliftPage() {
         <div className={styles.formSection}>
           <h3>1. Thông tin Chung & Nhận diện</h3>
           <div className={styles.formGrid}>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">Nguồn nhập (Sẽ tự động sinh Mã Nội Bộ)</label>
+              <select name="purchaseSource" value={formData.purchaseSource} onChange={handleChange} className="form-control">
+                <option value="">-- Chọn nguồn nhập --</option>
+                {sources.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+              </select>
+            </div>
             <div className="form-group">
               <label className="form-label">Hãng sản xuất (MAKER) *</label>
               <input required name="maker" value={formData.maker} onChange={handleChange} className="form-control" />

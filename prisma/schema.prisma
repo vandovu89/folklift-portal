@@ -170,3 +170,12 @@ model BotLog {
   createdAt DateTime @default(now())
 }
 
+model PurchaseSource {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  abbreviation String   @unique // 2 chars
+  currentSeq   Int      @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

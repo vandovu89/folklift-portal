@@ -20,9 +20,24 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    let internalCode = null;
+
+    if (body.purchaseSource) {
+      const source = await prisma.purchaseSource.findUnique({ where: { name: body.purchaseSource } });
+      if (source) {
+        const nextSeq = source.currentSeq + 1;
+        internalCode = `${source.abbreviation}-${nextSeq}`;
+        await prisma.purchaseSource.update({
+          where: { id: source.id },
+          data: { currentSeq: nextSeq }
+        });
+      }
+    }
     
       const forklift = await prisma.forklift.create({
         data: {
+          purchaseSource: body.purchaseSource || null,
+          internalCode: internalCode,
           serialNo: body.serialNo,
         maker: body.maker,
         model: body.model,

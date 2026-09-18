@@ -44,6 +44,12 @@ export default function AdminLayout({
             <FaTractor /> Quản lý Xe nâng
           </Link>
           <Link 
+            href="/admin/purchase-sources" 
+            className={`${styles.navItem} ${pathname.startsWith('/admin/purchase-sources') ? styles.active : ''}`}
+          >
+            <FaChartPie /> Nguồn nhập
+          </Link>
+          <Link 
             href="/admin/inquiries" 
             className={`${styles.navItem} ${pathname.startsWith('/admin/inquiries') ? styles.active : ''}`}
           >

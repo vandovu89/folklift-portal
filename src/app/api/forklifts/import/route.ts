@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     
     const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
     
-    // Table header is at row 5 (index 4), data starts at row 6 (index 5)
     if (rawData.length <= 5) {
       return NextResponse.json({ error: 'File is empty or invalid format' }, { status: 400 });
     }
@@ -26,41 +25,65 @@ export async function POST(request: Request) {
     let imported = 0;
     let skipped = 0;
 
+    // Cache các nguồn nhập hiện có
+    const sources = await prisma.purchaseSource.findMany();
+    const sourceMap = new Map();
+    sources.forEach(s => {
+      sourceMap.set(s.name.toLowerCase().trim(), s);
+    });
+
     for (let i = 5; i < rawData.length; i++) {
       const row = rawData[i];
 
-      // Col A (0) = Nguồn nhập
-      // Col B (1) = Mã Nội Bộ
-      // Col C (2) = NO (pic.#)
-      // Col D (3) = MAKER
-      // Col E (4) = MODEL
-      // Col F (5) = SERI NO.
-      // Col G (6) = NĂM SẢN XUẤT
-      // Col H (7) = GIỜ HOẠT ĐỘNG
-      // Col I (8) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
-      // Col J (9) = LOẠI NHIÊN LIỆU
-      // Col K (10) = CHỦNG LOẠI XE
-      // Col L (11) = CHIỀU DÀI CÀNG NÂNG
-      // Col M (12) = PHỤ KIỆN
-      // Col N (13) = CHIỀU CAO NÂNG TỐI ĐA
-      // Col O (14) = TẢI TRỌNG NÂNG TỐI ĐA
-      // Col P (15) = ĐỊA ĐIỂM
-      // Col Q (16) = GIÁ BÁN
-      // Col R (17) = GIÁ NHẬP
-      // Col S (18) = CHI PHÍ PHÁT SINH
+      // Col A (0) = NGUỒN NHẬP
+      // Col B (1) = MAKER
+      // Col C (2) = MODEL
+      // Col D (3) = SERI NO.
+      // Col E (4) = NĂM SẢN XUẤT
+      // Col F (5) = GIỜ HOẠT ĐỘNG
+      // Col G (6) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
+      // Col H (7) = LOẠI NHIÊN LIỆU
+      // Col I (8) = CHỦNG LOẠI XE
+      // Col J (9) = CHIỀU DÀI CÀNG NÂNG
+      // Col K (10) = PHỤ KIỆN
+      // Col L (11) = CHIỀU CAO NÂNG TỐI ĐA
+      // Col M (12) = TẢI TRỌNG NÂNG TỐI ĐA
+      // Col N (13) = ĐỊA ĐIỂM
+      // Col O (14) = GIÁ BÁN
+      // Col P (15) = GIÁ NHẬP
+      // Col Q (16) = CHI PHÍ PHÁT SINH
 
-      const purchaseSource = row[0];
-      const internalCode = row[1];
-      const maker = row[3];
-      const model = row[4];
+      const purchaseSourceRaw = row[0] ? String(row[0]).trim() : '';
+      const maker = row[1];
+      const model = row[2];
       
-      if (!maker || !model) {
+      if (!maker || !model || !purchaseSourceRaw) {
         skipped++;
         continue;
       }
 
-      const costPrice = row[17] ? parseFloat(String(row[17]).replace(/[^0-9.-]/g, '')) : null;
-      const expensesRaw = row[18] ? String(row[18]) : '';
+      const sourceKey = purchaseSourceRaw.toLowerCase();
+      const source = sourceMap.get(sourceKey);
+
+      if (!source) {
+        // Nguồn nhập chưa có trong bảng PurchaseSource -> Lỗi, bỏ qua (như user chọn cách 1)
+        return NextResponse.json({ error: `Nguồn nhập "${purchaseSourceRaw}" ở dòng ${i + 1} chưa được khai báo mã viết tắt. Vui lòng vào Cài đặt Nguồn Nhập để thêm.` }, { status: 400 });
+      }
+
+      // Generate mã nội bộ
+      const nextSeq = source.currentSeq + 1;
+      const internalCode = `${source.abbreviation}-${nextSeq}`;
+      
+      // Update memory & DB cho seq
+      source.currentSeq = nextSeq;
+      sourceMap.set(sourceKey, source);
+      await prisma.purchaseSource.update({
+        where: { id: source.id },
+        data: { currentSeq: nextSeq }
+      });
+
+      const costPrice = row[15] ? parseFloat(String(row[15]).replace(/[^0-9.-]/g, '')) : null;
+      const expensesRaw = row[16] ? String(row[16]) : '';
       
       const parsedExpenses: { title: string; amount: number }[] = [];
       if (expensesRaw) {
@@ -80,22 +103,22 @@ export async function POST(request: Request) {
 
       await prisma.forklift.create({
         data: {
-          purchaseSource: purchaseSource ? String(purchaseSource) : null,
-          internalCode: internalCode ? String(internalCode) : null,
-          serialNo:     row[5]  ? String(row[5])                                    : null,
+          purchaseSource: purchaseSourceRaw,
+          internalCode: internalCode,
+          serialNo:     row[3]  ? String(row[3])                                    : null,
           maker:        String(maker),
           model:        String(model),
-          year:         row[6]  ? parseInt(String(row[6]).replace(/[^0-9]/g, ''))   : null,
-          hour:         row[7]  ? parseInt(String(row[7]).replace(/[^0-9]/g, ''))   : null,
-          condition:    row[8]  ? String(row[8])                                    : null,
-          powerType:    row[9]  ? String(row[9])                                    : null,
-          category:     row[10]  ? String(row[10])                                    : null,
-          forkLength:   row[11] ? String(row[11])                                   : null,
-          attachment:   row[12] ? String(row[12])                                   : null,
-          liftHeight:   row[13] ? String(row[13])                                   : null,
-          loadCapacity: row[14] ? String(row[14])                                   : null,
-          location:     row[15] ? String(row[15])                                   : null,
-          price:        row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null,
+          year:         row[4]  ? parseInt(String(row[4]).replace(/[^0-9]/g, ''))   : null,
+          hour:         row[5]  ? parseInt(String(row[5]).replace(/[^0-9]/g, ''))   : null,
+          condition:    row[6]  ? String(row[6])                                    : null,
+          powerType:    row[7]  ? String(row[7])                                    : null,
+          category:     row[8]  ? String(row[8])                                    : null,
+          forkLength:   row[9] ? String(row[9])                                   : null,
+          attachment:   row[10] ? String(row[10])                                   : null,
+          liftHeight:   row[11] ? String(row[11])                                   : null,
+          loadCapacity: row[12] ? String(row[12])                                   : null,
+          location:     row[13] ? String(row[13])                                   : null,
+          price:        row[14] ? parseFloat(String(row[14]).replace(/[^0-9.-]/g, '')) : null,
           status:       'Published',
           costPrice:    costPrice,
           expenses: parsedExpenses.length > 0 ? {
