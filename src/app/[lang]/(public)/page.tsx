@@ -10,7 +10,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
   const featuredForklifts = await prisma.forklift.findMany({
-    where: { status: 'Published' },
+    where: { status: { in: ['Published', 'Incoming', 'Reserved'] } },
     orderBy: { createdAt: 'desc' },
     take: 4,
     include: {
@@ -82,6 +82,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                   <div style={{ padding: '2rem', borderTop: '1px solid var(--surface-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>{fl.maker} {fl.model}</h3>
+                      {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}
+                      {fl.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', whiteSpace: 'nowrap' }}>Đã cọc</span>}
+                      {fl.status === 'Published' && <span className="badge badge-success" style={{ whiteSpace: 'nowrap' }}>Sẵn sàng</span>}
                     </div>
                     
                     <div style={{ display: 'flex', gap: '1.2rem', color: '#666', fontSize: '0.95rem', marginBottom: '1.5rem', opacity: 0.9 }}>

@@ -43,7 +43,12 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           <div style={{ flex: '1 1 400px', padding: '2.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{forklift.maker} {forklift.model}</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                  <h1 style={{ fontSize: '2rem', margin: 0 }}>{forklift.maker} {forklift.model}</h1>
+                  {forklift.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Sắp về kho</span>}
+                  {forklift.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Đã nhận cọc</span>}
+                  {forklift.status === 'Published' && <span className="badge badge-success" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>Sẵn sàng giao</span>}
+                </div>
                 <p style={{ color: '#888', marginBottom: '1.5rem' }}>Mã nội bộ: {forklift.internalCode || forklift.id.substring(0, 8)}</p>
               </div>
               <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>

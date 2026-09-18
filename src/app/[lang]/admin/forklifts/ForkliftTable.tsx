@@ -24,6 +24,17 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
     );
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Published': return <span className="badge badge-success">Đang bán</span>;
+      case 'Incoming': return <span className="badge" style={{ backgroundColor: '#f97316', color: 'white' }}>Sắp về</span>;
+      case 'Reserved': return <span className="badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã cọc</span>;
+      case 'Sold': return <span className="badge" style={{ backgroundColor: '#374151', color: 'white' }}>Đã bán</span>;
+      case 'Draft': return <span className="badge badge-neutral">Lưu kho</span>;
+      default: return <span className="badge badge-neutral">{status}</span>;
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} xe nâng đã chọn? Hành động này không thể hoàn tác.`)) {
       return;
@@ -122,9 +133,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
                 <td>{fl.year || '-'}</td>
                 <td>{fl.hour || '-'}</td>
                 <td>
-                  <span className={`badge ${fl.status === 'Published' ? 'badge-success' : 'badge-neutral'}`}>
-                    {fl.status}
-                  </span>
+                  {getStatusBadge(fl.status)}
                 </td>
                 <td>
                   <Link href={`/admin/forklifts/${fl.id}/edit`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>

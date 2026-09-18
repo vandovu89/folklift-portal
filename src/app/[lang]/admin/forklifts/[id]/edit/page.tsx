@@ -224,10 +224,11 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div className="form-group">
               <label className="form-label">Trạng thái hiện tại</label>
               <select name="status" value={formData.status} onChange={handleChange} className="form-control">
-                <option value="Draft">Draft (Bản nháp)</option>
-                <option value="Received">Received (Đã nhận)</option>
-                <option value="Ready">Ready (Sẵn sàng bán)</option>
-                <option value="Published">Published (Công khai Web)</option>
+                <option value="Draft">Draft (Lưu kho / Bản nháp)</option>
+                <option value="Incoming">Incoming (Sắp về kho)</option>
+                <option value="Published">Published (Đang bán / Sẵn sàng)</option>
+                <option value="Reserved">Reserved (Đã nhận cọc)</option>
+                <option value="Sold">Sold (Đã bán)</option>
               </select>
             </div>
             <div className="form-group">

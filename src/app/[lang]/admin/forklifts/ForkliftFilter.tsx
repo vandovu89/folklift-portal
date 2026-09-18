@@ -59,10 +59,11 @@ export default function ForkliftFilter() {
         </label>
         <select value={status} onChange={e => setStatus(e.target.value)} className="form-control">
           <option value="">-- Tất cả --</option>
-          <option value="Draft">Draft (Bản nháp)</option>
-          <option value="Received">Received (Đã nhận)</option>
-          <option value="Ready">Ready (Sẵn sàng bán)</option>
-          <option value="Published">Published (Công khai Web)</option>
+          <option value="Draft">Draft (Lưu kho / Bản nháp)</option>
+          <option value="Incoming">Incoming (Sắp về kho)</option>
+          <option value="Published">Published (Đang bán / Sẵn sàng)</option>
+          <option value="Reserved">Reserved (Đã nhận cọc)</option>
+          <option value="Sold">Sold (Đã bán)</option>
         </select>
       </div>
       <button type="submit" className="btn-primary" style={{ height: '42px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>

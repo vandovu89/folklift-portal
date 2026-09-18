@@ -19,7 +19,7 @@ export default async function PublicCatalog({
   const resolvedSearchParams = await searchParams;
   const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
-  const whereClause: any = { status: 'Published' };
+  const whereClause: any = { status: { in: ['Published', 'Incoming', 'Reserved'] } };
 
   if (resolvedSearchParams.q) {
     whereClause.OR = [
@@ -80,7 +80,9 @@ export default async function PublicCatalog({
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                     <h3 style={{ fontSize: '1.3rem' }}>{fl.maker} {fl.model}</h3>
-                    <span className="badge badge-success">Sẵn sàng</span>
+                    {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}
+                    {fl.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', whiteSpace: 'nowrap' }}>Đã cọc</span>}
+                    {fl.status === 'Published' && <span className="badge badge-success" style={{ whiteSpace: 'nowrap' }}>Sẵn sàng</span>}
                   </div>
                   
                   <div style={{ display: 'flex', gap: '1rem', color: 'var(--foreground)', opacity: 0.8, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
