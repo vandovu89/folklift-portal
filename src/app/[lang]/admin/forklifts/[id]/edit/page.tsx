@@ -13,6 +13,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   
   const [formData, setFormData] = useState({
     id: '',
+    internalCode: '',
+    purchaseSource: '',
     serialNo: '',
     maker: '',
     model: '',
@@ -20,7 +22,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     hour: '',
     powerType: '',
     category: '',
-    status: 'Published',
+    status: 'Available',
     price: '',
     forkLength: '',
     attachment: '',
@@ -61,6 +63,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
         if (found) {
           setFormData({
             id: found.id || '',
+            internalCode: found.internalCode || '',
+            purchaseSource: found.purchaseSource || '',
             serialNo: found.serialNo || '',
             maker: found.maker || '',
             model: found.model || '',
@@ -68,7 +72,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             hour: found.hour || '',
             powerType: found.powerType || '',
             category: found.category || '',
-            status: found.status || 'Published',
+            status: found.status || 'Available',
             price: found.price || '',
             forkLength: found.forkLength || '',
             attachment: found.attachment || '',
@@ -150,6 +154,10 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           <h3>1. Thông tin Chung & Nhận diện</h3>
           <div className={styles.formGrid}>
             <div className="form-group">
+              <label className="form-label">Mã nội bộ</label>
+              <input name="internalCode" value={formData.internalCode} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
               <label className="form-label">Hãng sản xuất (MAKER) *</label>
               <input required name="maker" value={formData.maker} onChange={handleChange} className="form-control" />
             </div>
@@ -172,6 +180,10 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div className="form-group">
               <label className="form-label">Địa Điểm</label>
               <input name="location" value={formData.location} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Nguồn nhập</label>
+              <input name="purchaseSource" value={formData.purchaseSource} onChange={handleChange} className="form-control" />
             </div>
             <div className="form-group">
               <label className="form-label">Nguồn tham khảo (URL)</label>
@@ -226,7 +238,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               <select name="status" value={formData.status} onChange={handleChange} className="form-control">
                 <option value="Draft">Draft (Lưu kho / Bản nháp)</option>
                 <option value="Incoming">Incoming (Sắp về kho)</option>
-                <option value="Published">Published (Đang bán / Sẵn sàng)</option>
+                <option value="Available">Available (Đang bán / Sẵn sàng)</option>
                 <option value="Reserved">Reserved (Đã nhận cọc)</option>
                 <option value="Sold">Sold (Đã bán)</option>
               </select>
