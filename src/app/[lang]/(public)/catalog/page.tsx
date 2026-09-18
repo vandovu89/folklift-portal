@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { parseCapacityKg, parseLiftHeightMm } from '@/lib/utils';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
@@ -13,7 +14,7 @@ export default async function PublicCatalog({
   searchParams
 }: { 
   params: Promise<{ lang: string }>,
-  searchParams: Promise<{ q?: string, maker?: string, powerType?: string, category?: string }>
+  searchParams: Promise<{ q?: string, maker?: string, powerType?: string, category?: string, capacity?: string, height?: string, price?: string }>
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
@@ -65,7 +66,19 @@ export default async function PublicCatalog({
     whereClause.AND = andConditions;
   }
 
-  const forklifts = await prisma.forklift.findMany({
+  if (resolvedSearchParams.price) {
+    const price = resolvedSearchParams.price;
+    if (price.startsWith('<')) {
+      whereClause.price = { lt: Number(price.replace('<', '')) };
+    } else if (price.startsWith('>')) {
+      whereClause.price = { gt: Number(price.replace('>', '')) };
+    } else if (price.includes('-')) {
+      const [min, max] = price.split('-');
+      whereClause.price = { gte: Number(min), lte: Number(max) };
+    }
+  }
+
+  let forklifts = await prisma.forklift.findMany({
     where: whereClause,
     orderBy: { createdAt: 'desc' },
     include: {
@@ -75,6 +88,40 @@ export default async function PublicCatalog({
       }
     }
   });
+
+  if (resolvedSearchParams.capacity) {
+    const capacity = resolvedSearchParams.capacity;
+    let minCap = 0, maxCap = Infinity;
+    if (capacity.startsWith('<')) maxCap = Number(capacity.replace('<', ''));
+    else if (capacity.startsWith('>')) minCap = Number(capacity.replace('>', ''));
+    else if (capacity.includes('-')) {
+      const [min, max] = capacity.split('-');
+      minCap = Number(min);
+      maxCap = Number(max);
+    }
+    forklifts = forklifts.filter(f => {
+      const cap = parseCapacityKg(f.loadCapacity);
+      if (cap === null) return false;
+      return cap >= minCap && cap <= maxCap;
+    });
+  }
+
+  if (resolvedSearchParams.height) {
+    const height = resolvedSearchParams.height;
+    let minHeight = 0, maxHeight = Infinity;
+    if (height.startsWith('<')) maxHeight = Number(height.replace('<', ''));
+    else if (height.startsWith('>')) minHeight = Number(height.replace('>', ''));
+    else if (height.includes('-')) {
+      const [min, max] = height.split('-');
+      minHeight = Number(min);
+      maxHeight = Number(max);
+    }
+    forklifts = forklifts.filter(f => {
+      const h = parseLiftHeightMm(f.liftHeight);
+      if (h === null) return false;
+      return h >= minHeight && h <= maxHeight;
+    });
+  }
 
   return (
     <div>

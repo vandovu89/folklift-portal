@@ -11,12 +11,18 @@ export default function ForkliftFilter() {
   const [q, setQ] = useState(searchParams.get('q') || '');
   const [status, setStatus] = useState(searchParams.get('status') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [capacity, setCapacity] = useState(searchParams.get('capacity') || '');
+  const [height, setHeight] = useState(searchParams.get('height') || '');
+  const [price, setPrice] = useState(searchParams.get('price') || '');
 
   // Reset form nếu URL bị thay đổi từ bên ngoài (ví dụ back button)
   useEffect(() => {
     setQ(searchParams.get('q') || '');
     setStatus(searchParams.get('status') || '');
     setCategory(searchParams.get('category') || '');
+    setCapacity(searchParams.get('capacity') || '');
+    setHeight(searchParams.get('height') || '');
+    setPrice(searchParams.get('price') || '');
   }, [searchParams]);
 
   const handleFilter = (e: React.FormEvent) => {
@@ -25,6 +31,9 @@ export default function ForkliftFilter() {
     if (q.trim()) params.set('q', q.trim());
     if (status) params.set('status', status);
     if (category) params.set('category', category);
+    if (capacity) params.set('capacity', capacity);
+    if (height) params.set('height', height);
+    if (price) params.set('price', price);
     
     router.push(`/admin/forklifts?${params.toString()}`);
   };
@@ -64,6 +73,39 @@ export default function ForkliftFilter() {
           <option value="Available">Available (Đang bán / Sẵn sàng)</option>
           <option value="Reserved">Reserved (Đã nhận cọc)</option>
           <option value="Sold">Sold (Đã bán)</option>
+        </select>
+      </div>
+      <div style={{ width: '150px' }}>
+        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+          Tải trọng
+        </label>
+        <select value={capacity} onChange={e => setCapacity(e.target.value)} className="form-control">
+          <option value="">-- Tất cả --</option>
+          <option value="<1500">Dưới 1.5 tấn</option>
+          <option value="1500-2500">1.5 - 2.5 tấn</option>
+          <option value=">2500">Trên 2.5 tấn</option>
+        </select>
+      </div>
+      <div style={{ width: '150px' }}>
+        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+          Chiều cao nâng
+        </label>
+        <select value={height} onChange={e => setHeight(e.target.value)} className="form-control">
+          <option value="">-- Tất cả --</option>
+          <option value="<3000">Dưới 3m</option>
+          <option value="3000-4000">3m - 4m</option>
+          <option value=">4000">Trên 4m</option>
+        </select>
+      </div>
+      <div style={{ width: '150px' }}>
+        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+          Tầm giá
+        </label>
+        <select value={price} onChange={e => setPrice(e.target.value)} className="form-control">
+          <option value="">-- Tất cả --</option>
+          <option value="<150000000">Dưới 150 triệu</option>
+          <option value="150000000-300000000">150 - 300 triệu</option>
+          <option value=">300000000">Trên 300 triệu</option>
         </select>
       </div>
       <button type="submit" className="btn-primary" style={{ height: '42px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
