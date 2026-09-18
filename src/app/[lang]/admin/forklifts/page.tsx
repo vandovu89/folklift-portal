@@ -87,7 +87,7 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
   return (
     <div>
       <div className={styles.pageHeader}>
-        <h1>Quản lý Xe Nâng</h1>
+        <h1>Quản lý Xe Nâng ({forklifts.length})</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <a href="/api/forklifts/export" download className="btn-secondary" style={{ backgroundColor: '#107c41', color: 'white', borderColor: '#107c41' }}>
             📤 Export Excel
