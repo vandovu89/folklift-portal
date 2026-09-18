@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const sources = await prisma.purchaseSource.findMany();
     const sourceMap = new Map();
     sources.forEach(s => {
-      sourceMap.set(s.name.toLowerCase().trim(), s);
+      sourceMap.set(s.abbreviation.toLowerCase().trim(), s);
     });
 
     for (let i = 5; i < rawData.length; i++) {
@@ -53,21 +53,21 @@ export async function POST(request: Request) {
       // Col P (15) = GIÁ NHẬP
       // Col Q (16) = CHI PHÍ PHÁT SINH
 
-      const purchaseSourceRaw = row[0] ? String(row[0]).trim() : '';
+      const purchaseSourceAbbr = row[0] ? String(row[0]).trim() : '';
       const maker = row[1];
       const model = row[2];
       
-      if (!maker || !model || !purchaseSourceRaw) {
+      if (!maker || !model || !purchaseSourceAbbr) {
         skipped++;
         continue;
       }
 
-      const sourceKey = purchaseSourceRaw.toLowerCase();
+      const sourceKey = purchaseSourceAbbr.toLowerCase();
       const source = sourceMap.get(sourceKey);
 
       if (!source) {
-        // Nguồn nhập chưa có trong bảng PurchaseSource -> Lỗi, bỏ qua (như user chọn cách 1)
-        return NextResponse.json({ error: `Nguồn nhập "${purchaseSourceRaw}" ở dòng ${i + 1} chưa được khai báo mã viết tắt. Vui lòng vào Cài đặt Nguồn Nhập để thêm.` }, { status: 400 });
+        // Nguồn nhập chưa có trong bảng PurchaseSource -> Lỗi, bỏ qua
+        return NextResponse.json({ error: `Mã viết tắt nguồn nhập "${purchaseSourceAbbr}" ở dòng ${i + 1} chưa được khai báo. Vui lòng vào Cài đặt Nguồn Nhập để thêm.` }, { status: 400 });
       }
 
       // Generate mã nội bộ
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
       await prisma.forklift.create({
         data: {
-          purchaseSource: purchaseSourceRaw,
+          purchaseSource: source.name, // Lưu tên đầy đủ vào DB
           internalCode: internalCode,
           serialNo:     row[3]  ? String(row[3])                                    : null,
           maker:        String(maker),
