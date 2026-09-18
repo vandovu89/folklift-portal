@@ -11,6 +11,7 @@ model Forklift {
   id              String    @id @default(uuid())
   
   // Thông tin nhận diện
+  internalCode    String?
   serialNo        String?
   maker           String
   model           String

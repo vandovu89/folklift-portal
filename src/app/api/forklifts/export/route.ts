@@ -16,9 +16,9 @@ export async function GET(request: Request) {
       [],
       [],
       [],
-      // Row 5: header — Col A blank, data from Col B
+      // Row 5: header
       [
-        "",                             // A: blank
+        "Mã nội bộ",                    // A
         "LINK",                         // B
         "MAKER",                        // C
         "MODEL",                        // D
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     
     forklifts.forEach((fl) => {
       data.push([
-        "",                      // A: blank
+        fl.internalCode || "",   // A: Mã nội bộ
         `${getBaseUrl()}/vi/machine/${fl.id}`, // B: NO (pic.#) -> Link
         fl.maker,                // C: MAKER
         fl.model,                // D: MODEL

@@ -29,35 +29,38 @@ export async function POST(request: Request) {
     for (let i = 5; i < rawData.length; i++) {
       const row = rawData[i];
 
-      // Col A (0) = blank
-      // Col B (1) = NO (pic.#)
-      // Col C (2) = MAKER
-      // Col D (3) = MODEL
-      // Col E (4) = SERI NO.
-      // Col F (5) = NĂM SẢN XUẤT
-      // Col G (6) = GIỜ HOẠT ĐỘNG
-      // Col H (7) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
-      // Col I (8) = LOẠI NHIÊN LIỆU
-      // Col J (9) = CHỦNG LOẠI XE
-      // Col K (10) = CHIỀU DÀI CÀNG NÂNG
-      // Col L (11) = PHỤ KIỆN
-      // Col M (12) = CHIỀU CAO NÂNG TỐI ĐA
-      // Col N (13) = TẢI TRỌNG NÂNG TỐI ĐA
-      // Col O (14) = ĐỊA ĐIỂM
-      // Col P (15) = GIÁ BÁN
-      // Col Q (16) = GIÁ NHẬP
-      // Col R (17) = CHI PHÍ PHÁT SINH
+      // Col A (0) = Nguồn nhập
+      // Col B (1) = Mã Nội Bộ
+      // Col C (2) = NO (pic.#)
+      // Col D (3) = MAKER
+      // Col E (4) = MODEL
+      // Col F (5) = SERI NO.
+      // Col G (6) = NĂM SẢN XUẤT
+      // Col H (7) = GIỜ HOẠT ĐỘNG
+      // Col I (8) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
+      // Col J (9) = LOẠI NHIÊN LIỆU
+      // Col K (10) = CHỦNG LOẠI XE
+      // Col L (11) = CHIỀU DÀI CÀNG NÂNG
+      // Col M (12) = PHỤ KIỆN
+      // Col N (13) = CHIỀU CAO NÂNG TỐI ĐA
+      // Col O (14) = TẢI TRỌNG NÂNG TỐI ĐA
+      // Col P (15) = ĐỊA ĐIỂM
+      // Col Q (16) = GIÁ BÁN
+      // Col R (17) = GIÁ NHẬP
+      // Col S (18) = CHI PHÍ PHÁT SINH
 
-      const maker = row[2];
-      const model = row[3];
+      const purchaseSource = row[0];
+      const internalCode = row[1];
+      const maker = row[3];
+      const model = row[4];
       
       if (!maker || !model) {
         skipped++;
         continue;
       }
 
-      const costPrice = row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null;
-      const expensesRaw = row[17] ? String(row[17]) : '';
+      const costPrice = row[17] ? parseFloat(String(row[17]).replace(/[^0-9.-]/g, '')) : null;
+      const expensesRaw = row[18] ? String(row[18]) : '';
       
       const parsedExpenses: { title: string; amount: number }[] = [];
       if (expensesRaw) {
@@ -77,20 +80,22 @@ export async function POST(request: Request) {
 
       await prisma.forklift.create({
         data: {
-          serialNo:     row[4]  ? String(row[4])                                    : null,
+          purchaseSource: purchaseSource ? String(purchaseSource) : null,
+          internalCode: internalCode ? String(internalCode) : null,
+          serialNo:     row[5]  ? String(row[5])                                    : null,
           maker:        String(maker),
           model:        String(model),
-          year:         row[5]  ? parseInt(String(row[5]).replace(/[^0-9]/g, ''))   : null,
-          hour:         row[6]  ? parseInt(String(row[6]).replace(/[^0-9]/g, ''))   : null,
-          condition:    row[7]  ? String(row[7])                                    : null,
-          powerType:    row[8]  ? String(row[8])                                    : null,
-          category:     row[9]  ? String(row[9])                                    : null,
-          forkLength:   row[10] ? String(row[10])                                   : null,
-          attachment:   row[11] ? String(row[11])                                   : null,
-          liftHeight:   row[12] ? String(row[12])                                   : null,
-          loadCapacity: row[13] ? String(row[13])                                   : null,
-          location:     row[14] ? String(row[14])                                   : null,
-          price:        row[15] ? parseFloat(String(row[15]).replace(/[^0-9.-]/g, '')) : null,
+          year:         row[6]  ? parseInt(String(row[6]).replace(/[^0-9]/g, ''))   : null,
+          hour:         row[7]  ? parseInt(String(row[7]).replace(/[^0-9]/g, ''))   : null,
+          condition:    row[8]  ? String(row[8])                                    : null,
+          powerType:    row[9]  ? String(row[9])                                    : null,
+          category:     row[10]  ? String(row[10])                                    : null,
+          forkLength:   row[11] ? String(row[11])                                   : null,
+          attachment:   row[12] ? String(row[12])                                   : null,
+          liftHeight:   row[13] ? String(row[13])                                   : null,
+          loadCapacity: row[14] ? String(row[14])                                   : null,
+          location:     row[15] ? String(row[15])                                   : null,
+          price:        row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null,
           status:       'Published',
           costPrice:    costPrice,
           expenses: parsedExpenses.length > 0 ? {
