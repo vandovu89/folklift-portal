@@ -36,26 +36,34 @@ export async function POST(request: Request) {
       const row = rawData[i];
 
       // Col A (0) = NGUỒN NHẬP
-      // Col B (1) = MAKER
-      // Col C (2) = MODEL
-      // Col D (3) = SERI NO.
-      // Col E (4) = NĂM SẢN XUẤT
-      // Col F (5) = GIỜ HOẠT ĐỘNG
-      // Col G (6) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
-      // Col H (7) = LOẠI NHIÊN LIỆU
-      // Col I (8) = CHỦNG LOẠI XE
-      // Col J (9) = CHIỀU DÀI CÀNG NÂNG
-      // Col K (10) = PHỤ KIỆN
-      // Col L (11) = CHIỀU CAO NÂNG TỐI ĐA
-      // Col M (12) = TẢI TRỌNG NÂNG TỐI ĐA
-      // Col N (13) = ĐỊA ĐIỂM
-      // Col O (14) = GIÁ BÁN
-      // Col P (15) = GIÁ NHẬP
-      // Col Q (16) = CHI PHÍ PHÁT SINH
+      // Col B (1) = TRẠNG THÁI
+      // Col C (2) = MAKER
+      // Col D (3) = MODEL
+      // Col E (4) = SERI NO.
+      // Col F (5) = NĂM SẢN XUẤT
+      // Col G (6) = GIỜ HOẠT ĐỘNG
+      // Col H (7) = TÌNH TRẠNG XE (BÌNH ẮC QUY)
+      // Col I (8) = LOẠI NHIÊN LIỆU
+      // Col J (9) = CHỦNG LOẠI XE
+      // Col K (10) = CHIỀU DÀI CÀNG NÂNG
+      // Col L (11) = PHỤ KIỆN
+      // Col M (12) = CHIỀU CAO NÂNG TỐI ĐA
+      // Col N (13) = TẢI TRỌNG NÂNG TỐI ĐA
+      // Col O (14) = ĐỊA ĐIỂM
+      // Col P (15) = GIÁ BÁN
+      // Col Q (16) = GIÁ NHẬP
+      // Col R (17) = CHI PHÍ PHÁT SINH
 
       const purchaseSourceAbbr = row[0] ? String(row[0]).trim() : '';
-      const maker = row[1];
-      const model = row[2];
+      const statusRaw = row[1] ? String(row[1]).trim() : '';
+      const maker = row[2];
+      const model = row[3];
+      
+      const validStatuses = ['Draft', 'Incoming', 'Published', 'Reserved', 'Sold'];
+      let finalStatus = 'Published'; // Mặc định như cũ
+      if (validStatuses.includes(statusRaw)) {
+        finalStatus = statusRaw;
+      }
       
       if (!maker || !model || !purchaseSourceAbbr) {
         skipped++;
@@ -82,8 +90,8 @@ export async function POST(request: Request) {
         data: { currentSeq: nextSeq }
       });
 
-      const costPrice = row[15] ? parseFloat(String(row[15]).replace(/[^0-9.-]/g, '')) : null;
-      const expensesRaw = row[16] ? String(row[16]) : '';
+      const costPrice = row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null;
+      const expensesRaw = row[17] ? String(row[17]) : '';
       
       const parsedExpenses: { title: string; amount: number }[] = [];
       if (expensesRaw) {
@@ -105,21 +113,21 @@ export async function POST(request: Request) {
         data: {
           purchaseSource: source.name, // Lưu tên đầy đủ vào DB
           internalCode: internalCode,
-          serialNo:     row[3]  ? String(row[3])                                    : null,
+          serialNo:     row[4]  ? String(row[4])                                    : null,
           maker:        String(maker),
           model:        String(model),
-          year:         row[4]  ? parseInt(String(row[4]).replace(/[^0-9]/g, ''))   : null,
-          hour:         row[5]  ? parseInt(String(row[5]).replace(/[^0-9]/g, ''))   : null,
-          condition:    row[6]  ? String(row[6])                                    : null,
-          powerType:    row[7]  ? String(row[7])                                    : null,
-          category:     row[8]  ? String(row[8])                                    : null,
-          forkLength:   row[9] ? String(row[9])                                   : null,
-          attachment:   row[10] ? String(row[10])                                   : null,
-          liftHeight:   row[11] ? String(row[11])                                   : null,
-          loadCapacity: row[12] ? String(row[12])                                   : null,
-          location:     row[13] ? String(row[13])                                   : null,
-          price:        row[14] ? parseFloat(String(row[14]).replace(/[^0-9.-]/g, '')) : null,
-          status:       'Published',
+          year:         row[5]  ? parseInt(String(row[5]).replace(/[^0-9]/g, ''))   : null,
+          hour:         row[6]  ? parseInt(String(row[6]).replace(/[^0-9]/g, ''))   : null,
+          condition:    row[7]  ? String(row[7])                                    : null,
+          powerType:    row[8]  ? String(row[8])                                    : null,
+          category:     row[9]  ? String(row[9])                                    : null,
+          forkLength:   row[10] ? String(row[10])                                   : null,
+          attachment:   row[11] ? String(row[11])                                   : null,
+          liftHeight:   row[12] ? String(row[12])                                   : null,
+          loadCapacity: row[13] ? String(row[13])                                   : null,
+          location:     row[14] ? String(row[14])                                   : null,
+          price:        row[15] ? parseFloat(String(row[15]).replace(/[^0-9.-]/g, '')) : null,
+          status:       finalStatus,
           costPrice:    costPrice,
           expenses: parsedExpenses.length > 0 ? {
             create: parsedExpenses
