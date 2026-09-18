@@ -7,7 +7,8 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   const [mediaList, setMediaList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [category, setCategory] = useState('Tổng thể');
   const [isPublic, setIsPublic] = useState(true);
 
@@ -25,29 +26,44 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('forkliftId', forkliftId);
-    formData.append('category', category);
-    formData.append('isPublic', isPublic.toString());
+    setUploadProgress({ current: 0, total: files.length });
 
-    try {
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (res.ok) {
-        setFile(null);
-        await fetchMedia();
-      } else {
-        alert('Upload thất bại');
+    let hasError = false;
+
+    for (let i = 0; i < files.length; i++) {
+      const currentFile = files[i];
+      setUploadProgress({ current: i + 1, total: files.length });
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('forkliftId', forkliftId);
+      formData.append('category', category);
+      formData.append('isPublic', isPublic.toString());
+
+      try {
+        const res = await fetch('/api/media/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) {
+          hasError = true;
+        }
+      } catch(err) {
+        console.error(err);
+        hasError = true;
       }
-    } catch(err) {
-      console.error(err);
     }
+
+    if (hasError) {
+      alert('Một hoặc nhiều file tải lên thất bại.');
+    }
+
+    setFiles([]);
+    setUploadProgress({ current: 0, total: 0 });
+    await fetchMedia();
     setLoading(false);
   };
 
@@ -72,8 +88,8 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
       
       <form onSubmit={handleUpload} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 250px' }}>
-          <label className="form-label">Chọn File (Ảnh/PDF/Doc)</label>
-          <input type="file" className="form-control" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
+          <label className="form-label">Chọn File (Ảnh/PDF/Doc) - Có thể chọn nhiều file</label>
+          <input type="file" multiple className="form-control" onChange={(e) => setFiles(Array.from(e.target.files || []))} required />
         </div>
         <div style={{ flex: '1 1 200px' }}>
           <label className="form-label">Phân loại nhóm</label>
@@ -90,8 +106,8 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
           <input type="checkbox" id="isPublic" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem' }} />
           <label htmlFor="isPublic" style={{ fontWeight: '600' }}>Hiển thị ra Public</label>
         </div>
-        <button type="submit" className="btn-primary" disabled={loading || !file} style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <FaFileUpload /> {loading ? 'Đang tải...' : 'Tải lên'}
+        <button type="submit" className="btn-primary" disabled={loading || files.length === 0} style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FaFileUpload /> {loading ? `Đang tải... ${uploadProgress.current}/${uploadProgress.total}` : 'Tải lên'}
         </button>
       </form>
 
