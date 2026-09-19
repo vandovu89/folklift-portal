@@ -151,7 +151,7 @@ export default async function PublicCatalog({
                 </div>
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.3rem' }}>
+                    <h3 style={{ fontSize: '1.3rem', textTransform: 'uppercase' }}>
                       {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
                       {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                       {fl.maker} {fl.model}

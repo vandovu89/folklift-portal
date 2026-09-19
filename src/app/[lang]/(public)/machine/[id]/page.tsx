@@ -45,7 +45,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                  <h1 style={{ fontSize: '2rem', margin: 0 }}>
+                  <h1 style={{ fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>
                     {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
                     {forklift.loadCapacity ? `${formatCapacity(forklift.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                     {forklift.maker} {forklift.model}

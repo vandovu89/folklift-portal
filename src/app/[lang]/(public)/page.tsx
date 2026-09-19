@@ -82,7 +82,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                   </div>
                   <div style={{ padding: '2rem', borderTop: '1px solid var(--surface-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>
+                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)', textTransform: 'uppercase' }}>
                         {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
                         {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                         {fl.maker} {fl.model}
