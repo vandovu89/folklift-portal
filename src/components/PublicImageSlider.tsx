@@ -14,7 +14,7 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', minWidth: 0 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={media[currentIndex].url} alt="Main" style={{ width: '100%', height: '400px', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px', transition: 'var(--transition)' }} />
       

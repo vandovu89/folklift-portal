@@ -36,11 +36,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
         </Link>
         <div className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
           
-          <div style={{ flex: '1 1 500px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+          <div style={{ flex: '1 1 500px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: 0, maxWidth: '100%' }}>
             <PublicImageSlider media={forklift.media} />
           </div>
 
-          <div style={{ flex: '1 1 400px', padding: '2.5rem' }}>
+          <div style={{ flex: '1 1 400px', padding: '2.5rem', minWidth: 0, maxWidth: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
