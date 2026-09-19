@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { parseCapacityKg, parseLiftHeightMm } from '@/lib/utils';
+import { parseCapacityKg, parseLiftHeightMm, formatCapacity } from '@/lib/utils';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
@@ -153,7 +153,7 @@ export default async function PublicCatalog({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                     <h3 style={{ fontSize: '1.3rem' }}>
                       {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
-                      {fl.loadCapacity ? `${fl.loadCapacity} ` : ''}
+                      {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                       {fl.maker} {fl.model}
                     </h3>
                     {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { formatCapacity } from '@/lib/utils';
 import { getDictionary } from '@/dictionaries';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 import { FadeIn } from '@/components/animations/FadeIn';
@@ -83,7 +84,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>
                         {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
-                        {fl.loadCapacity ? `${fl.loadCapacity} ` : ''}
+                        {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                         {fl.maker} {fl.model}
                       </h3>
                       {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}

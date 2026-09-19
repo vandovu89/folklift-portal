@@ -33,3 +33,18 @@ export function parseLiftHeightMm(input?: string | number | null): number | null
   }
   return null;
 }
+
+/**
+ * Chuyển đổi số kg sang định dạng dễ đọc (ví dụ: 1500 -> "1.5 tấn", "1500kg")
+ */
+export function formatCapacity(input?: string | number | null, lang: 'vi' | 'en' = 'vi'): string {
+  const kg = parseCapacityKg(input);
+  if (kg === null) return input ? input.toString() : '';
+  
+  if (kg >= 1000) {
+    const ton = kg / 1000;
+    const tonStr = Number(ton.toFixed(2));
+    return lang === 'vi' ? `${tonStr} tấn` : `${tonStr} tons`;
+  }
+  return `${kg} kg`;
+}
