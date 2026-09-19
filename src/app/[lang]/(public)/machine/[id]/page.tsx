@@ -44,7 +44,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                  <h1 style={{ fontSize: '2rem', margin: 0 }}>{forklift.maker} {forklift.model}</h1>
+                  <h1 style={{ fontSize: '2rem', margin: 0 }}>
+                    {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
+                    {forklift.loadCapacity ? `${forklift.loadCapacity} ` : ''}
+                    {forklift.maker} {forklift.model}
+                  </h1>
                   {forklift.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Sắp về kho</span>}
                   {forklift.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Đã nhận cọc</span>}
                   {forklift.status === 'Available' && <span className="badge badge-success" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>Sẵn sàng giao</span>}

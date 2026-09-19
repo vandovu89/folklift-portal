@@ -81,7 +81,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                   </div>
                   <div style={{ padding: '2rem', borderTop: '1px solid var(--surface-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>{fl.maker} {fl.model}</h3>
+                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>
+                        {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
+                        {fl.loadCapacity ? `${fl.loadCapacity} ` : ''}
+                        {fl.maker} {fl.model}
+                      </h3>
                       {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}
                       {fl.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', whiteSpace: 'nowrap' }}>Đã cọc</span>}
                       {fl.status === 'Available' && <span className="badge badge-success" style={{ whiteSpace: 'nowrap' }}>Sẵn sàng</span>}
