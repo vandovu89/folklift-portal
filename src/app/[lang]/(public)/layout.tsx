@@ -1,6 +1,7 @@
 import PublicNavbar from '@/components/PublicNavbar';
 import PublicFooter from '@/components/PublicFooter';
 import { getDictionary } from '@/dictionaries';
+import FloatingChatWidgets from '@/components/FloatingChatWidgets';
 
 export default async function PublicLayout({
   children,
@@ -19,6 +20,7 @@ export default async function PublicLayout({
         {children}
       </div>
       <PublicFooter lang={lang} />
+      <FloatingChatWidgets />
     </div>
   );
 }
