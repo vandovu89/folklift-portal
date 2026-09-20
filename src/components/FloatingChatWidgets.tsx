@@ -14,9 +14,9 @@ export default function FloatingChatWidgets() {
       zIndex: 9999
     }}>
       {/* Zalo Button */}
-      <a 
-        href="https://zalo.me/0901234567" // TODO: Thay số điện thoại Zalo của khách hàng
-        target="_blank" 
+      <a
+        href="https://zalo.me/84362396092" // TODO: Thay số điện thoại Zalo của khách hàng
+        target="_blank"
         rel="noopener noreferrer"
         style={{
           width: '55px',
@@ -41,9 +41,9 @@ export default function FloatingChatWidgets() {
       </a>
 
       {/* Messenger Button */}
-      <a 
-        href="https://m.me/yourfacebookpage" // TODO: Thay link Fanpage của khách hàng
-        target="_blank" 
+      <a
+        href="https://m.me/machikotranxenangnhat" // Đã đổi sang m.me để mở khung chat trực tiếp
+        target="_blank"
         rel="noopener noreferrer"
         style={{
           width: '55px',
