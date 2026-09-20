@@ -20,10 +20,13 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
   const [soldDate, setSoldDate] = useState('');
   const [contractUrl, setContractUrl] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const [forklifts, setForklifts] = useState<any[]>([]);
+  const [forkliftId, setForkliftId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInquiry();
     fetchUsers();
+    fetchForklifts();
   }, [resolvedParams.id]);
 
   const fetchUsers = async () => {
@@ -39,6 +42,18 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const fetchForklifts = async () => {
+    try {
+      const res = await fetch('/api/forklifts');
+      if (res.ok) {
+        const data = await res.json();
+        setForklifts(data.forklifts || data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchInquiry = async () => {
     try {
       const res = await fetch(`/api/inquiries/${resolvedParams.id}`);
@@ -48,6 +63,7 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
         setStatus(data.status);
         setNotes(data.notes || '');
         setAssignedToId(data.assignedToId || '');
+        setForkliftId(data.forkliftId || '');
         if (data.forklift) {
           setSoldPrice(data.forklift.soldPrice || data.forklift.price || '');
           setSoldDate(data.forklift.soldDate ? new Date(data.forklift.soldDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
@@ -64,15 +80,21 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
   const handleUpdate = async () => {
     setSaving(true);
     try {
+      const payload: any = { status, notes, assignedToId };
+      if (forkliftId !== undefined && forkliftId !== null) {
+        payload.forkliftId = forkliftId === '' ? null : forkliftId;
+      }
+      
       const res = await fetch(`/api/inquiries/${resolvedParams.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, notes, assignedToId })
+        body: JSON.stringify(payload)
       });
       
       let forkliftUpdated = true;
-      if (status === 'Won' && inquiry?.forkliftId) {
-        const flRes = await fetch(`/api/forklifts/${inquiry.forkliftId}`, {
+      const targetForkliftId = forkliftId || inquiry?.forkliftId;
+      if (status === 'Won' && targetForkliftId) {
+        const flRes = await fetch(`/api/forklifts/${targetForkliftId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -160,7 +182,7 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
 
           {inquiry.forklift && (
             <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--primary)' }}>Xe nâng đang quan tâm</h3>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--primary)' }}>Xe nâng đang quan tâm (Ban đầu)</h3>
               <div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: '0.5rem' }}>
                 {inquiry.forklift.maker} {inquiry.forklift.model}
               </div>
@@ -239,8 +261,25 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
               <option value="Lost">Thất bại (Lost) - Khách không mua</option>
             </select>
           </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Liên kết Xe Nâng (Nếu khách đổi xe khác):</label>
+            <select 
+              className="form-control" 
+              value={forkliftId || ''} 
+              onChange={(e) => setForkliftId(e.target.value)}
+              style={{ width: '100%', padding: '0.8rem' }}
+            >
+              <option value="">-- Không có xe cụ thể --</option>
+              {forklifts.map(f => (
+                <option key={f.id} value={f.id}>
+                  {f.maker} {f.model} ({f.stockNo || f.internalCode || 'N/A'})
+                </option>
+              ))}
+            </select>
+          </div>
           
-          {status === 'Won' && inquiry?.forklift && (
+          {status === 'Won' && (forkliftId || inquiry?.forklift) && (
             <div style={{ marginBottom: '1.5rem', background: 'rgba(74, 222, 128, 0.05)', border: '1px solid rgba(74, 222, 128, 0.2)', padding: '1rem', borderRadius: '8px' }}>
               <h3 style={{ color: '#4ade80', fontSize: '1.1rem', marginBottom: '1rem' }}>Thông tin Chốt Đơn (Bán Xe)</h3>
               <div style={{ marginBottom: '1rem' }}>

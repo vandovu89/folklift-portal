@@ -43,12 +43,13 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, notes, assignedToId } = body;
+    const { status, notes, assignedToId, forkliftId } = body;
 
     const dataToUpdate: any = {};
     if (status !== undefined) dataToUpdate.status = status;
     if (notes !== undefined) dataToUpdate.notes = notes;
     if (assignedToId !== undefined) dataToUpdate.assignedToId = assignedToId === '' ? null : assignedToId;
+    if (forkliftId !== undefined) dataToUpdate.forkliftId = forkliftId === null ? null : forkliftId;
 
     const updatedInquiry = await prisma.inquiry.update({
       where: { id },
