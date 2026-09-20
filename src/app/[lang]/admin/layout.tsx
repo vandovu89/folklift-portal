@@ -1,8 +1,8 @@
 'use client';
-
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle } from 'react-icons/fa';
+import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle, FaUserShield } from 'react-icons/fa';
 import styles from './admin.module.css';
 
 export default function AdminLayout({
@@ -12,6 +12,15 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [user, setUser] = useState<{username: string, role: string, name?: string} | null>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) setUser(data.user);
+      });
+  }, []);
 
   // Remove language prefix (e.g. /vi) to correctly match routes
   const pathWithoutLang = pathname.replace(/^\/[^\/]+/, '') || '/';
@@ -51,12 +60,14 @@ export default function AdminLayout({
           >
             <FaTractor /> Quản lý Xe nâng
           </Link>
-          <Link 
-            href="/admin/purchase-sources" 
-            className={`${styles.navItem} ${isActive('/admin/purchase-sources') ? styles.active : ''}`}
-          >
-            <FaChartPie /> Nguồn nhập
-          </Link>
+          {user?.role === 'ADMIN' && (
+            <Link 
+              href="/admin/purchase-sources" 
+              className={`${styles.navItem} ${isActive('/admin/purchase-sources') ? styles.active : ''}`}
+            >
+              <FaChartPie /> Nguồn nhập
+            </Link>
+          )}
           <Link 
             href="/admin/inquiries" 
             className={`${styles.navItem} ${isActive('/admin/inquiries') ? styles.active : ''}`}
@@ -69,20 +80,30 @@ export default function AdminLayout({
           >
             <FaFacebook /> Fanpage & Bot
           </Link>
-          <Link 
-            href="/admin/settings" 
-            className={`${styles.navItem} ${isActive('/admin/settings') ? styles.active : ''}`}
-          >
-            <FaCog /> Cài đặt
-          </Link>
+          {user?.role === 'ADMIN' && (
+            <>
+              <Link 
+                href="/admin/users" 
+                className={`${styles.navItem} ${isActive('/admin/users') ? styles.active : ''}`}
+              >
+                <FaUserShield /> Phân quyền
+              </Link>
+              <Link 
+                href="/admin/settings" 
+                className={`${styles.navItem} ${isActive('/admin/settings') ? styles.active : ''}`}
+              >
+                <FaCog /> Cài đặt
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className={styles.sidebarFooter}>
           <div className={styles.userProfile}>
             <FaUserCircle className={styles.userAvatar} />
             <div className={styles.userInfo}>
-              <span className={styles.userName}>Administrator</span>
-              <span className={styles.userRole}>System Admin</span>
+              <span className={styles.userName}>{user?.name || user?.username || 'Đang tải...'}</span>
+              <span className={styles.userRole}>{user?.role || 'Guest'}</span>
             </div>
           </div>
           <button onClick={handleLogout} className={styles.logoutBtn}>
@@ -95,7 +116,9 @@ export default function AdminLayout({
         <header className={styles.header}>
           <h2>Admin Dashboard</h2>
           <div>
-            <span className="badge badge-success">Admin</span>
+            <span className={`badge ${user?.role === 'ADMIN' ? 'badge-primary' : 'badge-success'}`}>
+              {user?.role || '...'}
+            </span>
           </div>
         </header>
         <div className={styles.content}>

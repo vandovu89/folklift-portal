@@ -1,24 +1,34 @@
 import { NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { username, password } = body;
 
-    const validUsername = process.env.ADMIN_USERNAME || 'admin';
-    const validPassword = process.env.ADMIN_PASSWORD || 'admin';
-    const jwtSecret = process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026';
+    const user = await prisma.user.findUnique({
+      where: { username }
+    });
 
-    if (username === validUsername && password === validPassword) {
+    if (!user || !user.isActive) {
+      return NextResponse.json({ error: 'Sai tài khoản hoặc mật khẩu' }, { status: 401 });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (isPasswordValid) {
+      const jwtSecret = process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026';
       const secret = new TextEncoder().encode(jwtSecret);
-      const token = await new SignJWT({ user: username })
+      
+      const token = await new SignJWT({ user: username, role: user.role, id: user.id })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime('24h')
         .sign(secret);
 
-      const response = NextResponse.json({ success: true });
+      const response = NextResponse.json({ success: true, role: user.role });
       response.cookies.set({
         name: 'auth_token',
         value: token,
@@ -31,6 +41,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Sai tài khoản hoặc mật khẩu' }, { status: 401 });
   } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json({ error: 'Lỗi hệ thống' }, { status: 500 });
   }
 }

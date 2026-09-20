@@ -59,6 +59,7 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
                 <th>Email</th>
                 <th>Xe quan tâm</th>
                 <th>Nguồn</th>
+                <th>Phụ trách</th>
                 <th>Ngày gửi</th>
                 <th>Trạng thái</th>
                 <th>Hành động</th>
@@ -108,6 +109,13 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
                       </span>
                     )}
                   </td>
+                  <td>
+                    {iq.assignedTo ? (
+                      <span className="badge badge-primary">{iq.assignedTo.name}</span>
+                    ) : (
+                      <span className="badge badge-neutral">Chưa gán</span>
+                    )}
+                  </td>
                   <td>{new Date(iq.createdAt).toLocaleDateString('vi-VN')}</td>
                   <td>
                     <span className={`status-badge status-${iq.status.toLowerCase()}`}>
@@ -124,7 +132,7 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
               
               {inquiries.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
                     Không có yêu cầu nào.
                   </td>
                 </tr>

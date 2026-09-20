@@ -8,9 +8,13 @@ export default function AddForkliftPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [sources, setSources] = useState<{ id: string, name: string }[]>([]);
+  const [userRole, setUserRole] = useState<string>('SALES');
 
   useEffect(() => {
     fetch('/api/purchase-sources').then(res => res.json()).then(data => setSources(data));
+    fetch('/api/auth/me').then(res => res.json()).then(data => {
+      if (data.user) setUserRole(data.user.role);
+    });
   }, []);
   
   const [formData, setFormData] = useState({
@@ -181,56 +185,58 @@ export default function AddForkliftPage() {
           </div>
         </div>
 
-        <div className={styles.formSection}>
-          <h3>4. Quản lý Vốn & Chi phí nội bộ</h3>
-          <div className={styles.formGrid}>
-            <div className="form-group">
-              <label className="form-label">Giá vốn mua vào (VNĐ)</label>
-              <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} className="form-control" />
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '1rem' }}>
-            <label className="form-label">Chi phí phát sinh</label>
-            {formData.expenses.map((exp, index) => (
-              <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-                <input required placeholder="Tên chi phí (VD: Vận chuyển)" value={exp.title} onChange={e => handleExpenseChange(index, 'title', e.target.value)} className="form-control" style={{ flex: 2 }} />
-                <input required type="number" placeholder="Số tiền" value={exp.amount} onChange={e => handleExpenseChange(index, 'amount', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
-                <input type="date" value={exp.date} onChange={e => handleExpenseChange(index, 'date', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
-                <input placeholder="Ghi chú" value={exp.note} onChange={e => handleExpenseChange(index, 'note', e.target.value)} className="form-control" style={{ flex: 2 }} />
-                <button type="button" onClick={() => removeExpense(index)} className="btn-danger" style={{ padding: '0.5rem' }}>Xóa</button>
-              </div>
-            ))}
-            <button type="button" onClick={addExpense} className="btn-secondary" style={{ marginTop: '0.5rem' }}>+ Thêm chi phí</button>
-          </div>
-          
-          <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', textAlign: 'center' }}>
-              <div>
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tổng vốn nhập (Bao gồm chi phí)</div>
-                <div style={{ fontSize: '1.2rem', color: '#ffb703', fontWeight: 600 }}>
-                  {((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString('vi-VN')} VNĐ
-                </div>
-              </div>
-              <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Giá Bán Đề Xuất</div>
-                <div style={{ fontSize: '1.2rem', color: '#38bdf8', fontWeight: 600 }}>
-                  {(parseFloat(formData.price) || 0).toLocaleString('vi-VN')} VNĐ
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Lợi Nhuận Dự Kiến</div>
-                <div style={{ 
-                  fontSize: '1.3rem', 
-                  fontWeight: 700,
-                  color: ((parseFloat(formData.price) || 0) - ((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0))) >= 0 ? '#4ade80' : '#f87171' 
-                }}>
-                  {((parseFloat(formData.price) || 0) - ((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0))).toLocaleString('vi-VN')} VNĐ
-                </div>
+        {userRole === 'ADMIN' && (
+          <div className={styles.formSection}>
+            <h3>4. Quản lý Vốn & Chi phí nội bộ</h3>
+            <div className={styles.formGrid}>
+              <div className="form-group">
+                <label className="form-label">Giá vốn mua vào (VNĐ)</label>
+                <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} className="form-control" />
               </div>
             </div>
+            
+            <div style={{ marginTop: '1rem' }}>
+              <label className="form-label">Chi phí phát sinh</label>
+              {formData.expenses.map((exp, index) => (
+                <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                  <input required placeholder="Tên chi phí (VD: Vận chuyển)" value={exp.title} onChange={e => handleExpenseChange(index, 'title', e.target.value)} className="form-control" style={{ flex: 2 }} />
+                  <input required type="number" placeholder="Số tiền" value={exp.amount} onChange={e => handleExpenseChange(index, 'amount', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
+                  <input type="date" value={exp.date} onChange={e => handleExpenseChange(index, 'date', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
+                  <input placeholder="Ghi chú" value={exp.note} onChange={e => handleExpenseChange(index, 'note', e.target.value)} className="form-control" style={{ flex: 2 }} />
+                  <button type="button" onClick={() => removeExpense(index)} className="btn-danger" style={{ padding: '0.5rem' }}>Xóa</button>
+                </div>
+              ))}
+              <button type="button" onClick={addExpense} className="btn-secondary" style={{ marginTop: '0.5rem' }}>+ Thêm chi phí</button>
+            </div>
+            
+            <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', textAlign: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tổng vốn nhập (Bao gồm chi phí)</div>
+                  <div style={{ fontSize: '1.2rem', color: '#ffb703', fontWeight: 600 }}>
+                    {((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                </div>
+                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Giá Bán Đề Xuất</div>
+                  <div style={{ fontSize: '1.2rem', color: '#38bdf8', fontWeight: 600 }}>
+                    {(parseFloat(formData.price) || 0).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Lợi Nhuận Dự Kiến</div>
+                  <div style={{ 
+                    fontSize: '1.3rem', 
+                    fontWeight: 700,
+                    color: ((parseFloat(formData.price) || 0) - ((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0))) >= 0 ? '#4ade80' : '#f87171' 
+                  }}>
+                    {((parseFloat(formData.price) || 0) - ((parseFloat(formData.costPrice) || 0) + formData.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0))).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
           <button type="button" onClick={() => router.back()} className="btn-secondary">Hủy</button>

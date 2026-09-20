@@ -15,10 +15,29 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [notes, setNotes] = useState('');
+  const [assignedToId, setAssignedToId] = useState('');
+  const [soldPrice, setSoldPrice] = useState('');
+  const [soldDate, setSoldDate] = useState('');
+  const [contractUrl, setContractUrl] = useState('');
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     fetchInquiry();
+    fetchUsers();
   }, [resolvedParams.id]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        // Lọc các user có role là SALES hoặc ADMIN để gán
+        setUsers(data.filter((u: any) => u.role === 'SALES' || u.role === 'ADMIN'));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchInquiry = async () => {
     try {
@@ -28,6 +47,12 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
         setInquiry(data);
         setStatus(data.status);
         setNotes(data.notes || '');
+        setAssignedToId(data.assignedToId || '');
+        if (data.forklift) {
+          setSoldPrice(data.forklift.soldPrice || data.forklift.price || '');
+          setSoldDate(data.forklift.soldDate ? new Date(data.forklift.soldDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+          setContractUrl(data.forklift.contractUrl || '');
+        }
       }
     } catch (error) {
       console.error('Failed to fetch inquiry', error);
@@ -42,9 +67,25 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
       const res = await fetch(`/api/inquiries/${resolvedParams.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, notes })
+        body: JSON.stringify({ status, notes, assignedToId })
       });
-      if (res.ok) {
+      
+      let forkliftUpdated = true;
+      if (status === 'Won' && inquiry?.forkliftId) {
+        const flRes = await fetch(`/api/forklifts/${inquiry.forkliftId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'Sold',
+            soldPrice: soldPrice,
+            soldDate: soldDate,
+            contractUrl: contractUrl
+          })
+        });
+        if (!flRes.ok) forkliftUpdated = false;
+      }
+
+      if (res.ok && forkliftUpdated) {
         alert('Cập nhật thành công!');
       } else {
         alert('Cập nhật thất bại');
@@ -168,6 +209,21 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
           </h2>
           
           <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Người phụ trách (Sales):</label>
+            <select 
+              className="form-control" 
+              value={assignedToId} 
+              onChange={(e) => setAssignedToId(e.target.value)}
+              style={{ width: '100%', padding: '0.8rem' }}
+            >
+              <option value="">-- Chưa gán --</option>
+              {users.map(u => (
+                <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Trạng thái xử lý (Phễu):</label>
             <select 
               className="form-control" 
@@ -183,6 +239,27 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
               <option value="Lost">Thất bại (Lost) - Khách không mua</option>
             </select>
           </div>
+          
+          {status === 'Won' && inquiry?.forklift && (
+            <div style={{ marginBottom: '1.5rem', background: 'rgba(74, 222, 128, 0.05)', border: '1px solid rgba(74, 222, 128, 0.2)', padding: '1rem', borderRadius: '8px' }}>
+              <h3 style={{ color: '#4ade80', fontSize: '1.1rem', marginBottom: '1rem' }}>Thông tin Chốt Đơn (Bán Xe)</h3>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Giá Bán Thực Tế (VNĐ) *:</label>
+                <input type="number" required value={soldPrice} onChange={e => setSoldPrice(e.target.value)} className="form-control" style={{ width: '100%' }} />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Ngày Bán *:</label>
+                <input type="date" required value={soldDate} onChange={e => setSoldDate(e.target.value)} className="form-control" style={{ width: '100%' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Link Hợp Đồng:</label>
+                <input type="text" value={contractUrl} onChange={e => setContractUrl(e.target.value)} className="form-control" style={{ width: '100%' }} placeholder="https://drive.google.com/..." />
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem' }}>
+                Trạng thái xe nâng này sẽ tự động chuyển sang <strong>Sold (Đã bán)</strong>.
+              </div>
+            </div>
+          )}
 
           <div style={{ marginBottom: '2rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Ghi chú nội bộ (Chỉ Sales xem):</label>

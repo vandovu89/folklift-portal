@@ -5,7 +5,7 @@ import { jwtVerify } from 'jose';
 const locales = ['en', 'vi'];
 const defaultLocale = 'vi';
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Bỏ qua static files và API routes
@@ -39,7 +39,21 @@ export default async function proxy(request: NextRequest) {
 
     try {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
-      await jwtVerify(token, secret);
+      const { payload } = await jwtVerify(token, secret);
+      
+      const role = payload.role as string;
+      
+      // Role-Based Access Control
+      if (pathname.includes('/admin/users') && role !== 'ADMIN') {
+        return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
+      }
+      if (pathname.includes('/admin/purchase-sources') && role !== 'ADMIN') {
+        return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
+      }
+      if (pathname.includes('/admin/settings') && role !== 'ADMIN') {
+        return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
+      }
+
       return NextResponse.next();
     } catch (error) {
       const response = NextResponse.redirect(new URL(`/${currentLocale}/login`, request.url));

@@ -23,6 +23,12 @@ export async function GET(request: Request) {
             pageName: true,
             pageId: true,
           }
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true
+          }
         }
       }
     });

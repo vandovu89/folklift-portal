@@ -55,6 +55,14 @@ model Forklift {
   // Quản lý vốn & Chi phí
   costPrice       Float?
 
+  // Phục vụ Chốt Đơn (Phase 2 CRM)
+  soldDate        DateTime?
+  soldPrice       Float?
+  contractUrl     String?
+  customerId      String?
+  assignedToId    String?
+  assignedTo      User?     @relation("ForkliftAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
   // Quan hệ
   media           Media[]
   inquiries       Inquiry[]
@@ -92,6 +100,9 @@ model Inquiry {
   
   facebookPageId String?
   facebookPage   FacebookPage? @relation(fields: [facebookPageId], references: [id], onDelete: SetNull)
+
+  assignedToId   String?
+  assignedTo     User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
   chatSession    ChatSession?
 
@@ -178,4 +189,19 @@ model PurchaseSource {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("SALES") // ADMIN, SALES, VIEWER
+  isActive     Boolean   @default(true)
+  
+  inquiries    Inquiry[]
+  forklifts    Forklift[] @relation("ForkliftAssignedTo")
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
