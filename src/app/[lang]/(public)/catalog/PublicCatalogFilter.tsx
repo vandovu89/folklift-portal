@@ -65,9 +65,9 @@ export default function PublicCatalogFilter({ lang }: { lang: 'en' | 'vi' }) {
           style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
         >
           <option value="">-- {lang === 'vi' ? 'Tất cả' : 'All'} --</option>
-          <option value="COUNTER">Counter</option>
-          <option value="REACH">Reach</option>
-          <option value="OTHER">Other</option>
+          <option value="COUNTER">{lang === 'vi' ? 'Ngồi lái' : 'Counter'}</option>
+          <option value="REACH">{lang === 'vi' ? 'Đứng lái' : 'Reach'}</option>
+          <option value="OTHER">{lang === 'vi' ? 'Khác' : 'Other'}</option>
         </select>
       </div>
       <div style={{ flex: '1 1 150px' }}>

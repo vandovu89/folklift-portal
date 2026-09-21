@@ -46,21 +46,23 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           </div>
 
           <div style={{ flex: '1 1 400px', padding: '2.5rem', minWidth: 0, maxWidth: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="machine-header">
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                  <h1 style={{ fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>
+                <div className="machine-title-row">
+                  <h1 className="machine-title-text" style={{ fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>
                     {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
                     {forklift.loadCapacity ? `${formatCapacity(forklift.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
                     {forklift.maker} {forklift.model}
                   </h1>
-                  {forklift.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Sắp về kho</span>}
-                  {forklift.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', fontSize: '1rem', padding: '0.5rem 1rem' }}>Đã nhận cọc</span>}
-                  {forklift.status === 'Available' && <span className="badge badge-success" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>Sẵn sàng giao</span>}
+                  <div className="machine-badges">
+                    {forklift.status === 'Incoming' && <span className="badge machine-badge" style={{ backgroundColor: '#f97316', color: 'white' }}>Sắp về kho</span>}
+                    {forklift.status === 'Reserved' && <span className="badge machine-badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã nhận cọc</span>}
+                    {forklift.status === 'Available' && <span className="badge badge-success machine-badge">Sẵn sàng giao</span>}
+                  </div>
                 </div>
                 <p style={{ color: '#888', marginBottom: '1.5rem' }}>Mã nội bộ: {forklift.internalCode || forklift.id.substring(0, 8)}</p>
               </div>
-              <div style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+              <div className="machine-qr-container" style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
                 <QRCodeComponent value={qrUrl} />
                 <div style={{ fontSize: '0.7rem', textAlign: 'center', marginTop: '0.2rem' }}>Quét mã share</div>
               </div>
@@ -98,7 +100,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.forkLength, value: forklift.forkLength },
                 ].map((spec, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '45%' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem 1.5rem 1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '50%' }}>{spec.label}</td>
                     <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
                   </tr>
                 ))}
@@ -117,7 +119,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.otherSpecs, value: forklift.otherSpecs },
                 ].map((spec, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '45%' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem 1.5rem 1rem 0', borderBottom: '1px solid var(--surface-border)', color: '#666', width: '50%' }}>{spec.label}</td>
                     <td style={{ padding: '1rem 0', borderBottom: '1px solid var(--surface-border)', fontWeight: '600' }}>{spec.value || '-'}</td>
                   </tr>
                 ))}

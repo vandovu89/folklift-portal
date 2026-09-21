@@ -199,11 +199,12 @@ h1, h2, h3, h4, h5, h6 {
 .badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-xl);
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--accent); }
@@ -246,6 +247,43 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Override fixed background on iOS */
   .hero-section { background-attachment: scroll !important; }
+
+  .machine-header {
+    flex-direction: column;
+  }
+  .machine-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .machine-title-text {
+    order: 2;
+  }
+  .machine-badges {
+    order: 1;
+    margin-bottom: 0.5rem;
+  }
+  .machine-qr-container {
+    margin-top: 1.5rem;
+    align-self: flex-start;
+  }
+}
+
+.machine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.machine-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.machine-badge {
+  font-size: 1rem !important;
+  padding: 0.5rem 1rem !important;
+  white-space: nowrap;
+  border-radius: 8px !important;
 }
 
 /* Animations */
