@@ -6,6 +6,7 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const minSwipeDistance = 40;
 
@@ -25,11 +26,19 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      setCurrentIndex(prev => (prev + 1) % media.length);
+      nextImage();
     }
     if (isRightSwipe) {
-      setCurrentIndex(prev => (prev === 0 ? media.length - 1 : prev - 1));
+      prevImage();
     }
+  };
+
+  const nextImage = () => {
+    setCurrentIndex(prev => (prev + 1) % media.length);
+  };
+
+  const prevImage = () => {
+    setCurrentIndex(prev => (prev === 0 ? media.length - 1 : prev - 1));
   };
 
   if (!media || media.length === 0) {
@@ -52,10 +61,10 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
         <img 
           src={media[currentIndex].url} 
           alt="Main" 
-          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px', transition: 'var(--transition)' }} 
+          onClick={() => setIsLightboxOpen(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px', transition: 'var(--transition)', cursor: 'zoom-in' }} 
         />
       </div>
-      
       {media.length > 1 && (
         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
           {media.map((m, index) => (
@@ -77,6 +86,92 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
               }} 
             />
           ))}
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {isLightboxOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)', zIndex: 9999,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center'
+        }}>
+          {/* Close Button */}
+          <button 
+            onClick={() => setIsLightboxOpen(false)}
+            style={{
+              position: 'absolute', top: '20px', right: '20px',
+              background: 'transparent', border: 'none', color: 'white',
+              fontSize: '30px', cursor: 'pointer', zIndex: 10000
+            }}
+          >
+            &times;
+          </button>
+
+          {/* Previous Button */}
+          {media.length > 1 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); prevImage(); }}
+              style={{
+                position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: 'white',
+                fontSize: '30px', padding: '10px 20px', cursor: 'pointer', borderRadius: '5px', zIndex: 10000
+              }}
+            >
+              &#10094;
+            </button>
+          )}
+
+          {/* Main Lightbox Image */}
+          <div 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={(e) => e.stopPropagation()} 
+            style={{ width: '90%', height: '80%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={media[currentIndex].url} 
+              alt="Zoomed" 
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+            />
+          </div>
+
+          {/* Next Button */}
+          {media.length > 1 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); nextImage(); }}
+              style={{
+                position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: 'white',
+                fontSize: '30px', padding: '10px 20px', cursor: 'pointer', borderRadius: '5px', zIndex: 10000
+              }}
+            >
+              &#10095;
+            </button>
+          )}
+          
+          {/* Thumbnail strip in Lightbox */}
+          {media.length > 1 && (
+            <div style={{ position: 'absolute', bottom: '20px', display: 'flex', gap: '10px', maxWidth: '90vw', overflowX: 'auto', padding: '10px' }}>
+              {media.map((m, idx) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  key={`lb-${m.id}`} 
+                  src={m.url} 
+                  alt="Thumb" 
+                  onClick={() => setCurrentIndex(idx)}
+                  style={{ 
+                    width: '60px', height: '60px', objectFit: 'cover', cursor: 'pointer',
+                    border: currentIndex === idx ? '2px solid white' : 'none',
+                    opacity: currentIndex === idx ? 1 : 0.5
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
