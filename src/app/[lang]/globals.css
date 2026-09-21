@@ -247,25 +247,6 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Override fixed background on iOS */
   .hero-section { background-attachment: scroll !important; }
-
-  .machine-header {
-    flex-direction: column;
-  }
-  .machine-title-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .machine-title-text {
-    order: 2;
-  }
-  .machine-badges {
-    order: 1;
-    margin-bottom: 0.5rem;
-  }
-  .machine-qr-container {
-    margin-top: 1.5rem;
-    align-self: flex-start;
-  }
 }
 
 .machine-header {

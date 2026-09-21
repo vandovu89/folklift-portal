@@ -46,25 +46,26 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           </div>
 
           <div style={{ flex: '1 1 400px', padding: '2.5rem', minWidth: 0, maxWidth: '100%' }}>
-            <div className="machine-header">
-              <div>
-                <div className="machine-title-row">
-                  <h1 className="machine-title-text" style={{ fontSize: '2rem', margin: 0, textTransform: 'uppercase' }}>
-                    {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
-                    {forklift.loadCapacity ? `${formatCapacity(forklift.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
-                    {forklift.maker} {forklift.model}
-                  </h1>
-                  <div className="machine-badges">
-                    {forklift.status === 'Incoming' && <span className="badge machine-badge" style={{ backgroundColor: '#f97316', color: 'white' }}>Sắp về kho</span>}
-                    {forklift.status === 'Reserved' && <span className="badge machine-badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã nhận cọc</span>}
-                    {forklift.status === 'Available' && <span className="badge badge-success machine-badge">Sẵn sàng giao</span>}
-                  </div>
-                </div>
-                <p style={{ color: '#888', marginBottom: '1.5rem' }}>Mã nội bộ: {forklift.internalCode || forklift.id.substring(0, 8)}</p>
+            <div className="machine-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 200px' }}>
+                <h1 className="machine-title-text" style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', textTransform: 'uppercase' }}>
+                  {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
+                  {forklift.loadCapacity ? `${formatCapacity(forklift.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
+                  {forklift.maker} {forklift.model}
+                </h1>
+                <p style={{ color: '#888', marginBottom: '1.5rem', marginTop: 0 }}>Mã nội bộ: {forklift.internalCode || forklift.id.substring(0, 8)}</p>
               </div>
-              <div className="machine-qr-container" style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
-                <QRCodeComponent value={qrUrl} />
-                <div style={{ fontSize: '0.7rem', textAlign: 'center', marginTop: '0.2rem' }}>Quét mã share</div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                <div className="machine-badges">
+                  {forklift.status === 'Incoming' && <span className="badge machine-badge" style={{ backgroundColor: '#f97316', color: 'white' }}>Sắp về kho</span>}
+                  {forklift.status === 'Reserved' && <span className="badge machine-badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã nhận cọc</span>}
+                  {forklift.status === 'Available' && <span className="badge badge-success machine-badge">Sẵn sàng giao</span>}
+                </div>
+                <div className="machine-qr-container" style={{ background: 'white', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+                  <QRCodeComponent value={qrUrl} />
+                  <div style={{ fontSize: '0.7rem', textAlign: 'center', marginTop: '0.2rem' }}>Quét mã share</div>
+                </div>
               </div>
             </div>
 
