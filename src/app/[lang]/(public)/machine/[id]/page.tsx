@@ -17,7 +17,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
     where: { id: resolvedParams.id },
     include: {
       media: {
-        where: { isPublic: true, fileType: 'IMAGE' }
+        where: { isPublic: true, fileType: 'IMAGE' },
+        orderBy: [
+          { isThumbnail: 'desc' },
+          { createdAt: 'asc' }
+        ]
       }
     }
   });

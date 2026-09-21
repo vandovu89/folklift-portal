@@ -29,3 +29,35 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const resolvedParams = await params;
+    const mediaId = resolvedParams.id;
+    const body = await request.json();
+
+    if (body.action === 'set_thumbnail') {
+      const media = await prisma.media.findUnique({ where: { id: mediaId } });
+      if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+      // Unset all others for this forklift
+      await prisma.media.updateMany({
+        where: { forkliftId: media.forkliftId },
+        data: { isThumbnail: false }
+      });
+
+      // Set this one
+      await prisma.media.update({
+        where: { id: mediaId },
+        data: { isThumbnail: true }
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    console.error('Update error:', error);
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+  }
+}

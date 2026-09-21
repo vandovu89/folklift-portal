@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FaTrash, FaEye, FaEyeSlash, FaFileUpload } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEyeSlash, FaFileUpload, FaStar, FaRegStar } from 'react-icons/fa';
 
 export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -80,6 +80,21 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
     }
   };
 
+  const handleSetThumbnail = async (id: string) => {
+    try {
+      const res = await fetch(`/api/media/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_thumbnail' })
+      });
+      if (res.ok) {
+        await fetchMedia();
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ marginTop: '2rem' }}>
       <h3 style={{ marginBottom: '1rem', borderBottom: '2px solid var(--primary)', display: 'inline-block' }}>
@@ -118,6 +133,15 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
               <span className={`badge ${m.isPublic ? 'badge-success' : 'badge-warning'}`} title={m.isPublic ? 'Public (Khách hàng thấy)' : 'Internal (Chỉ Admin thấy)'}>
                 {m.isPublic ? <FaEye /> : <FaEyeSlash />}
               </span>
+              {m.fileType === 'IMAGE' && (
+                <button 
+                  onClick={() => handleSetThumbnail(m.id)} 
+                  style={{ background: m.isThumbnail ? '#f59e0b' : 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}
+                  title={m.isThumbnail ? 'Đang là ảnh đại diện (Thumbnail)' : 'Đặt làm ảnh đại diện'}
+                >
+                  {m.isThumbnail ? <FaStar /> : <FaRegStar />}
+                </button>
+              )}
               <button onClick={() => handleDelete(m.id)} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}>
                 <FaTrash />
               </button>

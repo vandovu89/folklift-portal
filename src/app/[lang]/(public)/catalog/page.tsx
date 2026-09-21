@@ -84,6 +84,10 @@ export default async function PublicCatalog({
     include: {
       media: {
         where: { isPublic: true, fileType: 'IMAGE' },
+        orderBy: [
+          { isThumbnail: 'desc' },
+          { createdAt: 'asc' }
+        ],
         take: 1
       }
     }

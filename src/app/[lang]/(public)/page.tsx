@@ -17,6 +17,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     include: {
       media: {
         where: { isPublic: true, fileType: 'IMAGE' },
+        orderBy: [
+          { isThumbnail: 'desc' },
+          { createdAt: 'asc' }
+        ],
         take: 1
       }
     }

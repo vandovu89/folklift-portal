@@ -119,6 +119,7 @@ model Media {
   fileType    String   // 'IMAGE' hoặc 'DOCUMENT'
   category    String?  // Tổng thể, Kỹ thuật, Tình trạng, Inspection Report...
   isPublic    Boolean  @default(false)
+  isThumbnail Boolean  @default(false)
   publicId    String?  // Dùng cho Cloudinary
   
   forkliftId  String
