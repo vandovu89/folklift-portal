@@ -4,6 +4,8 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../forklifts.module.css';
 import MediaManager from '@/components/MediaManager';
+import AiMarketingModal from '@/components/AiMarketingModal';
+import { FaMagic } from 'react-icons/fa';
 
 export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -12,6 +14,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   const [initialLoading, setInitialLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('SALES');
   const [activities, setActivities] = useState<any[]>([]);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     id: '',
@@ -179,7 +182,12 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     <div className="glass-panel" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
       <div className={styles.pageHeader}>
         <h2>Chỉnh sửa Thông tin Xe Nâng</h2>
-        <button onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
+            <FaMagic /> Trợ lý AI Marketing
+          </button>
+          <button onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -387,6 +395,12 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           ))}
         </div>
       </div>
+
+      <AiMarketingModal 
+        isOpen={isAiModalOpen} 
+        onClose={() => setIsAiModalOpen(false)} 
+        forkliftId={resolvedParams.id} 
+      />
     </div>
   );
 }
