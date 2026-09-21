@@ -2,21 +2,23 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { jwtVerify } from 'jose';
 
-async function getUserRole(request: Request) {
+import { logActivity } from '@/lib/activity-logger';
+
+async function getUser(request: Request) {
   const token = request.headers.get('cookie')?.split('auth_token=')[1]?.split(';')[0];
-  if (!token) return 'GUEST';
+  if (!token) return { role: 'GUEST', id: null };
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
     const { payload } = await jwtVerify(token, secret);
-    return payload.role as string;
+    return { role: payload.role as string, id: payload.id as string };
   } catch (error) {
-    return 'GUEST';
+    return { role: 'GUEST', id: null };
   }
 }
 
 export async function GET(request: Request) {
   try {
-    const role = await getUserRole(request);
+    const { role } = await getUser(request);
     
     const forklifts = await prisma.forklift.findMany({
       orderBy: { createdAt: 'desc' },
@@ -42,7 +44,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const role = await getUserRole(request);
+    const { role, id: userId } = await getUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -84,6 +86,15 @@ export async function POST(request: Request) {
           }))
         } : undefined
       },
+    });
+    
+    // Ghi log
+    await logActivity({
+      action: 'CREATED',
+      entityType: 'FORKLIFT',
+      entityId: forklift.id,
+      userId: userId,
+      details: `Đã tạo xe nâng ${forklift.maker} ${forklift.model} (Mã: ${forklift.internalCode || 'N/A'})`
     });
     
     return NextResponse.json(forklift, { status: 201 });

@@ -63,6 +63,9 @@ model Forklift {
   assignedToId    String?
   assignedTo      User?     @relation("ForkliftAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
 
+  // Khóa dữ liệu Kế toán
+  lockedForAccounting Boolean @default(false)
+
   // Quan hệ
   media           Media[]
   inquiries       Inquiry[]
@@ -192,6 +195,18 @@ model PurchaseSource {
   updatedAt    DateTime @updatedAt
 }
 
+model ActivityLog {
+  id          String   @id @default(uuid())
+  action      String   // e.g. "CREATED", "UPDATED_STATUS", "SOLD"
+  entityType  String   // e.g. "FORKLIFT", "INQUIRY"
+  entityId    String
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  details     String?  // Thông tin chi tiết (JSON string)
+  
+  createdAt   DateTime @default(now())
+}
+
 model User {
   id           String    @id @default(uuid())
   username     String    @unique
@@ -202,6 +217,7 @@ model User {
   
   inquiries    Inquiry[]
   forklifts    Forklift[] @relation("ForkliftAssignedTo")
+  activityLogs ActivityLog[]
   
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

@@ -11,6 +11,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('SALES');
+  const [activities, setActivities] = useState<any[]>([]);
   
   const [formData, setFormData] = useState({
     id: '',
@@ -113,8 +114,21 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       }
     };
     
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch(`/api/forklifts/${resolvedParams.id}/activities`);
+        if (res.ok) {
+          const data = await res.json();
+          setActivities(data);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    
     fetchForklift();
     fetchUserRole();
+    fetchActivities();
   }, [resolvedParams.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -351,6 +365,28 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       </form>
 
       <MediaManager forkliftId={resolvedParams.id} />
+      
+      <div className={styles.formSection} style={{ marginTop: '2rem' }}>
+        <h3>Lịch sử hoạt động (Timeline)</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+          {activities.length === 0 && <div style={{ color: '#999' }}>Chưa có hoạt động nào được ghi nhận.</div>}
+          {activities.map(log => (
+            <div key={log.id} style={{ display: 'flex', gap: '1.5rem', borderLeft: '3px solid var(--primary)', paddingLeft: '1.5rem', position: 'relative' }}>
+              <div style={{ 
+                position: 'absolute', left: '-8px', top: '0', width: '13px', height: '13px', 
+                borderRadius: '50%', background: 'var(--primary)', border: '2px solid #fff' 
+              }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '1.05rem', color: '#111' }}>{log.details}</div>
+                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#666', marginTop: '0.3rem' }}>
+                  <span>Thực hiện bởi: <strong>{log.user?.name || 'Hệ thống'}</strong></span>
+                  <span>{new Date(log.createdAt).toLocaleString('vi-VN')}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

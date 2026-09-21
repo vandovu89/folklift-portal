@@ -2,15 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { jwtVerify } from 'jose';
 
-async function getUserRole(request: Request) {
+import { logActivity } from '@/lib/activity-logger';
+
+async function getUser(request: Request) {
   const token = request.headers.get('cookie')?.split('auth_token=')[1]?.split(';')[0];
-  if (!token) return 'GUEST';
+  if (!token) return { role: 'GUEST', id: null };
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
     const { payload } = await jwtVerify(token, secret);
-    return payload.role as string;
+    return { role: payload.role as string, id: payload.id as string };
   } catch (error) {
-    return 'GUEST';
+    return { role: 'GUEST', id: null };
   }
 }
 
@@ -18,7 +20,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const resolvedParams = await params;
     const body = await request.json();
-    const role = await getUserRole(request);
+    const { role, id: userId } = await getUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     // Nếu không phải ADMIN, cấm sửa giá vốn & chi phí
@@ -60,6 +62,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
+    // Determine the type of update based on fields changed
+    let actionType = 'UPDATED';
+    let detailMsg = 'Cập nhật thông tin xe';
+    if (body.status) {
+      actionType = 'UPDATED_STATUS';
+      detailMsg = `Cập nhật trạng thái thành ${body.status}`;
+    }
+
+    // Ghi log
+    await logActivity({
+      action: actionType,
+      entityType: 'FORKLIFT',
+      entityId: resolvedParams.id,
+      userId: userId,
+      details: detailMsg
+    });
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error(error);
@@ -69,13 +88,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const role = await getUserRole(request);
+    const { role, id: userId } = await getUser(request);
     if (role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     const resolvedParams = await params;
     await prisma.forklift.delete({
       where: { id: resolvedParams.id }
     });
+
+    // Ghi log
+    await logActivity({
+      action: 'DELETED',
+      entityType: 'FORKLIFT',
+      entityId: resolvedParams.id,
+      userId: userId,
+      details: `Đã xóa xe nâng`
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
