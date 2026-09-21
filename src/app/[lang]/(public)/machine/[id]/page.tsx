@@ -8,6 +8,7 @@ import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
+import { FaMoneyBillWave } from 'react-icons/fa';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -70,8 +71,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
 
             <div style={{ margin: '2rem 0', padding: '1.5rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
-              <div style={{ fontSize: '0.9rem', color: '#666' }}>{dict.machine.price}:</div>
-              <div style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--danger)' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FaMoneyBillWave style={{ fontSize: '2rem' }} />
                 {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
               </div>
             </div>
