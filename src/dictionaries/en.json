@@ -45,6 +45,7 @@
     "location": "Location",
     "type": "Type",
     "productGroup": "Product Group",
+    "weight": "Weight",
     "otherSpecs": "Other Specs",
     "price": "Asking Price"
   },

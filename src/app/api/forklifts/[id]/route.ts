@@ -23,6 +23,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { role, id: userId } = await getUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
+    const forklift = await prisma.forklift.findUnique({ where: { id: resolvedParams.id } });
+    if (!forklift) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    
+    // Kiểm tra khóa sổ
+    if (forklift.lockedForAccounting && role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forklift is locked for accounting and cannot be modified' }, { status: 403 });
+    }
+
     // Nếu không phải ADMIN, cấm sửa giá vốn & chi phí
     if (role !== 'ADMIN') {
       delete body.costPrice;
@@ -92,6 +100,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     if (role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     const resolvedParams = await params;
+    const forklift = await prisma.forklift.findUnique({ where: { id: resolvedParams.id } });
+    if (!forklift) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    
+    // Mặc dù ADMIN được phép xoá, nhưng ta có thể cảnh báo hoặc ngăn chặn xoá xe đã khóa kế toán.
+    // Tạm thời cho ADMIN xoá nhưng ghi log chi tiết.
+
     await prisma.forklift.delete({
       where: { id: resolvedParams.id }
     });

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle, FaUserShield } from 'react-icons/fa';
+import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle, FaUserShield, FaFileExcel } from 'react-icons/fa';
 import styles from './admin.module.css';
 
 export default function AdminLayout({
@@ -79,6 +79,12 @@ export default function AdminLayout({
             className={`${styles.navItem} ${isActive('/admin/facebook-pages') ? styles.active : ''}`}
           >
             <FaFacebook /> Fanpage & Bot
+          </Link>
+          <Link 
+            href="/admin/accounting" 
+            className={`${styles.navItem} ${isActive('/admin/accounting') ? styles.active : ''}`}
+          >
+            <FaFileExcel /> Kế toán
           </Link>
           {user?.role === 'ADMIN' && (
             <>
