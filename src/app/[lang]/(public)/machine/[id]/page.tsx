@@ -117,7 +117,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.attachment, value: forklift.attachment },
                   { label: dict.machine.liftHeight, value: forklift.liftHeight },
                   { label: dict.machine.loadCapacity, value: forklift.loadCapacity },
-                  { label: dict.machine.forkLength, value: forklift.forkLength },
+                  { label: dict.machine.weight, value: forklift.weight },
                   { label: dict.machine.condition, value: forklift.condition },
                   { label: dict.machine.location, value: forklift.location },
                   { label: dict.machine.otherSpecs, value: forklift.otherSpecs },

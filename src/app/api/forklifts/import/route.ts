@@ -49,10 +49,11 @@ export async function POST(request: Request) {
       // Col L (11) = PHỤ KIỆN
       // Col M (12) = CHIỀU CAO NÂNG TỐI ĐA
       // Col N (13) = TẢI TRỌNG NÂNG TỐI ĐA
-      // Col O (14) = ĐỊA ĐIỂM
-      // Col P (15) = GIÁ BÁN
-      // Col Q (16) = GIÁ NHẬP
-      // Col R (17) = CHI PHÍ PHÁT SINH
+      // Col O (14) = TRỌNG LƯỢNG XE
+      // Col P (15) = ĐỊA ĐIỂM
+      // Col Q (16) = GIÁ BÁN
+      // Col R (17) = GIÁ NHẬP
+      // Col S (18) = CHI PHÍ PHÁT SINH
 
       const purchaseSourceAbbr = row[0] ? String(row[0]).trim() : '';
       const statusRaw = row[1] ? String(row[1]).trim() : '';
@@ -90,8 +91,8 @@ export async function POST(request: Request) {
         data: { currentSeq: nextSeq }
       });
 
-      const costPrice = row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null;
-      const expensesRaw = row[17] ? String(row[17]) : '';
+      const costPrice = row[17] ? parseFloat(String(row[17]).replace(/[^0-9.-]/g, '')) : null;
+      const expensesRaw = row[18] ? String(row[18]) : '';
       
       const parsedExpenses: { title: string; amount: number }[] = [];
       if (expensesRaw) {
@@ -125,8 +126,9 @@ export async function POST(request: Request) {
           attachment:   row[11] ? String(row[11])                                   : null,
           liftHeight:   row[12] ? String(row[12])                                   : null,
           loadCapacity: row[13] ? String(row[13])                                   : null,
-          location:     row[14] ? String(row[14])                                   : null,
-          price:        row[15] ? parseFloat(String(row[15]).replace(/[^0-9.-]/g, '')) : null,
+          weight:       row[14] ? String(row[14])                                   : null,
+          location:     row[15] ? String(row[15])                                   : null,
+          price:        row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null,
           status:       finalStatus,
           costPrice:    costPrice,
           expenses: parsedExpenses.length > 0 ? {

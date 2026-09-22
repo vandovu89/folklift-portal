@@ -30,9 +30,9 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     status: 'Available',
     price: '',
     forkLength: '',
-    attachment: '',
     liftHeight: '',
     loadCapacity: '',
+    weight: '',
     condition: '',
     location: '',
     sourceUrl: '',
@@ -86,6 +86,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             attachment: found.attachment || '',
             liftHeight: found.liftHeight || '',
             loadCapacity: found.loadCapacity || '',
+            weight: found.weight || '',
             condition: found.condition || '',
             location: found.location || '',
             sourceUrl: found.sourceUrl || '',
@@ -267,6 +268,10 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div className="form-group">
               <label className="form-label">Tải Trọng Nâng Tối Đa</label>
               <input name="loadCapacity" value={formData.loadCapacity} onChange={handleChange} className="form-control" placeholder="2,000kg..." />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Trọng lượng xe</label>
+              <input name="weight" value={formData.weight} onChange={handleChange} className="form-control" placeholder="1,500kg..." />
             </div>
           </div>
         </div>

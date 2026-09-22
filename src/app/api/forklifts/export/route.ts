@@ -32,8 +32,9 @@ export async function GET(request: Request) {
         "PHỤ KIỆN",                    // L
         "CHIỀU CAO NÂNG TỐI ĐA",      // M
         "TẢI TRỌNG NÂNG TỐI ĐA",      // N
-        "ĐỊA ĐIỂM",                    // O
-        "GIÁ BÁN"                      // P
+        "TRỌNG LƯỢNG XE",             // O
+        "ĐỊA ĐIỂM",                   // P
+        "GIÁ BÁN"                     // Q
       ]
     ];
     
@@ -53,8 +54,9 @@ export async function GET(request: Request) {
         fl.attachment || "",     // L: PHỤ KIỆN
         fl.liftHeight || "",     // M: CHIỀU CAO NÂNG TỐI ĐA
         fl.loadCapacity || "",   // N: TẢI TRỌNG NÂNG TỐI ĐA
-        fl.location || "",       // O: ĐỊA ĐIỂM
-        fl.price || ""           // P: GIÁ BÁN
+        fl.weight || "",         // O: TRỌNG LƯỢNG XE
+        fl.location || "",       // P: ĐỊA ĐIỂM
+        fl.price || ""           // Q: GIÁ BÁN
       ]);
     });
     

@@ -32,6 +32,7 @@ export default function AddForkliftPage() {
     attachment: '',
     liftHeight: '',
     loadCapacity: '',
+    weight: '',
     condition: '',
     location: '',
     sourceUrl: '',
@@ -161,6 +162,10 @@ export default function AddForkliftPage() {
             <div className="form-group">
               <label className="form-label">Tải Trọng Nâng Tối Đa</label>
               <input name="loadCapacity" value={formData.loadCapacity} onChange={handleChange} className="form-control" placeholder="2,000kg..." />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Trọng lượng xe</label>
+              <input name="weight" value={formData.weight} onChange={handleChange} className="form-control" placeholder="1,500kg..." />
             </div>
           </div>
         </div>
