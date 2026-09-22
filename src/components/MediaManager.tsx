@@ -81,17 +81,25 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   };
 
   const handleSetThumbnail = async (id: string) => {
+    // Optimistic UI Update
+    setMediaList(prev => prev.map(m => ({
+      ...m,
+      isThumbnail: m.id === id
+    })));
+
     try {
       const res = await fetch(`/api/media/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'set_thumbnail' })
       });
-      if (res.ok) {
+      if (!res.ok) {
+        // Revert if failed by re-fetching
         await fetchMedia();
       }
     } catch(err) {
       console.error(err);
+      await fetchMedia(); // Revert on error
     }
   };
 
