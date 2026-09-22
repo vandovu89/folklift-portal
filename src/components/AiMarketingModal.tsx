@@ -25,9 +25,9 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
       fetch('/api/facebook-pages')
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data)) {
-            setPages(data);
-            if (data.length > 0) setSelectedPageId(data[0].pageId);
+          if (data.success && Array.isArray(data.pages)) {
+            setPages(data.pages);
+            if (data.pages.length > 0) setSelectedPageId(data.pages[0].pageId);
           }
         })
         .catch(console.error);
