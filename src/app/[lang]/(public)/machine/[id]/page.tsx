@@ -71,8 +71,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
 
             <div style={{ margin: '2rem 0', padding: '1.5rem', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
-              <div style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <FaMoneyBillWave style={{ fontSize: '2rem', flexShrink: 0 }} />
+              <div style={{ fontSize: 'clamp(1.2rem, 5vw, 2.2rem)', fontWeight: '800', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FaMoneyBillWave style={{ fontSize: 'clamp(1.5rem, 6vw, 2rem)', flexShrink: 0 }} />
                 <span style={{ whiteSpace: 'nowrap' }}>
                   {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
                 </span>
