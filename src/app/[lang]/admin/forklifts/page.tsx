@@ -49,7 +49,17 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
 
   let forklifts = await prisma.forklift.findMany({
     where: whereClause,
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    include: {
+      media: {
+        where: { fileType: 'IMAGE' },
+        orderBy: [
+          { isThumbnail: 'desc' },
+          { createdAt: 'asc' }
+        ],
+        take: 1
+      }
+    }
   });
 
   if (capacity) {

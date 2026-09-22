@@ -99,6 +99,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
               />
             </th>
             <th>Mã nội bộ</th>
+            <th>Ảnh</th>
             <th>Nguồn nhập</th>
             <th>Hãng</th>
             <th>Model</th>
@@ -111,7 +112,7 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
         <tbody>
           {forklifts.length === 0 ? (
             <tr>
-              <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
+              <td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }}>
                 Chưa có dữ liệu xe nâng nào.
               </td>
             </tr>
@@ -127,6 +128,14 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
                   />
                 </td>
                 <td><strong title={`ID: ${fl.id}`}>{fl.internalCode || fl.id.substring(0, 8)}</strong></td>
+                <td>
+                  {fl.media && fl.media.length > 0 ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={fl.media[0].url} alt="Thumbnail" style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                  ) : (
+                    <div style={{ width: '60px', height: '40px', background: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#999' }}>No IMG</div>
+                  )}
+                </td>
                 <td>{fl.purchaseSource || '-'}</td>
                 <td>{fl.maker}</td>
                 <td>{fl.model}</td>

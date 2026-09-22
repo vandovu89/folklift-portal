@@ -161,6 +161,10 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       include: {
         media: {
           where: { fileType: 'IMAGE' },
+          orderBy: [
+            { isThumbnail: 'desc' },
+            { createdAt: 'asc' }
+          ],
           take: 1
         }
       }
@@ -262,6 +266,10 @@ export async function getForkliftDetailInDb(identifier: string) {
       include: {
         media: {
           where: { fileType: 'IMAGE' },
+          orderBy: [
+            { isThumbnail: 'desc' },
+            { createdAt: 'asc' }
+          ],
           take: 3
         }
       }
