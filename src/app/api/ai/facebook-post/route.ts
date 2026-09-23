@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.wahome.jp';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
     const detailUrl = `${baseUrl}/vi/machine/${forklift.id}`;
 
     const prompt = `
