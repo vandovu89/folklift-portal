@@ -52,6 +52,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           {/* Cột Trái (60%) */}
           <div style={{ flex: '1 1 60%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: '300px' }}>
             <PublicImageSlider media={forklift.media} />
+            
+            {/* Inquiry Form */}
+            <div style={{ marginTop: '1rem' }}>
+              <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} />
+            </div>
           </div>
 
           {/* Cột Phải (40%) */}
@@ -191,11 +196,6 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Inquiry Form */}
-        <div style={{ marginTop: '2rem' }}>
-          <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} />
         </div>
       </main>
     </div>
