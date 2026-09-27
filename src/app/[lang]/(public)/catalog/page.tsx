@@ -144,45 +144,73 @@ export default async function PublicCatalog({
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {forklifts.map((fl) => (
-              <div key={fl.id} className="glass-panel" style={{ overflow: 'hidden', transition: 'var(--transition)' }}>
-                <div style={{ height: '220px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', borderBottom: '1px solid var(--surface-border)' }}>
-                  {fl.media && fl.media.length > 0 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={fl.media[0].url} alt={fl.model} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  ) : (
-                    `[ Hình ảnh ${fl.maker} ]`
-                  )}
-                </div>
-                <div style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.3rem', textTransform: 'uppercase' }}>
-                      {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
-                      {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} ` : ''}
-                      {fl.maker} {fl.model}
-                    </h3>
-                    {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}
-                    {fl.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', whiteSpace: 'nowrap' }}>Đã cọc</span>}
-                    {fl.status === 'Available' && <span className="badge badge-success" style={{ whiteSpace: 'nowrap' }}>Sẵn sàng</span>}
+              <div key={fl.id} className="glass-panel" style={{ overflow: 'hidden', transition: 'var(--transition)', padding: '1rem', backgroundColor: 'white' }}>
+                
+                {/* Top Section: Image & Title */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                  {/* Image */}
+                  <div style={{ flex: '0 0 38%', height: '120px', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
+                    {fl.status === 'Incoming' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#f97316', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Sắp về</span>}
+                    {fl.status === 'Reserved' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#eab308', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đã cọc</span>}
+                    
+                    {fl.media && fl.media.length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={fl.media[0].url} alt={fl.model} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '0.8rem', textAlign: 'center' }}>No image</div>
+                    )}
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '1rem', color: 'var(--foreground)', opacity: 0.8, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <FaCalendarAlt /> {fl.year || 'N/A'}
+                  {/* Title */}
+                  <div style={{ flex: '1' }}>
+                    <div style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '700', marginBottom: '0.25rem', textTransform: 'uppercase' }}>
+                      {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      {fl.powerType === 'BATTERY' ? <FaBatteryFull /> : <FaGasPump />} {fl.powerType}
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.3', color: '#0f172a', marginBottom: '0.5rem' }}>
+                      {fl.maker} {fl.model}
+                    </h3>
+                    <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.4' }}>
+                      {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} / ` : ''}
+                      {fl.powerType}
                     </div>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontWeight: '800', color: 'var(--danger)', fontSize: '1.15rem' }}>
-                      {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
-                    </div>
-                    <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                      {dict.common.view_detail}
-                    </Link>
                   </div>
                 </div>
+
+                {/* Middle Section: Specs Grid */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', fontSize: '0.85rem', color: '#334155', marginBottom: '1rem', lineHeight: '1.8' }}>
+                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Mã số' : 'Ref No'}</span><span style={{ width: '50%' }}>{fl.internalCode || '-'}</span></div>
+                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Năm SX' : 'Year'}</span><span style={{ width: '50%' }}>{fl.year || '-'}</span></div>
+                  
+                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Tải trọng' : 'Capacity'}</span><span style={{ width: '50%' }}>{fl.loadCapacity || '-'}</span></div>
+                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Nhiên liệu' : 'Fuel'}</span><span style={{ width: '50%' }}>{fl.powerType || '-'}</span></div>
+                  
+                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Nâng cao' : 'Height'}</span><span style={{ width: '50%' }}>{fl.liftHeight || '-'}</span></div>
+                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Giờ HĐ' : 'Hours'}</span><span style={{ width: '50%' }}>{fl.hour || '-'}</span></div>
+                  
+                  <div style={{ width: '100%', display: 'flex', marginTop: '0.2rem' }}><span style={{ width: '25%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Phụ kiện' : 'Attach'}</span><span style={{ width: '75%' }}>{fl.attachment || '-'}</span></div>
+                </div>
+
+                {/* Price Box */}
+                <div style={{ display: 'flex', border: '1px solid #1e293b', borderRadius: '6px', overflow: 'hidden', marginBottom: '1rem' }}>
+                  <div style={{ backgroundColor: '#1e293b', color: 'white', padding: '0.4rem', width: '35%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{resolvedParams.lang === 'vi' ? '(Chưa VAT)' : '(Excl. Tax)'}</div>
+                  </div>
+                  <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff4757', fontWeight: 'bold', fontSize: '1.4rem', padding: '0.5rem' }}>
+                    {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ flex: 1, backgroundColor: '#f97316', color: 'white', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', border: '1px solid #f97316' }}>
+                    ✉️ {resolvedParams.lang === 'vi' ? 'Liên hệ' : 'Inquiry'}
+                  </Link>
+                  <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                    📞 {resolvedParams.lang === 'vi' ? 'Gọi điện' : 'Call'}
+                  </a>
+                </div>
+
               </div>
             ))}
           </div>

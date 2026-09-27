@@ -94,11 +94,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: '1 1 calc(50% - 0.5rem)', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
+              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: '1 1 100%', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
                 <span style={{ fontSize: '1.2rem' }}>💬</span> Nhắn tin Zalo
-              </a>
-              <a href="#inquiry-form" className="btn-primary hover-lift-sm" style={{ flex: '1 1 calc(50% - 0.5rem)', textAlign: 'center', backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
-                <span style={{ fontSize: '1.2rem' }}>✉️</span> Yêu cầu báo giá
               </a>
             </div>
 
