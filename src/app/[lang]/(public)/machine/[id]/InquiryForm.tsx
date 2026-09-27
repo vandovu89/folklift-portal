@@ -5,11 +5,15 @@ import { useState } from 'react';
 export default function InquiryForm({ 
   forkliftId, 
   lang,
-  dictionary 
+  dictionary,
+  internalCode,
+  isModal = false
 }: { 
   forkliftId: string, 
   lang: string,
-  dictionary: any
+  dictionary: any,
+  internalCode?: string,
+  isModal?: boolean
 }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -52,8 +56,8 @@ export default function InquiryForm({
   };
 
   return (
-    <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--surface-border)' }} id="inquiry-form">
-      <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 600 }}>{dictionary.inquiry?.title || 'Yêu cầu báo giá'}</h3>
+    <div style={isModal ? { padding: '0.5rem 0' } : { marginTop: '2rem', padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--surface-border)' }} id={isModal ? undefined : "inquiry-form"}>
+      {!isModal && <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 600 }}>{dictionary.inquiry?.title || 'Yêu cầu báo giá'}</h3>}
       
       {success ? (
         <div style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1rem' }}>
@@ -63,6 +67,15 @@ export default function InquiryForm({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {error && <div style={{ color: 'red', fontSize: '0.9rem' }}>{error}</div>}
           
+          {internalCode && (
+            <div>
+              <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem', color: '#555' }}>
+                {lang === 'vi' ? 'Mã xe quan tâm' : 'Machine Code'}
+              </label>
+              <input readOnly value={internalCode} type="text" className="form-control" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f1f5f9', color: '#334155', fontWeight: 'bold' }} />
+            </div>
+          )}
+
           <div>
             <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem', color: '#555' }}>
               {dictionary.inquiry?.name || 'Họ và tên'} *

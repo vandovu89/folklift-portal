@@ -6,6 +6,7 @@ import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 
 import PublicCatalogFilter from './PublicCatalogFilter';
+import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -203,9 +204,13 @@ export default async function PublicCatalog({
 
                 {/* Buttons */}
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ flex: 1, backgroundColor: '#f97316', color: 'white', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', border: '1px solid #f97316' }}>
-                    ✉️ {resolvedParams.lang === 'vi' ? 'Liên hệ' : 'Inquiry'}
-                  </Link>
+                  <CatalogInquiryButton 
+                    lang={resolvedParams.lang as string}
+                    dict={dict}
+                    forkliftId={fl.id}
+                    forkliftName={`${fl.maker} ${fl.model}`}
+                    internalCode={fl.internalCode || ''}
+                  />
                   <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
                     📞 {resolvedParams.lang === 'vi' ? 'Gọi điện' : 'Call'}
                   </a>
