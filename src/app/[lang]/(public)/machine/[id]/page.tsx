@@ -83,10 +83,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
             <div style={{ margin: '1.5rem 0', padding: '1.5rem', background: 'rgba(225, 29, 72, 0.05)', borderRadius: '12px', border: '1px solid rgba(225, 29, 72, 0.1)' }}>
               <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>{resolvedParams.lang === 'vi' ? 'Giá tham khảo' : 'Reference Price'}</div>
-              <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>
-                  {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
-                </span>
+              <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--danger)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
               </div>
             </div>
 
