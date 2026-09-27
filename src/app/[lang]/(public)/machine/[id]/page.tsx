@@ -6,6 +6,7 @@ import { getDictionary } from '@/dictionaries';
 import LangSwitcher from '@/components/LangSwitcher';
 import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
+import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
 import { FaMoneyBillWave } from 'react-icons/fa';
@@ -55,7 +56,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             
             {/* Inquiry Form */}
             <div style={{ marginTop: '1rem' }}>
-              <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} />
+              <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} internalCode={forklift.internalCode || ''} />
             </div>
           </div>
 
@@ -193,6 +194,42 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-bottom-nav">
+        <CatalogInquiryButton 
+          lang={resolvedParams.lang as string}
+          dict={dict}
+          forkliftId={forklift.id}
+          forkliftName={`${forklift.maker} ${forklift.model}`}
+          internalCode={forklift.internalCode || ''}
+        />
+        <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+          📞 {resolvedParams.lang === 'vi' ? 'Gọi ngay' : 'Call Now'}
+        </a>
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        .mobile-bottom-nav {
+           display: none;
+           position: fixed;
+           bottom: 0;
+           left: 0;
+           right: 0;
+           padding: 0.75rem 1rem;
+           background: white;
+           box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+           z-index: 50;
+           gap: 0.5rem;
+        }
+        @media (max-width: 768px) {
+           .mobile-bottom-nav {
+              display: flex;
+           }
+           main {
+              padding-bottom: 80px !important;
+           }
+        }
+      `}} />
     </div>
   );
 }
