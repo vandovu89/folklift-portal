@@ -29,11 +29,11 @@ export default function CatalogInquiryButton({
       {isOpen && (
         <div 
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(2px)' }} 
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(false); }}
+          onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
         >
           <div 
             style={{ backgroundColor: 'white', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }} 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => { e.stopPropagation(); }}
           >
             <button 
               onClick={(e) => { e.preventDefault(); setIsOpen(false); }} 
