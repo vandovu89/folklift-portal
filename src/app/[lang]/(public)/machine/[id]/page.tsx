@@ -82,7 +82,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
 
             <div style={{ margin: '1.5rem 0', padding: '1.5rem', background: 'rgba(225, 29, 72, 0.05)', borderRadius: '12px', border: '1px solid rgba(225, 29, 72, 0.1)' }}>
-              <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>{resolvedParams.lang === 'vi' ? 'Giá tham khảo' : 'Reference Price'}</div>
+              <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
               <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--danger)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                 {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
               </div>
@@ -90,11 +90,11 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
             <div className="hotline-box hover-scale">
               <div style={{ color: '#64748b', fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{resolvedParams.lang === 'vi' ? 'Tư vấn miễn phí 24/7' : 'Free Consultation 24/7'}</div>
-              <a href="tel:0901234567">090 123 4567</a>
+              <a href="tel:84362396092">+84 362 396 092</a>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-              <a href="https://zalo.me/0901234567" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: '1 1 calc(50% - 0.5rem)', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
+              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: '1 1 calc(50% - 0.5rem)', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
                 <span style={{ fontSize: '1.2rem' }}>💬</span> Nhắn tin Zalo
               </a>
               <a href="#inquiry-form" className="btn-primary hover-lift-sm" style={{ flex: '1 1 calc(50% - 0.5rem)', textAlign: 'center', backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
