@@ -154,7 +154,7 @@ export default function PurchaseSourcesPage() {
                 </td>
                 <td style={{ textAlign: 'center' }}>{source.currentSeq}</td>
                 <td style={{ textAlign: 'center', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                  <button onClick={() => handleEdit(source)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}>Sửa</button>
+                  <button onClick={() => handleEdit(source)} className="btn-action">✏️ Sửa</button>
                   <button onClick={() => handleDelete(source.id)} className="btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}>Xóa</button>
                 </td>
               </tr>

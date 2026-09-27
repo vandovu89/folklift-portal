@@ -145,8 +145,8 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
                   {getStatusBadge(fl.status)}
                 </td>
                 <td>
-                  <Link href={`/admin/forklifts/${fl.id}/edit`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                    Sửa
+                  <Link href={`/admin/forklifts/${fl.id}/edit`} className="btn-action">
+                    ✏️ Sửa
                   </Link>
                 </td>
               </tr>

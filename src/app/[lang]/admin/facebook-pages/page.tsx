@@ -525,8 +525,8 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
                       <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
                         <button
                           onClick={() => handleTestToken(p.id)}
-                          className="btn btn-outline"
-                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', color: '#2563EB' }}
+                          className="btn-action"
+                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', color: '#2563EB', background: 'transparent' }}
                           title="Kiểm tra kết nối Token"
                           disabled={testingId === p.id}
                         >
@@ -535,17 +535,17 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
 
                         <button
                           onClick={() => openEditModal(p)}
-                          className="btn btn-outline"
+                          className="btn-action"
                           style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
                           title="Chỉnh sửa"
                         >
-                          <FaEdit /> Sửa
+                          ✏️ Sửa
                         </button>
 
                         <button
                           onClick={() => handleDelete(p.id, p.pageName)}
-                          className="btn btn-outline"
-                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', color: '#EF4444' }}
+                          className="btn-danger"
+                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
                           title="Xóa Fanpage"
                         >
                           <FaTrash />

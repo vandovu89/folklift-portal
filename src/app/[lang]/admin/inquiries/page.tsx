@@ -123,8 +123,8 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
                     </span>
                   </td>
                   <td>
-                    <Link href={`/${resolvedParams.lang}/admin/inquiries/${iq.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', textDecoration: 'none' }}>
-                      Chi tiết
+                    <Link href={`/${resolvedParams.lang}/admin/inquiries/${iq.id}`} className="btn-action">
+                      👁️ Chi tiết
                     </Link>
                   </td>
                 </tr>
