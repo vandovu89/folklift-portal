@@ -145,8 +145,8 @@ export default async function PublicCatalog({
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {forklifts.map((fl) => (
-              <div key={fl.id} className="glass-panel" style={{ overflow: 'hidden', transition: 'var(--transition)', padding: '1rem', backgroundColor: 'white' }}>
-                
+              <div key={fl.id} className="glass-panel hover-scale" style={{ overflow: 'hidden', transition: 'var(--transition)', padding: '1rem', backgroundColor: 'white' }}>
+                <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                 {/* Top Section: Image & Title */}
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                   {/* Image */}
@@ -201,6 +201,7 @@ export default async function PublicCatalog({
                     {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
                   </div>
                 </div>
+                </Link>
 
                 {/* Buttons */}
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
