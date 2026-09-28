@@ -150,7 +150,7 @@ export default async function PublicCatalog({
                 {/* Top Section: Image & Title */}
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                   {/* Image */}
-                  <div style={{ flex: '0 0 38%', height: '120px', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ flex: '0 0 50%', height: '120px', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
                     {fl.status === 'Incoming' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#f97316', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Sắp về</span>}
                     {fl.status === 'Reserved' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#eab308', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đã cọc</span>}
                     
@@ -195,7 +195,7 @@ export default async function PublicCatalog({
                 <div style={{ display: 'flex', border: '1px solid #1e293b', borderRadius: '6px', overflow: 'hidden', marginBottom: '1rem' }}>
                   <div style={{ backgroundColor: '#1e293b', color: 'white', padding: '0.4rem', width: '35%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{resolvedParams.lang === 'vi' ? '(Chưa VAT)' : '(Excl. Tax)'}</div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{resolvedParams.lang === 'vi' ? '(Đã gồm VAT)' : '(Incl. Tax)'}</div>
                   </div>
                   <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff4757', fontWeight: 'bold', fontSize: '1.4rem', padding: '0.5rem' }}>
                     {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
