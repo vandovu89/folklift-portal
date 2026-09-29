@@ -53,11 +53,6 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           {/* Cột Trái (60%) */}
           <div style={{ flex: '1 1 60%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: '300px' }}>
             <PublicImageSlider media={forklift.media} />
-            
-            {/* Inquiry Form */}
-            <div style={{ marginTop: '1rem' }}>
-              <InquiryForm forkliftId={forklift.id} lang={resolvedParams.lang} dictionary={dict} internalCode={forklift.internalCode || ''} />
-            </div>
           </div>
 
           {/* Cột Phải (40%) */}
@@ -82,9 +77,12 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            <div style={{ margin: '1.5rem 0', padding: '1.5rem', background: 'rgba(225, 29, 72, 0.05)', borderRadius: '12px', border: '1px solid rgba(225, 29, 72, 0.1)' }}>
-              <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
-              <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--danger)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+            <div style={{ display: 'flex', border: '1px solid #1e293b', borderRadius: '8px', overflow: 'hidden', margin: '1.5rem 0' }}>
+              <div style={{ backgroundColor: '#1e293b', color: 'white', padding: '1rem', width: '35%', minWidth: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '0.2rem' }}>{resolvedParams.lang === 'vi' ? '(Đã gồm VAT)' : '(Incl. Tax)'}</div>
+              </div>
+              <div style={{ flex: '1', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff4757', fontWeight: 'bold', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', padding: '1rem' }}>
                 {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
               </div>
             </div>
@@ -95,7 +93,14 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: '1 1 100%', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px' }}>
+              <CatalogInquiryButton 
+                lang={resolvedParams.lang as string}
+                dict={dict}
+                forkliftId={forklift.id}
+                forkliftName={`${forklift.maker} ${forklift.model}`}
+                internalCode={forklift.internalCode || ''}
+              />
+              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
                 <span style={{ fontSize: '1.2rem' }}>💬</span> Nhắn tin Zalo
               </a>
             </div>
