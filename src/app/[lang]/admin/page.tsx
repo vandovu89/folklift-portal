@@ -31,42 +31,42 @@ export default async function AdminDashboard() {
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(37, 99, 235, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--primary)' }}>
+          <div style={{ backgroundColor: 'rgba(37, 99, 235, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--primary)', flexShrink: 0 }}>
             <FaTractor size={30} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: '#666' }}>Tổng số xe nâng</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{total}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tổng số xe nâng</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{total}</div>
           </div>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--success)' }}>
+          <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--success)', flexShrink: 0 }}>
             <FaEye size={30} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: '#666' }}>Đang bán trên Web</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{published}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Đang bán trên Web</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{published}</div>
           </div>
         </div>
         
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', padding: '1rem', borderRadius: '50%', color: '#eab308' }}>
+          <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', padding: '1rem', borderRadius: '50%', color: '#eab308', flexShrink: 0 }}>
             <FaUsers size={30} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: '#666' }}>Yêu cầu (Inquiry) mới</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{totalInquiries}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Yêu cầu (Inquiry)</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{totalInquiries}</div>
           </div>
         </div>
         
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '50%', color: '#ef4444' }}>
+          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '50%', color: '#ef4444', flexShrink: 0 }}>
             <FaMoneyBillWave size={30} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: '#666' }}>Giá trị Tồn kho</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{totalValue.toLocaleString()} ¥</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Giá trị Tồn kho</div>
+            <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', fontWeight: 800, overflowWrap: 'break-word', lineHeight: '1.2' }}>{totalValue.toLocaleString()} ¥</div>
           </div>
         </div>
       </div>
