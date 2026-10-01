@@ -35,7 +35,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
               </div>
               <div>
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '0.3rem', color: 'var(--foreground)' }}>Tài khoản ngân hàng</h3>
-                <p style={{ color: '#666', lineHeight: 1.5 }}>{dict.footer.bank}</p>
+                <p style={{ color: '#666', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{dict.footer.bank}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
@@ -44,7 +44,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
               </div>
               <div>
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '0.3rem', color: 'var(--foreground)' }}>Email</h3>
-                <p style={{ color: '#666', lineHeight: 1.5 }}>{dict.footer.email}</p>
+                <p style={{ color: '#666', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{dict.footer.email}</p>
               </div>
             </div>
           </div>

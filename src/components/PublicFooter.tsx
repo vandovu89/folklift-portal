@@ -27,13 +27,13 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaUniversity color="#38bdf8" />
             </div>
-            <span style={{ flex: 1, lineHeight: 1.5 }}>{dict.footer.bank}</span>
+            <span style={{ flex: 1, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{dict.footer.bank}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaEnvelope color="#38bdf8" />
             </div>
-            <span style={{ flex: 1, lineHeight: 1.5 }}>{dict.footer.email}</span>
+            <span style={{ flex: 1, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{dict.footer.email}</span>
           </div>
         </div>
 
