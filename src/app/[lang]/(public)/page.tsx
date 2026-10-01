@@ -13,7 +13,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const featuredForklifts = await prisma.forklift.findMany({
     where: { status: { in: ['Available', 'Incoming', 'Reserved'] } },
     orderBy: { createdAt: 'desc' },
-    take: 4,
+    take: 6,
     include: {
       media: {
         where: { isPublic: true, fileType: 'IMAGE' },
