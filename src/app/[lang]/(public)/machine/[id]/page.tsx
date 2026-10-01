@@ -22,6 +22,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
         where: { isPublic: true, fileType: 'IMAGE' },
         orderBy: [
           { isThumbnail: 'desc' },
+          { order: 'asc' },
           { createdAt: 'asc' }
         ]
       }
@@ -145,13 +146,6 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--surface-border)' }}>
-              <thead>
-                <tr>
-                  <th colSpan={2} style={{ background: '#f8fafc', borderBottom: '2px solid var(--surface-border)', textAlign: 'center', fontSize: '1.1rem', color: '#0f172a', padding: '1rem' }}>
-                    {resolvedParams.lang === 'vi' ? 'Thông số chung' : 'General Specs'}
-                  </th>
-                </tr>
-              </thead>
               <tbody>
                 {[
                   { label: dict.machine.maker, value: forklift.maker },
@@ -172,13 +166,6 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </table>
 
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--surface-border)' }}>
-              <thead>
-                <tr>
-                  <th colSpan={2} style={{ background: '#f8fafc', borderBottom: '2px solid var(--surface-border)', textAlign: 'center', fontSize: '1.1rem', color: '#0f172a', padding: '1rem' }}>
-                    {resolvedParams.lang === 'vi' ? 'Chi tiết kỹ thuật' : 'Technical Details'}
-                  </th>
-                </tr>
-              </thead>
               <tbody>
                 {[
                   { label: dict.machine.attachment, value: forklift.attachment },

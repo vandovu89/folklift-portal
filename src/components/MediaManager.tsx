@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaEye, FaEyeSlash, FaFileUpload, FaStar, FaRegStar } from 'react-icons/fa';
+import heic2any from 'heic2any';
 
 export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -11,6 +12,7 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [category, setCategory] = useState('Tổng thể');
   const [isPublic, setIsPublic] = useState(true);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
   const fetchMedia = useCallback(async () => {
     const res = await fetch(`/api/media?forkliftId=${forkliftId}`);
@@ -34,8 +36,27 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
     let hasError = false;
 
     for (let i = 0; i < files.length; i++) {
-      const currentFile = files[i];
+      let currentFile = files[i];
       setUploadProgress({ current: i + 1, total: files.length });
+
+      // Convert HEIC to JPEG if needed
+      if (currentFile.type === 'image/heic' || currentFile.name.toLowerCase().endsWith('.heic')) {
+        try {
+          const convertedBlob = await heic2any({
+            blob: currentFile,
+            toType: 'image/jpeg',
+            quality: 0.8
+          });
+          const blobArray = Array.isArray(convertedBlob) ? convertedBlob : [convertedBlob];
+          currentFile = new File(blobArray, currentFile.name.replace(/\.heic$/i, '.jpg'), {
+            type: 'image/jpeg'
+          });
+        } catch (err) {
+          console.error('HEIC conversion failed', err);
+          hasError = true;
+          continue; // Skip uploading this file if conversion fails
+        }
+      }
 
       const formData = new FormData();
       formData.append('file', currentFile);
@@ -58,7 +79,7 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
     }
 
     if (hasError) {
-      alert('Một hoặc nhiều file tải lên thất bại.');
+      alert('Một hoặc nhiều file tải lên thất bại. Kiểm tra lại định dạng ảnh.');
     }
 
     setFiles([]);
@@ -103,6 +124,50 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedItemId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedItemId || draggedItemId === targetId) return;
+
+    const newMediaList = [...mediaList];
+    const draggedIndex = newMediaList.findIndex(m => m.id === draggedItemId);
+    const targetIndex = newMediaList.findIndex(m => m.id === targetId);
+
+    const [draggedItem] = newMediaList.splice(draggedIndex, 1);
+    newMediaList.splice(targetIndex, 0, draggedItem);
+
+    // Cập nhật order
+    const reordered = newMediaList.map((item, index) => ({
+      ...item,
+      order: index
+    }));
+
+    setMediaList(reordered);
+    setDraggedItemId(null);
+
+    // Call API
+    try {
+      await fetch('/api/media/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: reordered.map(item => ({ id: item.id, order: item.order }))
+        })
+      });
+    } catch (err) {
+      console.error('Failed to save order', err);
+    }
+  };
+
   return (
     <div style={{ marginTop: '2rem' }}>
       <h3 style={{ marginBottom: '1rem', borderBottom: '2px solid var(--primary)', display: 'inline-block' }}>
@@ -136,7 +201,24 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
         {mediaList.map((m) => (
-          <div key={m.id} className="glass-panel" style={{ overflow: 'hidden', position: 'relative' }}>
+          <div 
+            key={m.id} 
+            className="glass-panel" 
+            style={{ 
+              overflow: 'hidden', 
+              position: 'relative',
+              cursor: 'grab',
+              opacity: draggedItemId === m.id ? 0.5 : 1,
+              border: draggedItemId === m.id ? '2px dashed var(--primary)' : '1px solid var(--glass-border)'
+            }}
+            draggable
+            onDragStart={(e) => handleDragStart(e, m.id)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, m.id)}
+          >
+            <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+              ≡ Kéo thả
+            </div>
             <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10, display: 'flex', gap: '0.3rem' }}>
               <span className={`badge ${m.isPublic ? 'badge-success' : 'badge-warning'}`} title={m.isPublic ? 'Public (Khách hàng thấy)' : 'Internal (Chỉ Admin thấy)'}>
                 {m.isPublic ? <FaEye /> : <FaEyeSlash />}

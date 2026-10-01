@@ -123,6 +123,7 @@ model Media {
   category    String?  // Tổng thể, Kỹ thuật, Tình trạng, Inspection Report...
   isPublic    Boolean  @default(false)
   isThumbnail Boolean  @default(false)
+  order       Int      @default(0)
   publicId    String?  // Dùng cho Cloudinary
   
   forkliftId  String

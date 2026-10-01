@@ -12,7 +12,10 @@ export async function GET(request: Request) {
   try {
     const mediaList = await prisma.media.findMany({
       where: { forkliftId },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
     return NextResponse.json(mediaList);
   } catch (error) {
