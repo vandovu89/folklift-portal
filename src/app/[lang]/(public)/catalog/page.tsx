@@ -7,6 +7,7 @@ import LangSwitcher from '@/components/LangSwitcher';
 
 import PublicCatalogFilter from './PublicCatalogFilter';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
+import Pagination from '@/components/Pagination';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,7 @@ export default async function PublicCatalog({
   searchParams
 }: { 
   params: Promise<{ lang: string }>,
-  searchParams: Promise<{ q?: string, maker?: string, powerType?: string, category?: string, capacity?: string, height?: string, price?: string }>
+  searchParams: Promise<{ q?: string, maker?: string, powerType?: string, category?: string, capacity?: string, height?: string, price?: string, page?: string }>
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
@@ -128,6 +129,12 @@ export default async function PublicCatalog({
     });
   }
 
+  const ITEMS_PER_PAGE = 24;
+  const page = parseInt(resolvedSearchParams.page || '1', 10);
+  const totalItems = forklifts.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const paginatedForklifts = forklifts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
   return (
     <div>
       <main style={{ padding: '3rem 5%', maxWidth: '1600px', margin: '0 auto', minHeight: '80vh' }}>
@@ -144,7 +151,7 @@ export default async function PublicCatalog({
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-            {forklifts.map((fl) => (
+            {paginatedForklifts.map((fl) => (
               <div key={fl.id} className="glass-panel hover-scale" style={{ overflow: 'hidden', transition: 'var(--transition)', padding: '1rem', backgroundColor: 'white' }}>
                 <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                 {/* Top Section: Image & Title */}
@@ -226,6 +233,10 @@ export default async function PublicCatalog({
               </div>
             ))}
           </div>
+        )}
+        
+        {totalPages > 1 && (
+          <Pagination currentPage={page} totalPages={totalPages} />
         )}
       </main>
     </div>
