@@ -44,7 +44,7 @@ export default function HeroSlider({ dict, lang }: HeroSliderProps) {
           style={{
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
-            background: \`linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.7) 100%), url(\${images[currentIndex]})\`,
+            background: `linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.7) 100%), url(${images[currentIndex]})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             zIndex: 0
@@ -92,10 +92,10 @@ export default function HeroSlider({ dict, lang }: HeroSliderProps) {
           transition={{ delay: 0.8, duration: 0.8 }}
           style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}
         >
-          <Link href={\`/\${lang}/catalog\`} className="btn-primary hover-scale" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', fontWeight: 700, backgroundColor: '#38bdf8', color: '#0f172a', border: 'none' }}>
+          <Link href={`/${lang}/catalog`} className="btn-primary hover-scale" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', fontWeight: 700, backgroundColor: '#38bdf8', color: '#0f172a', border: 'none' }}>
             {dict.nav.catalog}
           </Link>
-          <Link href={\`/\${lang}/contact\`} className="btn-secondary hover-scale" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', border: '2px solid rgba(255,255,255,0.5)', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', fontWeight: 700 }}>
+          <Link href={`/${lang}/contact`} className="btn-secondary hover-scale" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', border: '2px solid rgba(255,255,255,0.5)', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', fontWeight: 700 }}>
             {dict.common.contact}
           </Link>
         </motion.div>
@@ -116,7 +116,7 @@ export default function HeroSlider({ dict, lang }: HeroSliderProps) {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            aria-label={\`Go to slide \${idx + 1}\`}
+            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>
