@@ -151,7 +151,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           </h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--surface-border)' }}>
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
               <tbody>
                 {[
                   { label: dict.machine.maker, value: forklift.maker },
@@ -164,14 +164,14 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.forkLength, value: forklift.forkLength },
                 ].map((spec, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-border)', color: '#64748b', width: '40%', background: '#fdfdfd' }}>{spec.label}</td>
-                    <td style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-border)', fontWeight: '600', color: '#1e293b' }}>{spec.value || '-'}</td>
+                    <td style={{ padding: '1rem', border: '1px solid #e2e8f0', width: '35%', backgroundColor: '#f3f4f6', color: '#334155', fontWeight: 'bold' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem', border: '1px solid #e2e8f0', color: '#1e293b' }}>{spec.value || '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--surface-border)' }}>
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
               <tbody>
                 {[
                   { label: dict.machine.attachment, value: forklift.attachment },
@@ -183,8 +183,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   { label: dict.machine.otherSpecs, value: forklift.otherSpecs },
                 ].map((spec, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-border)', color: '#64748b', width: '40%', background: '#fdfdfd' }}>{spec.label}</td>
-                    <td style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-border)', fontWeight: '600', color: '#1e293b' }}>{spec.value || '-'}</td>
+                    <td style={{ padding: '1rem', border: '1px solid #e2e8f0', width: '35%', backgroundColor: '#f3f4f6', color: '#334155', fontWeight: 'bold' }}>{spec.label}</td>
+                    <td style={{ padding: '1rem', border: '1px solid #e2e8f0', color: '#1e293b' }}>{spec.value || '-'}</td>
                   </tr>
                 ))}
               </tbody>
