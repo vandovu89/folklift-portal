@@ -28,20 +28,7 @@
   --transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    
-    --surface: #1e293b;
-    --surface-hover: #334155;
-    --surface-border: #334155;
-    
-    --glass-bg: rgba(30, 41, 59, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.05);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-  }
-}
+/* Dark mode disabled temporarily to prevent unreadable text issues with inline light styles */
 
 * {
   box-sizing: border-box;

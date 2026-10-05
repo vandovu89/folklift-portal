@@ -105,11 +105,23 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--surface-border)', paddingTop: '1.5rem' }}>
-                      <div style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '1.4rem' }}>
-                        {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px dashed var(--surface-border)', paddingTop: '1.5rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '3px solid #cbd5e1', paddingLeft: '0.8rem' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.2rem' }}>
+                          {resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}
+                        </div>
+                        <div style={{ color: '#c2272d', fontWeight: 900, fontSize: '1.4rem', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                          {fl.price ? (
+                            <>
+                              {fl.price.toLocaleString('vi-VN')}
+                              <span style={{ fontSize: '0.85rem', color: '#475569', marginLeft: '0.2rem', fontWeight: 700 }}>VNĐ</span>
+                            </>
+                          ) : (
+                            dict.common.contact
+                          )}
+                        </div>
                       </div>
-                      <span style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>Xem chi tiết &rarr;</span>
+                      <span style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem' }}>Xem chi tiết &rarr;</span>
                     </div>
                   </div>
                 </Link>

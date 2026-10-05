@@ -188,17 +188,23 @@ export default async function PublicCatalog({
                   <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Nâng cao' : 'Height'}</span><span style={{ width: '50%' }}>{fl.liftHeight || '-'}</span></div>
                   <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Giờ HĐ' : 'Hours'}</span><span style={{ width: '50%' }}>{fl.hour || '-'}</span></div>
                   
-                  <div style={{ width: '100%', display: 'flex', marginTop: '0.2rem' }}><span style={{ width: '25%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Phụ kiện' : 'Attach'}</span><span style={{ width: '75%' }}>{fl.attachment || '-'}</span></div>
+                  <div style={{ width: '100%', display: 'flex', marginTop: '0.2rem' }}><span style={{ width: 'calc(25% - 0.25rem)', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Phụ kiện' : 'Attach'}</span><span style={{ width: 'calc(75% + 0.25rem)' }}>{fl.attachment || '-'}</span></div>
                 </div>
 
                 {/* Price Box */}
-                <div style={{ display: 'flex', border: '1px solid #1e293b', borderRadius: '6px', overflow: 'hidden', marginBottom: '1rem' }}>
-                  <div style={{ backgroundColor: '#1e293b', color: 'white', padding: '0.4rem', width: '35%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{resolvedParams.lang === 'vi' ? '(Đã gồm VAT)' : '(Incl. Tax)'}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '3px solid #cbd5e1', paddingLeft: '1rem', marginBottom: '1rem', marginTop: '1rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
+                    {resolvedParams.lang === 'vi' ? 'Giá bán (Đã gồm VAT)' : 'Sales Price (Incl. Tax)'}
                   </div>
-                  <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff4757', fontWeight: 'bold', fontSize: '1.4rem', padding: '0.5rem' }}>
-                    {fl.price ? `${fl.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
+                  <div style={{ color: '#c2272d', fontWeight: 900, fontSize: '1.6rem', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                    {fl.price ? (
+                      <>
+                        {fl.price.toLocaleString('vi-VN')}
+                        <span style={{ fontSize: '0.9rem', color: '#475569', marginLeft: '0.2rem', fontWeight: 700 }}>VNĐ</span>
+                      </>
+                    ) : (
+                      dict.common.contact
+                    )}
                   </div>
                 </div>
                 </Link>

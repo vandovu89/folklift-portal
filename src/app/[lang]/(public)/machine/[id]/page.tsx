@@ -78,13 +78,19 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            <div style={{ display: 'flex', border: '1px solid #1e293b', borderRadius: '8px', overflow: 'hidden', margin: '1.5rem 0' }}>
-              <div style={{ backgroundColor: '#1e293b', color: 'white', padding: '1rem', width: '35%', minWidth: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>{resolvedParams.lang === 'vi' ? 'Giá bán' : 'Price'}</div>
-                <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '0.2rem' }}>{resolvedParams.lang === 'vi' ? '(Đã gồm VAT)' : '(Incl. Tax)'}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '4px solid #cbd5e1', paddingLeft: '1.2rem', margin: '1.5rem 0 2.5rem 0' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>
+                {resolvedParams.lang === 'vi' ? 'Giá bán (Đã gồm VAT)' : 'Sales Price (Incl. Tax)'}
               </div>
-              <div style={{ flex: '1', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff4757', fontWeight: 'bold', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', padding: '1rem' }}>
-                {forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : dict.common.contact}
+              <div style={{ color: '#c2272d', fontWeight: 900, fontSize: 'clamp(2rem, 5vw, 2.8rem)', letterSpacing: '-1px', lineHeight: 1 }}>
+                {forklift.price ? (
+                  <>
+                    {forklift.price.toLocaleString('vi-VN')}
+                    <span style={{ fontSize: '1.2rem', color: '#475569', marginLeft: '0.3rem', fontWeight: 700 }}>VNĐ</span>
+                  </>
+                ) : (
+                  dict.common.contact
+                )}
               </div>
             </div>
 
