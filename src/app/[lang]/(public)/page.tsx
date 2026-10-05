@@ -75,7 +75,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
       {/* Featured Products */}
       <section style={{ padding: '7rem 5%', background: 'var(--background)' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
           <FadeIn direction="up">
             <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
               <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
@@ -152,7 +152,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       
       {/* Why Choose Us */}
       <section style={{ padding: '8rem 5%', background: 'white' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1600px', margin: '0 auto', textAlign: 'center' }}>
           <FadeIn direction="up">
             <h2 style={{ fontSize: '3rem', color: 'var(--foreground)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
               {resolvedParams.lang === 'vi' ? 'Tại Sao Chọn Chúng Tôi?' : 'Why Choose Us?'}

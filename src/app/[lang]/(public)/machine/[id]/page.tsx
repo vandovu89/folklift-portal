@@ -38,7 +38,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
   return (
     <div>
-      <main style={{ padding: '3rem 5%', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: '3rem 5%', maxWidth: '1600px', margin: '0 auto' }}>
         <Link href={`/${resolvedParams.lang}/catalog`} style={{ color: 'var(--primary)', fontWeight: '600', display: 'inline-block', marginBottom: '1.5rem', textDecoration: 'none' }}>
           &larr; {dict.common.back}
         </Link>

@@ -130,7 +130,7 @@ export default async function PublicCatalog({
 
   return (
     <div>
-      <main style={{ padding: '3rem 5%', maxWidth: '1400px', margin: '0 auto', minHeight: '80vh' }}>
+      <main style={{ padding: '3rem 5%', maxWidth: '1600px', margin: '0 auto', minHeight: '80vh' }}>
         
         <PublicCatalogFilter lang={resolvedParams.lang as 'en' | 'vi'} />
 
