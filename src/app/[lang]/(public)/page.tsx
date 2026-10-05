@@ -5,6 +5,8 @@ import { getDictionary } from '@/dictionaries';
 import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
 import { FadeIn } from '@/components/animations/FadeIn';
 import { StaggerContainer } from '@/components/animations/StaggerContainer';
+import HeroSlider from '@/components/HeroSlider';
+import HomeQuickSearch from '@/components/HomeQuickSearch';
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
@@ -26,38 +28,49 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     }
   });
 
+  const stats = [
+    { number: '500+', label: resolvedParams.lang === 'vi' ? 'Xe sẵn sàng giao' : 'Forklifts Ready' },
+    { number: '10+', label: resolvedParams.lang === 'vi' ? 'Năm kinh nghiệm' : 'Years Experience' },
+    { number: '12', label: resolvedParams.lang === 'vi' ? 'Tháng bảo hành' : 'Months Warranty' },
+    { number: '24/7', label: resolvedParams.lang === 'vi' ? 'Hỗ trợ kỹ thuật' : 'Technical Support' },
+  ];
+
+  const brands = ['TOYOTA', 'KOMATSU', 'TCM', 'MITSUBISHI', 'NISSAN', 'NICHIYU'];
+
   return (
     <div>
       {/* Hero Section */}
-      <section className="hero-section" style={{ 
-      height: '85vh', minHeight: '500px',
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(79, 70, 229, 0.8) 100%), url("https://images.unsplash.com/photo-1586528116311-ad8ed7c80a30?q=80&w=2070&auto=format&fit=crop")',
-        backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'white', textAlign: 'center', padding: '2rem',
-        overflowX: 'hidden'
-      }}>
-        <FadeIn delay={0.2} direction="up" className="hero-content" style={{ maxWidth: '900px' }}>
-          <span className="float-anim" style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Việt Nhật
-          </span>
-          <h1 className="hero-title animated-gradient-text" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-            {resolvedParams.lang === 'vi' ? 'Giải Pháp Nâng Hạ Toàn Diện' : 'Comprehensive Forklift Solutions'}
-          </h1>
-          <p className="hero-desc" style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}>
-            {resolvedParams.lang === 'vi' 
-              ? 'Chúng tôi chuyên cung cấp các dòng xe nâng chất lượng cao, nhập khẩu trực tiếp. Đảm bảo hiệu suất vượt trội và độ bền bỉ tối đa cho doanh nghiệp của bạn.' 
-              : 'We specialize in providing high-quality, directly imported forklifts. Guaranteeing outstanding performance and maximum durability for your business.'}
-          </p>
-          <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href={`/${resolvedParams.lang}/catalog`} className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', fontWeight: 700 }}>
-              {dict.nav.catalog}
+      <HeroSlider dict={dict} lang={resolvedParams.lang} />
+      
+      {/* Quick Search */}
+      <div style={{ padding: '0 5%' }}>
+        <HomeQuickSearch lang={resolvedParams.lang} />
+      </div>
+
+      {/* Brands Section */}
+      <section style={{ padding: '3rem 5%', background: 'white', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '1.2rem', color: '#64748b', fontWeight: 600, marginBottom: '2rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
+          {resolvedParams.lang === 'vi' ? 'Các Thương Hiệu Hàng Đầu' : 'Top Brands We Carry'}
+        </h3>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.7 }}>
+          {brands.map(brand => (
+            <Link key={brand} href={`/${resolvedParams.lang}/catalog?maker=${brand}`} style={{ textDecoration: 'none', color: '#1e293b', fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-1px' }}>
+              {brand}
             </Link>
-            <Link href={`/${resolvedParams.lang}/contact`} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', borderRadius: '50px', border: '2px solid rgba(255,255,255,0.5)', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', fontWeight: 700 }}>
-              {dict.common.contact}
-            </Link>
-          </div>
-        </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)', color: 'white', padding: '5rem 5%' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'center' }}>
+          {stats.map((stat, idx) => (
+            <div key={idx}>
+              <div style={{ fontSize: '3.5rem', fontWeight: 900, color: '#38bdf8', marginBottom: '0.5rem' }}>{stat.number}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 600, opacity: 0.9 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Featured Products */}
