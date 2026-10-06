@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '@/lib/prisma';
 import { formatCapacity } from '@/lib/utils';
 import { getDictionary } from '@/dictionaries';
@@ -11,6 +13,19 @@ import HomeQuickSearch from '@/components/HomeQuickSearch';
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
   const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
+
+  let sliderImages: string[] = [];
+  try {
+    const sliderDir = path.join(process.cwd(), 'public', 'slider');
+    if (fs.existsSync(sliderDir)) {
+      const files = fs.readdirSync(sliderDir);
+      sliderImages = files
+        .filter(f => f.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/))
+        .map(f => `/slider/${f}`);
+    }
+  } catch (error) {
+    console.error('Error reading slider directory:', error);
+  }
 
   const featuredForklifts = await prisma.forklift.findMany({
     where: { status: { in: ['Available', 'Incoming', 'Reserved'] } },
@@ -40,7 +55,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   return (
     <div>
       {/* Hero Section */}
-      <HeroSlider dict={dict} lang={resolvedParams.lang} />
+      <HeroSlider dict={dict} lang={resolvedParams.lang} images={sliderImages} />
       
       {/* Quick Search */}
       <div style={{ padding: '0 5%' }}>

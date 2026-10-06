@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
-const images = [
+const DEFAULT_IMAGES = [
   'https://images.unsplash.com/photo-1586528116311-ad8ed7c80a30?q=80&w=2070&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=2070&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=2070&auto=format&fit=crop'
@@ -13,14 +13,16 @@ const images = [
 interface HeroSliderProps {
   dict: any;
   lang: string;
+  images?: string[];
 }
 
-export default function HeroSlider({ dict, lang }: HeroSliderProps) {
+export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const displayImages = images.length > 0 ? images : DEFAULT_IMAGES;
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % displayImages.length);
     }, 5000); // Change slide every 5 seconds
     return () => clearInterval(timer);
   }, []);
@@ -44,7 +46,7 @@ export default function HeroSlider({ dict, lang }: HeroSliderProps) {
           style={{
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
-            background: `linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.7) 100%), url(${images[currentIndex]})`,
+            background: `linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.7) 100%), url(${displayImages[currentIndex]})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             zIndex: 0
@@ -103,7 +105,7 @@ export default function HeroSlider({ dict, lang }: HeroSliderProps) {
       
       {/* Slide Indicators */}
       <div style={{ position: 'absolute', bottom: '30px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 1 }}>
-        {images.map((_, idx) => (
+        {displayImages.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrentIndex(idx)}
