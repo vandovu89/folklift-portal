@@ -4,6 +4,7 @@ import { parseCapacityKg, parseLiftHeightMm } from '@/lib/utils';
 import styles from './forklifts.module.css';
 import ForkliftFilter from './ForkliftFilter';
 import ForkliftTable from './ForkliftTable';
+import ExportButton from './ExportButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,9 +100,9 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
       <div className={styles.pageHeader}>
         <h1>Quản lý Xe Nâng ({forklifts.length})</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <a href="/api/forklifts/export" download className="btn-secondary" style={{ backgroundColor: '#107c41', color: 'white', borderColor: '#107c41' }}>
-            📤 Export Excel
-          </a>
+          <ExportButton 
+            currentFilters={{ q, status, category, capacity, height, price }}
+          />
           <Link href="/admin/forklifts/import" className="btn-secondary" style={{ backgroundColor: '#217346', color: 'white', borderColor: '#217346' }}>
             📥 Import Excel
           </Link>

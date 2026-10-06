@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         data: { currentSeq: nextSeq }
       });
 
-      const costPrice = row[17] ? parseFloat(String(row[17]).replace(/[^0-9.-]/g, '')) : null;
+      const costPrice = row[17] ? parseFloat(String(row[17]).replace(/[^0-9-]/g, '')) : null;
       const expensesRaw = row[18] ? String(row[18]) : '';
       
       const parsedExpenses: { title: string; amount: number }[] = [];
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
           if (colonIdx > 0) {
             const title = line.substring(0, colonIdx).trim();
             const amountStr = line.substring(colonIdx + 1).trim();
-            const amount = parseFloat(amountStr.replace(/[^0-9.-]/g, ''));
+            const amount = parseFloat(amountStr.replace(/[^0-9-]/g, ''));
             if (title && !isNaN(amount)) {
               parsedExpenses.push({ title, amount });
             }
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
           loadCapacity: row[13] ? String(row[13])                                   : null,
           weight:       row[14] ? String(row[14])                                   : null,
           location:     row[15] ? String(row[15])                                   : null,
-          price:        row[16] ? parseFloat(String(row[16]).replace(/[^0-9.-]/g, '')) : null,
+          price:        row[16] ? parseFloat(String(row[16]).replace(/[^0-9-]/g, '')) : null,
           status:       finalStatus,
           costPrice:    costPrice,
           expenses: parsedExpenses.length > 0 ? {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './forklifts.module.css';
+import ExportButton from './ExportButton';
 
 export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
   const router = useRouter();
@@ -76,14 +77,20 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
           <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
             Đã chọn {selectedIds.length} xe nâng
           </span>
-          <button 
-            onClick={handleBulkDelete} 
-            disabled={isDeleting}
-            className="btn-danger"
-            style={{ padding: '0.4rem 1rem' }}
-          >
-            {isDeleting ? 'Đang xóa...' : 'Xóa Các Mục Đã Chọn'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <ExportButton 
+              selectedIds={selectedIds} 
+              buttonText="Xuất Excel Các Mục Đã Chọn"
+            />
+            <button 
+              onClick={handleBulkDelete} 
+              disabled={isDeleting}
+              className="btn-danger"
+              style={{ padding: '0.4rem 1rem' }}
+            >
+              {isDeleting ? 'Đang xóa...' : 'Xóa Các Mục Đã Chọn'}
+            </button>
+          </div>
         </div>
       )}
 
