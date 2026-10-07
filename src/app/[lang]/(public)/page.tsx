@@ -28,7 +28,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   }
 
   const featuredForklifts = await prisma.forklift.findMany({
-    where: { status: { in: ['Available', 'Incoming', 'Reserved'] } },
+    where: { status: { in: ['Available', 'Incoming', 'Reserved', 'Unpacking', 'InJapan'] } },
     orderBy: { createdAt: 'desc' },
     take: 6,
     include: {
@@ -122,6 +122,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                       {fl.status === 'Incoming' && <span className="badge" style={{ backgroundColor: '#f97316', color: 'white', whiteSpace: 'nowrap' }}>Sắp về</span>}
                       {fl.status === 'Reserved' && <span className="badge" style={{ backgroundColor: '#eab308', color: 'white', whiteSpace: 'nowrap' }}>Đã cọc</span>}
                       {fl.status === 'Available' && <span className="badge badge-success" style={{ whiteSpace: 'nowrap' }}>Sẵn sàng</span>}
+                      {fl.status === 'Unpacking' && <span className="badge" style={{ backgroundColor: '#8b5cf6', color: 'white', whiteSpace: 'nowrap' }}>Đang Rút Container</span>}
+                      {fl.status === 'InJapan' && <span className="badge" style={{ backgroundColor: '#ec4899', color: 'white', whiteSpace: 'nowrap' }}>Nhật Bản</span>}
                     </div>
                     
                     <div style={{ display: 'flex', gap: '1.2rem', color: '#666', fontSize: '0.95rem', marginBottom: '1.5rem', opacity: 0.9 }}>

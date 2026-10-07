@@ -22,7 +22,7 @@ export default async function PublicCatalog({
   const resolvedSearchParams = await searchParams;
   const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
-  const whereClause: any = { status: { in: ['Available', 'Incoming', 'Reserved'] } };
+  const whereClause: any = { status: { in: ['Available', 'Incoming', 'Reserved', 'Unpacking', 'InJapan'] } };
 
   const andConditions: any[] = [];
   
@@ -160,6 +160,8 @@ export default async function PublicCatalog({
                   <div style={{ flex: '0 0 50%', height: '120px', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
                     {fl.status === 'Incoming' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#f97316', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Sắp về</span>}
                     {fl.status === 'Reserved' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#eab308', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đã cọc</span>}
+                    {fl.status === 'Unpacking' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#8b5cf6', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đang Rút Container</span>}
+                    {fl.status === 'InJapan' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#ec4899', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Nhật Bản</span>}
                     
                     {fl.media && fl.media.length > 0 ? (
                       // eslint-disable-next-line @next/next/no-img-element

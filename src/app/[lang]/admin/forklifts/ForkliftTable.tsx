@@ -32,6 +32,8 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
       case 'Reserved': return <span className="badge" style={{ backgroundColor: '#eab308', color: 'white' }}>Đã cọc</span>;
       case 'Sold': return <span className="badge" style={{ backgroundColor: '#374151', color: 'white' }}>Đã bán</span>;
       case 'Draft': return <span className="badge badge-neutral">Lưu kho</span>;
+      case 'Unpacking': return <span className="badge" style={{ backgroundColor: '#8b5cf6', color: 'white' }}>Đang Rút Container</span>;
+      case 'InJapan': return <span className="badge" style={{ backgroundColor: '#ec4899', color: 'white' }}>Nhật Bản</span>;
       default: return <span className="badge badge-neutral">{status}</span>;
     }
   };

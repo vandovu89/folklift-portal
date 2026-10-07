@@ -65,6 +65,8 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   {forklift.status === 'Incoming' && <span className="badge machine-badge" style={{ backgroundColor: '#f97316', color: 'white', padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Sắp về kho</span>}
                   {forklift.status === 'Reserved' && <span className="badge machine-badge" style={{ backgroundColor: '#eab308', color: 'white', padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Đã nhận cọc</span>}
                   {forklift.status === 'Available' && <span className="badge badge-success machine-badge" style={{ padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Sẵn sàng giao</span>}
+                  {forklift.status === 'Unpacking' && <span className="badge machine-badge" style={{ backgroundColor: '#8b5cf6', color: 'white', padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Đang Rút Container</span>}
+                  {forklift.status === 'InJapan' && <span className="badge machine-badge" style={{ backgroundColor: '#ec4899', color: 'white', padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Nhật Bản</span>}
                   {forklift.year && <span className="badge machine-badge" style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.4rem 0.8rem', width: 'auto', height: 'auto', display: 'inline-block' }}>Đời {forklift.year}</span>}
                 </div>
                 <h1 className="machine-title-text" style={{ fontSize: '2.2rem', margin: '0 0 0.5rem 0', textTransform: 'uppercase', lineHeight: '1.3' }}>

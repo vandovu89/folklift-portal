@@ -181,6 +181,8 @@ export default function AddForkliftPage() {
                 <option value="Available">Available (Đang bán / Sẵn sàng)</option>
                 <option value="Reserved">Reserved (Đã nhận cọc)</option>
                 <option value="Sold">Sold (Đã bán)</option>
+                <option value="Unpacking">Đang Rút Container</option>
+                <option value="InJapan">Nhật Bản</option>
               </select>
             </div>
             <div className="form-group">
