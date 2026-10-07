@@ -35,6 +35,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
   const baseUrl = getBaseUrl();
   const qrUrl = `${baseUrl}/${resolvedParams.lang}/machine/${forklift.id}`;
+  const isElectric = forklift.powerType?.toLowerCase().includes('điện') || forklift.powerType?.toLowerCase().includes('dien') || forklift.powerType?.toLowerCase().includes('battery') || forklift.powerType?.toLowerCase().includes('electric');
 
   return (
     <div>
@@ -125,6 +126,38 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
           </div>
         </div>
+
+        {/* Electric Guarantee & Gift Box */}
+        {isElectric && resolvedParams.lang === 'vi' && (
+          <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem', border: '2px solid #3b82f6', background: 'linear-gradient(to right, #eff6ff, #ffffff)' }}>
+            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.4rem', color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              💎 Đặc quyền khi mua Xe Nâng Điện
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>🎁</div>
+                <h4 style={{ color: '#0f172a', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Quà tặng kèm theo xe</h4>
+                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  Tặng ngay <strong>01 Máy lọc nước tinh khiết RO</strong> chuyên dụng. Giúp bạn chủ động nguồn nước chuẩn để châm bình ắc quy định kỳ, kéo dài tuổi thọ bình.
+                </p>
+              </div>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>⚡</div>
+                <h4 style={{ color: '#0f172a', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Cam kết Ắc quy</h4>
+                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  Xe đã được <strong>test sạc/xả mô phỏng phun tải</strong> khắt khe. Cam kết tình trạng bình ắc quy thực tế còn tốt tương đương <strong>&gt;80%</strong> so với bình mới.
+                </p>
+              </div>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>🔧</div>
+                <h4 style={{ color: '#0f172a', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Bảo hành & Hỗ trợ</h4>
+                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                  Bảo hành <strong>03 tháng</strong> (Bình ắc quy & Bo mạch điện tử). Giới thiệu thợ sửa chữa trọn đời với chi phí thực tế cực rẻ, không lấy lãi qua trung gian.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* SEO Description Content */}
         <div className="glass-panel" style={{ marginTop: '2rem', padding: '2.5rem' }}>
