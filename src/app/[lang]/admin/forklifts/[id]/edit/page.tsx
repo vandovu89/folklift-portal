@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import styles from '../../forklifts.module.css';
 import MediaManager from '@/components/MediaManager';
 import AiMarketingModal from '@/components/AiMarketingModal';
-import { FaMagic } from 'react-icons/fa';
+import AiVideoModal from '@/components/AiVideoModal';
+import { FaMagic, FaVideo } from 'react-icons/fa';
 
 export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -15,6 +16,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   const [userRole, setUserRole] = useState<string>('SALES');
   const [activities, setActivities] = useState<any[]>([]);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     id: '',
@@ -183,10 +185,13 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       <div className={styles.pageHeader}>
         <h2>Chỉnh sửa Thông tin Xe Nâng</h2>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
+          <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
+            <FaVideo /> AI Video Studio
+          </button>
+          <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
             <FaMagic /> Trợ lý AI Marketing
           </button>
-          <button onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
+          <button type="button" onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
         </div>
       </div>
 
@@ -401,6 +406,11 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       <AiMarketingModal 
         isOpen={isAiModalOpen} 
         onClose={() => setIsAiModalOpen(false)} 
+        forkliftId={resolvedParams.id} 
+      />
+      <AiVideoModal 
+        isOpen={isVideoModalOpen} 
+        onClose={() => setIsVideoModalOpen(false)} 
         forkliftId={resolvedParams.id} 
       />
     </div>

@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Forklift {
@@ -70,6 +71,11 @@ model Forklift {
   media           Media[]
   inquiries       Inquiry[]
   expenses        Expense[]
+  
+  // AI Video Sales Assistant
+  aiVideoScript   String?   @db.Text
+  rawVideoUrl     String?
+  aiVideoUrl      String?
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

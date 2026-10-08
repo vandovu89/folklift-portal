@@ -21,12 +21,12 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileType = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
+    const fileType = file.type.startsWith('image/') ? 'IMAGE' : (file.type.startsWith('video/') ? 'VIDEO' : 'DOCUMENT');
 
     // Upload to Cloudinary using stream
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'vietnhat_forklifts' },
+        { folder: 'vietnhat_forklifts', resource_type: 'auto' },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
