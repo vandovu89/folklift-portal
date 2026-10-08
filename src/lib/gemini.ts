@@ -22,6 +22,7 @@ export interface ForkliftSearchResult {
   hour?: number | null;
   condition?: string | null;
   price?: number | null;
+  status?: string | null;
   imageUrl?: string | null;
   detailUrl: string;
 }
@@ -146,7 +147,9 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       });
     }
 
-    const where: any = { status: 'Available' };
+    const where: any = { 
+      status: { notIn: ['Draft', 'Sold'] }
+    };
     if (andConditions.length > 0) {
       where.AND = andConditions;
     }
@@ -237,6 +240,7 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       hour: f.hour,
       condition: f.condition,
       price: f.price,
+      status: f.status,
       imageUrl: f.media[0]?.url || null,
       detailUrl: `${baseUrl}/vi/machine/${f.id}`
     }));
@@ -529,8 +533,11 @@ QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
      + Hãng sản xuất (maker): Giữ tên hãng chuẩn: TOYOTA, KOMATSU, TCM, MITSUBISHI, NICHIYU, SUMITOMO.
      + Năm sản xuất & Giá: "đời từ 2018" -> minYear: 2018; "dưới 200 triệu" -> maxPrice: 200000000.
    - Tuyệt đối không bịa đặt thông tin xe nếu trong kho không có.
-   - Khi có kết quả tìm kiếm, tóm tắt thông số chính (Hãng, Model, Tải trọng, Chiều cao nâng, Năm sản xuất) và gửi kèm đường link xe để khách bấm vào xem chi tiết hình ảnh thực tế.
-   - BẮT BUỘC: Sau khi nhận kết quả từ tool, bạn PHẢI tạo câu trả lời bằng văn bản tiếng Việt hoàn chỉnh gửi cho khách hàng. Nếu kho không có xe thỏa mãn tiêu chí (danh sách rỗng), hãy lịch sự thông báo mẫu xe này hiện đang tạm hết và khéo léo xin Tên/Số điện thoại để khi có xe về bên em báo ngay.
+   - Khi có kết quả tìm kiếm, tóm tắt thông số chính (Hãng, Model, Tải trọng, Chiều cao nâng, Năm sản xuất) và ĐẶC BIỆT chú ý đến TRẠNG THÁI của xe:
+     + "Available": Xe đang sẵn tại kho, có thể xem và giao ngay.
+     + "Incoming" / "Đang Rút Container" / "Nhật Bản": Xe sắp về hoặc đang ở Nhật, hướng dẫn khách đặt cọc giữ chỗ.
+     + "Reserved": Xe đã có khách cọc nhưng vẫn có thể tư vấn tham khảo.
+   - BẮT BUỘC: Sau khi nhận kết quả từ tool, bạn PHẢI tạo câu trả lời bằng văn bản tiếng Việt hoàn chỉnh gửi cho khách hàng, gửi kèm đường link xe để khách bấm vào xem. Nếu kho không có xe thỏa mãn tiêu chí, hãy lịch sự thông báo mẫu xe này hiện đang tạm hết và khéo léo xin Tên/Số điện thoại để khi có xe về bên em báo ngay.
 
 2. Khi khách hỏi về MỘT chiếc xe cụ thể (ví dụ: "cho tôi báo giá mã xe A", "xe này nâng tối đa bao nhiêu kg?", "xe cao mấy mét?", "bình điện thế nào?"):
    - LUÔN gọi tool 'getForkliftDetail' với mã xe hoặc model của xe đó để đọc toàn bộ 100% thông số kỹ thuật thực tế từ database.
@@ -656,7 +663,12 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
             const height = f.liftHeight ? `Nâng: ${f.liftHeight}mm` : '';
             const fuel = f.powerType ? `Máy: ${f.powerType}` : '';
             const yr = f.year ? `Đời: ${f.year}` : '';
-            const specs = [cap, height, yr, fuel].filter(Boolean).join(' | ');
+            const statusStr = f.status === 'Available' ? 'Sẵn kho' : 
+                              f.status === 'Reserved' ? 'Đã cọc' : 
+                              f.status === 'Incoming' ? 'Sắp về' : 
+                              f.status === 'Unpacking' ? 'Đang rút Cont' : 
+                              f.status === 'InJapan' ? 'Đang ở Nhật' : f.status;
+            const specs = [cap, height, yr, fuel, statusStr].filter(Boolean).join(' | ');
             return `🚜 [${i + 1}] ${f.maker} ${f.model} (${specs})\n👉 Xem chi tiết xe: ${f.detailUrl}`;
           }).join('\n\n');
         };
