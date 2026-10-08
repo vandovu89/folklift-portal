@@ -52,8 +52,26 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   const brands = ['TOYOTA', 'KOMATSU', 'TCM', 'MITSUBISHI', 'NISSAN', 'NICHIYU'];
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'AutoDealer',
+    name: 'Xe Nâng MCK',
+    url: 'https://xenangmck.jp',
+    logo: 'https://xenangmck.jp/icon.png',
+    description: 'Xe Nâng MCK chuyên cung cấp, bán và cho thuê các loại xe nâng bãi, xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản: Komatsu, Toyota, TCM... Uy tín, chất lượng.',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'VN'
+    },
+    priceRange: '$$$'
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <HeroSlider dict={dict} lang={resolvedParams.lang} images={sliderImages} />
       

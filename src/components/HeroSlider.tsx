@@ -73,7 +73,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
           className="hero-title" 
           style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
         >
-          {lang === 'vi' ? 'Giải Pháp Nâng Hạ Toàn Diện' : 'Comprehensive Forklift Solutions'}
+          {lang === 'vi' ? 'Đại Lý Xe Nâng Cũ Nhập Khẩu Trực Tiếp Từ Nhật Bản' : 'Directly Imported Used Forklifts From Japan'}
         </motion.h1>
         
         <motion.p 
@@ -84,8 +84,8 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
           style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}
         >
           {lang === 'vi' 
-            ? 'Chúng tôi chuyên cung cấp các dòng xe nâng chất lượng cao, nhập khẩu trực tiếp. Đảm bảo hiệu suất vượt trội và độ bền bỉ tối đa cho doanh nghiệp của bạn.' 
-            : 'We specialize in providing high-quality, directly imported forklifts. Guaranteeing outstanding performance and maximum durability for your business.'}
+            ? 'Xe Nâng MCK chuyên cung cấp các dòng xe nâng bãi, xe nâng cũ chất lượng cao từ các thương hiệu Komatsu, Toyota, TCM... Nhập khẩu nguyên chiếc từ Nhật Bản.' 
+            : 'Xe Nâng MCK specializes in providing high-quality used forklifts from Komatsu, Toyota, TCM... Imported directly from Japan.'}
         </motion.p>
         
         <motion.div 
