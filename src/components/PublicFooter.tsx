@@ -25,6 +25,14 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaMapMarkerAlt color="#38bdf8" />
+            </div>
+            <a href="https://maps.app.goo.gl/fRUEKPmvbmDwVUXb8?g_st=ic" target="_blank" rel="noopener noreferrer" style={{ flex: 1, lineHeight: 1.5, color: '#f8fafc', textDecoration: 'none' }}>
+              {dict.footer.warehouse || "Kho bãi (Xem bản đồ)"}
+            </a>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
+            <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaUniversity color="#38bdf8" />
             </div>
             <span style={{ flex: 1, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{dict.footer.bank}</span>
