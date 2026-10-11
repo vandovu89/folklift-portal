@@ -58,18 +58,34 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
         </div>
 
         {/* Google Maps */}
-        <div>
-          <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '2rem', color: '#38bdf8' }}>Google Maps</h4>
-          <div style={{ width: '100%', height: '220px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
-            <iframe 
-              src="https://maps.google.com/maps?q=Eurowindow+River+Park,+%C4%90%C3%B4ng+Anh,+H%C3%A0+N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={false} 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade">
-            </iframe>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div>
+            <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1rem', color: '#38bdf8' }}>Văn phòng</h4>
+            <div style={{ width: '100%', height: '150px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+              <iframe 
+                src="https://maps.google.com/maps?q=Eurowindow+River+Park,+%C4%90%C3%B4ng+Anh,+H%C3%A0+N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={false} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          </div>
+          <div>
+            <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1rem', color: '#38bdf8' }}>Kho bãi</h4>
+            <div style={{ width: '100%', height: '150px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+              <iframe 
+                src="https://maps.google.com/maps?q=C%C3%B4ng+ty+c%E1%BB%95+ph%E1%BA%A7n+%C4%90%E1%BA%A7u+T%C6%B0+Sakai,+%C4%90T379,+Vi%E1%BB%87t+Y%C3%AAn,+H%C6%B0ng+Y%C3%AAn&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={false} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
           </div>
         </div>
       </div>
