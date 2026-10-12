@@ -1,12 +1,18 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/login/'],
+      disallow: [
+        '/admin/',
+        '/*/admin/',
+        '/login/',
+        '/*/login/',
+        '/api/',
+      ],
     },
     sitemap: 'https://xenangmck.jp/sitemap.xml',
-  }
+  };
 }
