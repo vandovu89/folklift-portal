@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getDictionary } from '@/dictionaries';
 
 export default async function PoliciesPage({ params }: { params: Promise<{ lang: string }> }) {
@@ -10,7 +11,7 @@ export default async function PoliciesPage({ params }: { params: Promise<{ lang:
         <h1 style={{ fontSize: '3rem', fontWeight: 800 }}>{dict.nav.policies}</h1>
       </div>
       
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '5rem 5%', fontSize: '1.1rem', lineHeight: 1.8, color: '#333' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '5rem 5%', fontSize: '1.1rem', lineHeight: 1.8, color: '#334155' }}>
         <section style={{ marginBottom: '4rem' }}>
           <h2 style={{ color: 'var(--primary)', fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ width: '40px', height: '40px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>1</span>
@@ -41,7 +42,7 @@ export default async function PoliciesPage({ params }: { params: Promise<{ lang:
           </ul>
         </section>
 
-        <section>
+        <section style={{ marginBottom: '4rem' }}>
           <h2 style={{ color: 'var(--primary)', fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ width: '40px', height: '40px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>3</span>
             Chính Sách Đổi Trả
@@ -51,7 +52,7 @@ export default async function PoliciesPage({ params }: { params: Promise<{ lang:
           </p>
         </section>
 
-        <section style={{ marginTop: '4rem' }}>
+        <section style={{ marginBottom: '4rem' }}>
           <h2 style={{ color: 'var(--primary)', fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ width: '40px', height: '40px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>4</span>
             Hỗ Trợ Kỹ Thuật Trọn Đời
@@ -63,6 +64,36 @@ export default async function PoliciesPage({ params }: { params: Promise<{ lang:
             <li>Xe nâng điện Nhật Bản hoạt động rất ổn định, không hỏng vặt như xe dầu/xăng. Yếu tố quan trọng nhất giúp xe bền bỉ là bảo dưỡng và châm nước cất ắc quy định kỳ đúng tiêu chuẩn.</li>
             <li>Khi xe gặp sự cố ngoài thời gian bảo hành, công ty sẽ trực tiếp <strong>giới thiệu kỹ thuật viên sửa chữa uy tín</strong> cho quý khách. Khách hàng chỉ phải thanh toán chi phí nhân công và vật tư thực tế (rẻ hơn rất nhiều so với việc tự gọi thợ ngoài).</li>
           </ul>
+        </section>
+
+        <section style={{ marginTop: '4rem', background: '#f8fafc', padding: '2rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <h2 style={{ color: 'var(--primary)', fontSize: '1.6rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ width: '40px', height: '40px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>5</span>
+            Bảo Mật Thông Tin &amp; Quyền Riêng Tư (Meta / Facebook)
+          </h2>
+          <p style={{ marginBottom: '1.2rem' }}>
+            Chúng tôi cam kết bảo vệ dữ liệu cá nhân của quý khách hàng khi tương tác trên Website và dịch vụ Chatbot AI qua Facebook Messenger theo đúng tiêu chuẩn pháp luật và chính sách nền tảng Meta:
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <Link 
+              href={`/${resolvedParams.lang}/privacy-policy`} 
+              style={{ background: 'var(--primary)', color: 'white', padding: '0.7rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+            >
+              Chính sách quyền riêng tư &rarr;
+            </Link>
+            <Link 
+              href={`/${resolvedParams.lang}/terms-of-service`} 
+              style={{ background: '#0284c7', color: 'white', padding: '0.7rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+            >
+              Điều khoản dịch vụ &rarr;
+            </Link>
+            <Link 
+              href={`/${resolvedParams.lang}/data-deletion`} 
+              style={{ background: '#ef4444', color: 'white', padding: '0.7rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+            >
+              Yêu cầu xóa dữ liệu &rarr;
+            </Link>
+          </div>
         </section>
       </div>
     </div>
