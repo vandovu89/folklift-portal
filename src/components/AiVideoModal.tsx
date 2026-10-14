@@ -223,7 +223,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 <div>
                   <video src={aiVideoUrl} controls autoPlay style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '1rem' }} />
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.8rem' }}>
                     <button 
                       onClick={handleCreateVideo}
                       disabled={loadingVideo}
@@ -241,6 +241,44 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       <FaFacebook /> Đăng lên Reels
                     </button>
                   </div>
+
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/forklifts/${forkliftId}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ videoUrl: aiVideoUrl })
+                        });
+                        if (res.ok) {
+                          alert('Đã gắn video thành công làm Video Review chính thức của xe!');
+                          onClose();
+                        } else {
+                          alert('Lỗi cập nhật');
+                        }
+                      } catch (e) {
+                        alert('Lỗi kết nối');
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      boxShadow: '0 4px 12px rgba(16,185,129,0.25)'
+                    }}
+                  >
+                    🎬 Gắn Làm Video Review Chính Của Xe (Xem trên web & Bot)
+                  </button>
                 </div>
               )}
             </div>

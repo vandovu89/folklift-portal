@@ -24,6 +24,7 @@ export interface ForkliftSearchResult {
   price?: number | null;
   status?: string | null;
   imageUrl?: string | null;
+  videoUrl?: string | null;
   detailUrl: string;
 }
 
@@ -242,6 +243,7 @@ export async function searchForkliftsInDb(criteria: SearchForkliftsCriteria): Pr
       price: f.price,
       status: f.status,
       imageUrl: f.media[0]?.url || null,
+      videoUrl: f.videoUrl || null,
       detailUrl: `${baseUrl}/vi/machine/${f.id}`
     }));
   } catch (error) {
@@ -307,6 +309,7 @@ export async function getForkliftDetailInDb(identifier: string) {
       status: forklift.status === 'Available' ? 'Sẵn sàng giao dịch tại kho' : forklift.status,
       price: forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : 'Giá thỏa thuận / Ưu đãi trực tiếp khi liên hệ',
       images: forklift.media.map(m => m.url),
+      videoUrl: forklift.videoUrl || null,
       detailUrl: `${baseUrl}/vi/machine/${forklift.id}`
     };
   } catch (error) {
@@ -556,6 +559,11 @@ QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
    - Kho bãi: Sẵn sàng tại kho Hà Nội và TP.HCM / Bình Dương, hỗ trợ khách đến xem và chạy thử xe trực tiếp.
    - Giao hàng & Bảo hành: Giao xe toàn quốc, bảo hành từ 6 đến 12 tháng tùy dòng xe, hỗ trợ bảo dưỡng định kỳ.
    - Giọng điệu: Thân thiện, lịch thiệp, tư vấn kỹ thuật dễ hiểu, câu trả lời gọn gàng phù hợp cho tin nhắn di động.
+
+6. ĐỀ XUẤT VIDEO REVIEW / TEST MÁY (YouTube / TikTok):
+   - Khi khách hàng hỏi muốn xem xe hoạt động, xem video test máy, xem vận hành thực tế, hoặc hỏi "có video không?", "cho xem clip", "xe chạy thế nào":
+   - Nếu chiếc xe đó hoặc xe gợi ý có 'videoUrl', BẮT BUỘC gửi kèm link video YouTube hoặc TikTok cho khách hàng xem trực tiếp.
+   - Kèm lời mời xem video trải nghiệm và mời khách ghé kho chạy thử xe trực tiếp nếu thuận tiện.
 
 ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGreeting}` : ''}
 `.trim();

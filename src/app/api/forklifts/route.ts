@@ -74,6 +74,7 @@ export async function POST(request: Request) {
         category: body.category,
         type: body.type,
         powerType: body.powerType,
+        videoUrl: body.videoUrl || null,
         status: body.status || 'Available',
         price: body.price ? parseFloat(body.price) : null,
         costPrice: role === 'ADMIN' && body.costPrice ? parseFloat(body.costPrice) : null,

@@ -38,6 +38,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     condition: '',
     location: '',
     sourceUrl: '',
+    videoUrl: '',
     costPrice: '',
     soldPrice: '',
     soldDate: '',
@@ -91,6 +92,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             condition: found.condition || '',
             location: found.location || '',
             sourceUrl: found.sourceUrl || '',
+            videoUrl: found.videoUrl || '',
             costPrice: found.costPrice || '',
             soldPrice: found.soldPrice || '',
             soldDate: found.soldDate ? new Date(found.soldDate).toISOString().split('T')[0] : '',
@@ -234,6 +236,10 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div className="form-group">
               <label className="form-label">Nguồn tham khảo (URL)</label>
               <input name="sourceUrl" value={formData.sourceUrl} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">🎥 Video Review (YouTube / TikTok URL)</label>
+              <input name="videoUrl" value={formData.videoUrl} onChange={handleChange} className="form-control" placeholder="https://www.youtube.com/watch?v=... hoặc TikTok" />
             </div>
             <div className="form-group">
               <label className="form-label">ID Hệ Thống</label>

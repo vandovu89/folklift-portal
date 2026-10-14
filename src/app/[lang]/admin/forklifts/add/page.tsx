@@ -36,6 +36,7 @@ export default function AddForkliftPage() {
     condition: '',
     location: '',
     sourceUrl: '',
+    videoUrl: '',
     costPrice: '',
     expenses: [] as { title: string, amount: string, date: string, note: string }[]
   });
@@ -128,6 +129,10 @@ export default function AddForkliftPage() {
             <div className="form-group">
               <label className="form-label">Nguồn tham khảo (URL)</label>
               <input name="sourceUrl" value={formData.sourceUrl} onChange={handleChange} className="form-control" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">🎥 Video Review (YouTube / TikTok URL)</label>
+              <input name="videoUrl" value={formData.videoUrl} onChange={handleChange} className="form-control" placeholder="https://www.youtube.com/watch?v=... hoặc TikTok" />
             </div>
           </div>
         </div>

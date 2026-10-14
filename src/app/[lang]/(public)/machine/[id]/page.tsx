@@ -9,7 +9,8 @@ import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
-import { FaMoneyBillWave } from 'react-icons/fa';
+import { FaMoneyBillWave, FaFilePdf } from 'react-icons/fa';
+import VideoEmbed from '@/components/VideoEmbed';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -102,7 +103,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               <a href="tel:84362396092">+84 362 396 092</a>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
               <CatalogInquiryButton 
                 lang={resolvedParams.lang as string}
                 dict={dict}
@@ -110,8 +111,30 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                 forkliftName={`${forklift.maker} ${forklift.model}`}
                 internalCode={forklift.internalCode || ''}
               />
-              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-                <span style={{ fontSize: '1.2rem' }}>💬</span> Nhắn tin Zalo
+              <Link 
+                href={`/${resolvedParams.lang}/quotation/${forklift.id}`} 
+                target="_blank"
+                style={{ 
+                  flex: 1, 
+                  textAlign: 'center', 
+                  backgroundColor: '#0284c7', 
+                  color: 'white', 
+                  fontSize: '0.95rem', 
+                  padding: '0.8rem', 
+                  borderRadius: '8px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '0.4rem', 
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)' 
+                }}
+              >
+                <FaFilePdf size={16} /> Báo Giá PDF
+              </Link>
+              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '0.95rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+                <span style={{ fontSize: '1.1rem' }}>💬</span> Chat Zalo
               </a>
             </div>
 
@@ -157,6 +180,18 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   Bảo hành <strong>03 tháng</strong> (Bình ắc quy & Bo mạch điện tử). Giới thiệu thợ sửa chữa trọn đời với chi phí thực tế cực rẻ, không lấy lãi qua trung gian.
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Video Review Thực Tế */}
+        {forklift.videoUrl && (
+          <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.4rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              🎥 Video Review &amp; Vận Hành Thực Tế
+            </h3>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <VideoEmbed url={forklift.videoUrl} title={`Video Xe Nâng ${forklift.maker} ${forklift.model}`} />
             </div>
           </div>
         )}
@@ -237,7 +272,14 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           forkliftName={`${forklift.maker} ${forklift.model}`}
           internalCode={forklift.internalCode || ''}
         />
-        <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+        <Link 
+          href={`/${resolvedParams.lang}/quotation/${forklift.id}`} 
+          target="_blank"
+          style={{ flex: 1, backgroundColor: '#0284c7', color: 'white', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+        >
+          📄 Báo Giá
+        </Link>
+        <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
           📞 {resolvedParams.lang === 'vi' ? 'Gọi ngay' : 'Call Now'}
         </a>
       </div>

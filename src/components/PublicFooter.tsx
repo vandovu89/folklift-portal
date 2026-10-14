@@ -51,6 +51,8 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <li><Link href={`/${lang}`} className="footer-link">{dict.nav.home}</Link></li>
             <li><Link href={`/${lang}/catalog`} className="footer-link">{dict.nav.catalog}</Link></li>
+            <li><Link href={`/${lang}/customer-stories`} className="footer-link">{dict.nav.customer_stories || 'Góc Khách Hàng'}</Link></li>
+            <li><Link href={`/${lang}/media`} className="footer-link">{dict.nav.media || 'Thư viện Video'}</Link></li>
             <li><Link href={`/${lang}/about`} className="footer-link">{dict.nav.about}</Link></li>
             <li><Link href={`/${lang}/policies`} className="footer-link">{dict.nav.policies}</Link></li>
             <li><Link href={`/${lang}/privacy-policy`} className="footer-link">{dict.footer.privacy_policy || 'Chính sách bảo mật'}</Link></li>

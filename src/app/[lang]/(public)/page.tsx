@@ -43,6 +43,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     }
   });
 
+  const testimonials = await prisma.testimonial.findMany({
+    where: { isFeatured: true },
+    orderBy: { createdAt: 'desc' },
+    take: 3
+  });
+
   const stats = [
     { number: '500+', label: resolvedParams.lang === 'vi' ? 'Xe sẵn sàng giao' : 'Forklifts Ready' },
     { number: '10+', label: resolvedParams.lang === 'vi' ? 'Năm kinh nghiệm' : 'Years Experience' },
@@ -184,6 +190,68 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </div>
       </section>
+
+      {/* Customer Stories & Deliveries (Testimonials) */}
+      {testimonials.length > 0 && (
+        <section style={{ padding: '6rem 5%', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            <FadeIn direction="up">
+              <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+                <span style={{ display: 'inline-block', padding: '0.4rem 1rem', background: '#eff6ff', color: '#1d4ed8', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.8rem' }}>
+                  {resolvedParams.lang === 'vi' ? 'Khách Hàng Nói Gì Về Chúng Tôi' : 'Customer Stories'}
+                </span>
+                <h2 style={{ fontSize: '2.5rem', color: '#0f172a', fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>
+                  {resolvedParams.lang === 'vi' ? 'Hình Ảnh Bàn Giao & Đánh Giá Thực Tế' : 'Vehicle Delivery & Real Reviews'}
+                </h2>
+                <div style={{ width: '80px', height: '4px', background: 'var(--primary)', margin: '1rem auto 0 auto', borderRadius: '4px' }}></div>
+              </div>
+            </FadeIn>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+              {testimonials.map(t => (
+                <div key={t.id} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+                  {t.imageUrl && (
+                    <div style={{ height: '200px', width: '100%', overflow: 'hidden', background: '#e2e8f0', position: 'relative' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={t.imageUrl} alt={t.customerName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '3px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                        {t.forkliftModel || 'Xe Nâng'}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ color: '#eab308', fontSize: '1rem', marginBottom: '0.8rem' }}>
+                      {'★'.repeat(t.rating)}{'☆'.repeat(5 - t.rating)}
+                    </div>
+                    <p style={{ color: '#334155', fontStyle: 'italic', fontSize: '0.95rem', lineHeight: 1.6, flex: 1, marginBottom: '1.2rem' }}>
+                      &ldquo;{t.content}&rdquo;
+                    </p>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{t.customerName}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                          {t.companyName}{t.location ? ` • ${t.location}` : ''}
+                        </div>
+                      </div>
+                      {t.deliveryDate && (
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          {new Date(t.deliveryDate).toLocaleDateString('vi-VN')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+              <Link href={`/${resolvedParams.lang}/customer-stories`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: 700, fontSize: '1rem', textDecoration: 'none' }}>
+                {resolvedParams.lang === 'vi' ? 'Xem tất cả câu chuyện & lễ bàn giao xe' : 'View all customer stories & deliveries'} &rarr;
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
       
       {/* Why Choose Us */}
       <section style={{ padding: '8rem 5%', background: 'white' }}>

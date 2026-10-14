@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle, FaUserShield, FaFileExcel } from 'react-icons/fa';
+import { FaTractor, FaChartPie, FaCog, FaSignOutAlt, FaUsers, FaFacebook, FaUserCircle, FaUserShield, FaFileExcel, FaStar, FaVideo } from 'react-icons/fa';
 import styles from './admin.module.css';
 
 export default function AdminLayout({
@@ -85,6 +85,18 @@ export default function AdminLayout({
             className={`${styles.navItem} ${isActive('/admin/accounting') ? styles.active : ''}`}
           >
             <FaFileExcel /> Kế toán
+          </Link>
+          <Link 
+            href="/admin/testimonials" 
+            className={`${styles.navItem} ${isActive('/admin/testimonials') ? styles.active : ''}`}
+          >
+            <FaStar /> Góc Khách Hàng
+          </Link>
+          <Link 
+            href="/admin/media-videos" 
+            className={`${styles.navItem} ${isActive('/admin/media-videos') ? styles.active : ''}`}
+          >
+            <FaVideo /> Thư viện Video
           </Link>
           {user?.role === 'ADMIN' && (
             <>
