@@ -10,6 +10,7 @@ import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
 import { FaMoneyBillWave } from 'react-icons/fa';
+import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -55,6 +56,14 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           {/* Cột Trái (60%) */}
           <div style={{ flex: '1 1 60%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: '300px' }}>
             <PublicImageSlider media={forklift.media} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
+              <DownloadForkliftImagesButton 
+                images={forklift.media.map(m => m.url)}
+                forkliftName={`${forklift.maker} ${forklift.model}`}
+                internalCode={forklift.internalCode || ''}
+                lang={resolvedParams.lang}
+              />
+            </div>
           </div>
 
           {/* Cột Phải (40%) */}
@@ -102,7 +111,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               <a href="tel:84362396092">+84 362 396 092</a>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
               <CatalogInquiryButton 
                 lang={resolvedParams.lang as string}
                 dict={dict}
@@ -110,9 +119,17 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                 forkliftName={`${forklift.maker} ${forklift.model}`}
                 internalCode={forklift.internalCode || ''}
               />
-              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '1rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-                <span style={{ fontSize: '1.2rem' }}>💬</span> Nhắn tin Zalo
+              <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, minWidth: '130px', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '0.95rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+                <span style={{ fontSize: '1.1rem' }}>💬</span> Nhắn tin Zalo
               </a>
+              <Link 
+                href={`/${resolvedParams.lang}/quotation/${forklift.id}`} 
+                target="_blank"
+                style={{ flex: 1, minWidth: '130px', textAlign: 'center', backgroundColor: '#0f172a', color: 'white', border: '1px solid #334155', fontSize: '0.95rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none', fontWeight: 700 }}
+                className="hover-lift-sm"
+              >
+                📄 {resolvedParams.lang === 'vi' ? 'Báo Giá PDF' : 'PDF Quote'}
+              </Link>
             </div>
 
             <div className="machine-qr-container" style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid var(--surface-border)', marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>

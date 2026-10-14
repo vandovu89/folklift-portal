@@ -58,6 +58,7 @@ export default function HomeQuickSearch({ lang }: HomeQuickSearchProps) {
               <option value="MITSUBISHI">Mitsubishi</option>
               <option value="NISSAN">Nissan</option>
               <option value="NICHIYU">Nichiyu</option>
+              <option value="SUMITOMO">Sumitomo</option>
             </select>
             <FaCaretDown style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
           </div>

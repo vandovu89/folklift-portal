@@ -87,6 +87,7 @@ export default function PublicCatalogFilter({ lang }: { lang: 'en' | 'vi' }) {
           <option value="NISSAN">NISSAN</option>
           <option value="MITSUBISHI">MITSUBISHI</option>
           <option value="NICHIYU">NICHIYU</option>
+          <option value="SUMITOMO">SUMITOMO</option>
         </select>
       </div>
       <div style={{ flex: '1 1 150px' }}>

@@ -72,7 +72,8 @@ model Forklift {
   inquiries       Inquiry[]
   expenses        Expense[]
   
-  // AI Video Sales Assistant
+  // AI Video Sales Assistant & Review
+  videoUrl        String?   // Link YouTube/TikTok review thực tế
   aiVideoScript   String?   @db.Text
   rawVideoUrl     String?
   aiVideoUrl      String?
@@ -226,6 +227,34 @@ model User {
   forklifts    Forklift[] @relation("ForkliftAssignedTo")
   activityLogs ActivityLog[]
   
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Testimonial {
+  id            String    @id @default(uuid())
+  customerName  String
+  companyName   String?
+  location      String?
+  forkliftModel String?
+  imageUrl      String?
+  videoUrl      String?
+  content       String    @db.Text
+  rating        Int       @default(5)
+  deliveryDate  DateTime?
+  isFeatured    Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model MediaVideo {
+  id           String    @id @default(uuid())
+  title        String
+  videoUrl     String    // YouTube hoặc TikTok URL
+  thumbnailUrl String?
+  category     String    @default("DELIVERY") // DELIVERY, INSPECTION, WAREHOUSE, GUIDE
+  description  String?   @db.Text
+  isFeatured   Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }

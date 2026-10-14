@@ -50,7 +50,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     { number: '24/7', label: resolvedParams.lang === 'vi' ? 'Hỗ trợ kỹ thuật' : 'Technical Support' },
   ];
 
-  const brands = ['TOYOTA', 'KOMATSU', 'TCM', 'MITSUBISHI', 'NISSAN', 'NICHIYU'];
+  const brands = ['TOYOTA', 'KOMATSU', 'TCM', 'MITSUBISHI', 'NISSAN', 'NICHIYU', 'SUMITOMO'];
 
   const jsonLd = {
     '@context': 'https://schema.org',
