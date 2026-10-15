@@ -134,19 +134,29 @@ export async function POST(request: Request) {
         finalStatus = statusRaw;
       }
 
+      let source = null;
+      let sourceKey = '';
+      if (purchaseSourceAbbr) {
+        sourceKey = purchaseSourceAbbr.toLowerCase().trim();
+        source = sourceMap.get(sourceKey);
+      }
+
+      // Safeguard: Nếu người dùng gõ mã viết tắt nguồn nhập (VD: TU, YS, MCK, NK) vào cột Mã nội bộ
+      if (internalCodeInput && !internalCodeInput.includes('-') && sourceMap.has(internalCodeInput.toLowerCase())) {
+        if (!source) {
+          source = sourceMap.get(internalCodeInput.toLowerCase());
+          sourceKey = internalCodeInput.toLowerCase();
+        }
+        // Xóa internalCodeInput để hệ thống tự động sinh số thứ tự (TU-x, YS-x...), tránh các dòng ghi đè lẫn nhau
+        internalCodeInput = '';
+      }
+
       // Kiểm tra xe đã tồn tại theo mã nội bộ chưa
       let existingForklift = null;
       if (internalCodeInput) {
         existingForklift = await prisma.forklift.findFirst({
           where: { internalCode: internalCodeInput }
         });
-      }
-
-      let source = null;
-      let sourceKey = '';
-      if (purchaseSourceAbbr) {
-        sourceKey = purchaseSourceAbbr.toLowerCase().trim();
-        source = sourceMap.get(sourceKey);
       }
 
       // Fallback 1: Trích xuất nguồn nhập từ tiền tố của Mã nội bộ (VD: TU-11 -> TU, MCK-3 -> MCK)
