@@ -13,13 +13,15 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
   const [loadingAi, setLoadingAi] = useState(false);
   const [loadingPublish, setLoadingPublish] = useState(false);
   const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [availableImages, setAvailableImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [attachImages, setAttachImages] = useState(true);
   const [pages, setPages] = useState<any[]>([]);
   const [selectedPageId, setSelectedPageId] = useState('');
   const [tone, setTone] = useState('chuyên nghiệp và thuyết phục');
   const [publishStatus, setPublishStatus] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Fetch available pages
+  // Fetch available pages and forklift images on open
   useEffect(() => {
     if (isOpen) {
       fetch('/api/facebook-pages')
@@ -31,12 +33,23 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
           }
         })
         .catch(console.error);
+
+      if (forkliftId) {
+        fetch(`/api/forklifts/${forkliftId}/images`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && Array.isArray(data.images)) {
+              setAvailableImages(data.images);
+              setSelectedImages(data.images);
+            }
+          })
+          .catch(console.error);
+      }
     } else {
-      // Reset state when closed
       setContent('');
       setPublishStatus(null);
     }
-  }, [isOpen]);
+  }, [isOpen, forkliftId]);
 
   const handleGenerate = async () => {
     setLoadingAi(true);
@@ -50,7 +63,12 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
       const data = await res.json();
       if (data.success) {
         setContent(data.content);
-        setImageUrl(data.imageUrl);
+        if (Array.isArray(data.images) && data.images.length > 0) {
+          setAvailableImages(data.images);
+          if (selectedImages.length === 0) {
+            setSelectedImages(data.images);
+          }
+        }
       } else {
         alert('Lỗi khi sinh nội dung: ' + (data.error || 'Unknown error'));
       }
@@ -74,18 +92,20 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
     setLoadingPublish(true);
     setPublishStatus(null);
     try {
+      const targetImages = attachImages ? selectedImages : [];
       const res = await fetch('/api/facebook/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pageId: selectedPageId,
           message: content,
-          imageUrl: imageUrl
+          images: targetImages,
+          imageUrl: targetImages[0] || null
         })
       });
       const data = await res.json();
       if (data.success) {
-        setPublishStatus({ success: true, message: 'Đăng bài thành công lên Fanpage!' });
+        setPublishStatus({ success: true, message: `Đăng bài thành công lên Fanpage! (${targetImages.length > 0 ? `Đã kèm ${targetImages.length} ảnh` : 'Bài viết dạng chữ'})` });
       } else {
         setPublishStatus({ success: false, message: 'Lỗi đăng bài: ' + (data.error || 'Unknown error') });
       }
@@ -106,9 +126,9 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
       padding: '1rem'
     }}>
       <div className="glass-panel" style={{
-        background: '#fff', width: '100%', maxWidth: '700px',
+        background: '#fff', width: '100%', maxWidth: '720px',
         borderRadius: '12px', display: 'flex', flexDirection: 'column',
-        maxHeight: '90vh', overflow: 'hidden'
+        maxHeight: '92vh', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)'
       }}>
         <div style={{ 
           padding: '1.2rem', borderBottom: '1px solid #eee', 
@@ -124,7 +144,7 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
         </div>
 
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, color: '#333' }}>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Giọng điệu (Tone):</label>
               <select value={tone} onChange={e => setTone(e.target.value)} className="form-control" style={{ background: '#fff' }}>
@@ -146,23 +166,146 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
             </div>
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '1.2rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-              Nội dung bài viết (Có thể chỉnh sửa):
+              Nội dung bài viết Facebook (Có thể chỉnh sửa):
             </label>
             <textarea 
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Bấm nút 'Tự động viết bài' ở trên để AI tạo nội dung cho chiếc xe này..."
               style={{ 
-                width: '100%', height: '250px', padding: '1rem', 
+                width: '100%', height: '220px', padding: '1rem', 
                 borderRadius: '8px', border: '1px solid #cbd5e1',
-                resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem'
+                resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem',
+                lineHeight: '1.5'
               }}
             />
-            {imageUrl && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#64748b' }}>
-                <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> Bài đăng sẽ kèm theo ảnh chính của xe: <a href={imageUrl} target="_blank" rel="noreferrer">Xem ảnh</a>
+          </div>
+
+          {/* Khu vực chọn hình ảnh đính kèm */}
+          <div style={{ 
+            marginBottom: '1.2rem', 
+            background: '#f8fafc', 
+            padding: '1rem', 
+            borderRadius: '8px', 
+            border: '1px solid #e2e8f0' 
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              marginBottom: attachImages && availableImages.length > 0 ? '0.75rem' : '0' 
+            }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                cursor: 'pointer', 
+                fontWeight: 600, 
+                fontSize: '0.9rem', 
+                color: '#1e293b', 
+                margin: 0,
+                userSelect: 'none'
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={attachImages} 
+                  onChange={e => setAttachImages(e.target.checked)} 
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                <span>Đăng kèm hình ảnh xe nâng ({selectedImages.length}/{availableImages.length} ảnh đã chọn)</span>
+              </label>
+
+              {attachImages && availableImages.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedImages([...availableImages])}
+                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#475569' }}
+                  >
+                    Chọn tất cả
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedImages([])}
+                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', color: '#475569' }}
+                  >
+                    Bỏ chọn
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {attachImages && (
+              <div>
+                {availableImages.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic', marginTop: '0.25rem' }}>
+                    Xe chưa có hình ảnh nào trong thư viện media.
+                  </div>
+                ) : (
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(75px, 1fr))', 
+                    gap: '0.5rem', 
+                    maxHeight: '160px', 
+                    overflowY: 'auto',
+                    padding: '0.25rem 0.1rem'
+                  }}>
+                    {availableImages.map((imgUrl, idx) => {
+                      const isSelected = selectedImages.includes(imgUrl);
+                      return (
+                        <div 
+                          key={idx}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedImages(selectedImages.filter(url => url !== imgUrl));
+                            } else {
+                              setSelectedImages([...selectedImages, imgUrl]);
+                            }
+                          }}
+                          style={{
+                            position: 'relative',
+                            aspectRatio: '1',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            border: isSelected ? '3px solid #2563eb' : '1px solid #cbd5e1',
+                            opacity: isSelected ? 1 : 0.45,
+                            transition: 'all 0.15s ease-in-out'
+                          }}
+                          title={isSelected ? 'Nhấn để bỏ chọn' : 'Nhấn để chọn ảnh này'}
+                        >
+                          <img 
+                            src={imgUrl} 
+                            alt={`Xe nâng ${idx + 1}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                          {isSelected && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '3px',
+                              right: '3px',
+                              background: '#2563eb',
+                              color: '#fff',
+                              borderRadius: '50%',
+                              width: '18px',
+                              height: '18px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                            }}>
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>

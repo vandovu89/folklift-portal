@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { pageId, message, imageUrl } = body;
+    const { pageId, message, imageUrl, images } = body;
 
     if (!pageId || !message) {
       return NextResponse.json({ error: 'Missing pageId or message' }, { status: 400 });
@@ -36,38 +36,89 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Fanpage not found or missing access token' }, { status: 404 });
     }
 
-    let url = '';
-    let payload: any = {};
+    const targetImages: string[] = Array.isArray(images) && images.length > 0
+      ? images
+      : (imageUrl ? [imageUrl] : []);
 
-    if (imageUrl) {
-      // Đăng ảnh kèm caption
-      url = `https://graph.facebook.com/v20.0/${pageId}/photos?access_token=${fbPage.accessToken}`;
-      payload = {
-        url: imageUrl,
-        caption: message
-      };
+    // Trường hợp 1: Không có ảnh (Đăng bài status dạng Text thông thường)
+    if (targetImages.length === 0) {
+      const url = `https://graph.facebook.com/v20.0/${pageId}/feed?access_token=${fbPage.accessToken}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('[Facebook Publish API Error]:', data);
+        return NextResponse.json({ error: data.error?.message || 'Failed to publish to Facebook' }, { status: res.status });
+      }
+      return NextResponse.json({ success: true, postId: data.id });
+    }
+
+    // Trường hợp 2: Có đúng 1 ảnh (Đăng ảnh kèm Caption)
+    if (targetImages.length === 1) {
+      const url = `https://graph.facebook.com/v20.0/${pageId}/photos?access_token=${fbPage.accessToken}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: targetImages[0],
+          caption: message
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('[Facebook Publish Single Photo API Error]:', data);
+        return NextResponse.json({ error: data.error?.message || 'Failed to publish photo to Facebook' }, { status: res.status });
+      }
+      return NextResponse.json({ success: true, postId: data.id || data.post_id });
+    }
+
+    // Trường hợp 3: Nhiều ảnh (Đăng bài kèm album ảnh multi-photo)
+    const uploadedMediaIds: string[] = [];
+    for (const imgUrl of targetImages) {
+      try {
+        const uploadRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos?access_token=${fbPage.accessToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: imgUrl,
+            published: false
+          })
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadRes.ok && uploadData.id) {
+          uploadedMediaIds.push(uploadData.id);
+        } else {
+          console.warn('[Facebook Multi-Photo Upload Warning]:', uploadData);
+        }
+      } catch (err) {
+        console.error('[Facebook Multi-Photo Upload Error]:', err);
+      }
+    }
+
+    if (uploadedMediaIds.length > 0) {
+      const feedUrl = `https://graph.facebook.com/v20.0/${pageId}/feed?access_token=${fbPage.accessToken}`;
+      const feedRes = await fetch(feedUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          attached_media: uploadedMediaIds.map(id => ({ media_fbid: id }))
+        })
+      });
+      const feedData = await feedRes.json();
+      if (!feedRes.ok) {
+        console.error('[Facebook Publish Multi-Photo Feed Error]:', feedData);
+        return NextResponse.json({ error: feedData.error?.message || 'Failed to publish multi-photo post' }, { status: feedRes.status });
+      }
+      return NextResponse.json({ success: true, postId: feedData.id });
     } else {
-      // Đăng chữ (status update)
-      url = `https://graph.facebook.com/v20.0/${pageId}/feed?access_token=${fbPage.accessToken}`;
-      payload = {
-        message: message
-      };
+      return NextResponse.json({ 
+        error: 'Không thể upload ảnh lên Facebook. Vui lòng kiểm tra lại đường dẫn ảnh công khai.' 
+      }, { status: 400 });
     }
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error('[Facebook Publish API Error]:', data);
-      return NextResponse.json({ error: data.error?.message || 'Failed to publish to Facebook' }, { status: res.status });
-    }
-
-    return NextResponse.json({ success: true, postId: data.id });
   } catch (error: any) {
     console.error('[Facebook Publish Route Error]:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
