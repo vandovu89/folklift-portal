@@ -1,15 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './forklifts.module.css';
 import ExportButton from './ExportButton';
 
-export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
+export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[]; userRole?: string }) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [role, setRole] = useState(userRole || '');
+
+  useEffect(() => {
+    if (!role) {
+      fetch('/api/auth/me')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.user?.role) setRole(data.user.role);
+        })
+        .catch(console.error);
+    }
+  }, [role]);
 
   const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -55,7 +67,8 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
         setSelectedIds([]);
         router.refresh();
       } else {
-        alert('Có lỗi xảy ra khi xóa!');
+        const data = await res.json();
+        alert(data.error || 'Có lỗi xảy ra khi xóa!');
       }
     } catch (error) {
       console.error(error);
@@ -84,14 +97,16 @@ export default function ForkliftTable({ forklifts }: { forklifts: any[] }) {
               selectedIds={selectedIds} 
               buttonText="Xuất Excel Các Mục Đã Chọn"
             />
-            <button 
-              onClick={handleBulkDelete} 
-              disabled={isDeleting}
-              className="btn-danger"
-              style={{ padding: '0.4rem 1rem' }}
-            >
-              {isDeleting ? 'Đang xóa...' : 'Xóa Các Mục Đã Chọn'}
-            </button>
+            {role === 'ADMIN' && (
+              <button 
+                onClick={handleBulkDelete} 
+                disabled={isDeleting}
+                className="btn-danger"
+                style={{ padding: '0.4rem 1rem' }}
+              >
+                {isDeleting ? 'Đang xóa...' : 'Xóa Các Mục Đã Chọn'}
+              </button>
+            )}
           </div>
         </div>
       )}

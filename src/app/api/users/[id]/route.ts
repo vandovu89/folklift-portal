@@ -22,14 +22,39 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const resolvedParams = await params;
     const { id } = resolvedParams;
     const body = await request.json();
-    const { password, name, role, isActive } = body;
+    const { username, password, name, role, isActive } = body;
 
-    const data: any = { name, role, isActive };
-    if (password) {
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
+      return NextResponse.json({ error: 'Người dùng không tồn tại' }, { status: 404 });
+    }
+
+    // Không cho phép vô hiệu hóa hoặc hạ quyền Admin duy nhất
+    if (existingUser.role === 'ADMIN' && ((role && role !== 'ADMIN') || isActive === false)) {
+      const adminCount = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
+      if (adminCount <= 1) {
+        return NextResponse.json({ error: 'Không thể hạ quyền hoặc vô hiệu hóa Admin duy nhất' }, { status: 400 });
+      }
+    }
+
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (role !== undefined) data.role = role;
+    if (isActive !== undefined) data.isActive = isActive;
+
+    if (username && username.trim() !== '' && username !== existingUser.username) {
+      const duplicate = await prisma.user.findUnique({ where: { username: username.trim() } });
+      if (duplicate && duplicate.id !== id) {
+        return NextResponse.json({ error: 'Tên đăng nhập đã được sử dụng bởi người khác' }, { status: 400 });
+      }
+      data.username = username.trim();
+    }
+
+    if (password && password.trim() !== '') {
       data.passwordHash = await bcrypt.hash(password, 10);
     }
 
-    const user = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data,
       select: {
@@ -41,9 +66,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     });
 
-    return NextResponse.json(user);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+    return NextResponse.json(updatedUser);
+  } catch (error: any) {
+    console.error('Update user error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update user' }, { status: 500 });
   }
 }
 

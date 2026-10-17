@@ -95,6 +95,19 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
     });
   }
 
+  let userRole = 'SALES';
+  try {
+    const { cookies } = await import('next/headers');
+    const { jwtVerify } = await import('jose');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    if (token) {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
+      const { payload } = await jwtVerify(token, secret);
+      userRole = (payload.role as string) || 'SALES';
+    }
+  } catch (e) {}
+
   return (
     <div>
       <div className={styles.pageHeader}>
@@ -114,7 +127,7 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
 
       <ForkliftFilter />
 
-      <ForkliftTable forklifts={forklifts} />
+      <ForkliftTable forklifts={forklifts} userRole={userRole} />
     </div>
   );
 }
