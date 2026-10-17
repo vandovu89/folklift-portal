@@ -30,7 +30,8 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
   return (
     <section className="hero-section" style={{ 
       position: 'relative',
-      height: '85vh', minHeight: '600px',
+      minHeight: '680px',
+      padding: '3.5rem 1.5rem 7.5rem 1.5rem',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: 'white', textAlign: 'center',
       overflow: 'hidden'
@@ -55,7 +56,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
       </AnimatePresence>
 
       {/* Content */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '2rem', maxWidth: '900px' }}>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px' }}>
         <motion.span 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,7 +72,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
           className="hero-title" 
-          style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+          style={{ fontSize: 'clamp(2.2rem, 7vw, 4.5rem)', fontWeight: 900, marginBottom: '1.2rem', lineHeight: 1.15, textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
         >
           {lang === 'vi' ? 'Đại Lý Xe Nâng Cũ Nhập Khẩu Trực Tiếp Từ Nhật Bản' : 'Directly Imported Used Forklifts From Japan'}
         </motion.h1>
@@ -81,7 +82,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
           className="hero-desc" 
-          style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '3rem', lineHeight: 1.8 }}
+          style={{ fontSize: '1.15rem', opacity: 0.9, marginBottom: '2rem', lineHeight: 1.7 }}
         >
           {lang === 'vi' 
             ? 'Xe Nâng MCK chuyên cung cấp các dòng xe nâng bãi, xe nâng cũ chất lượng cao từ các thương hiệu Komatsu, Toyota, TCM... Nhập khẩu nguyên chiếc từ Nhật Bản.' 
@@ -104,7 +105,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
       </div>
       
       {/* Slide Indicators */}
-      <div style={{ position: 'absolute', bottom: '30px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 1 }}>
+      <div style={{ position: 'absolute', bottom: '60px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 1 }}>
         {displayImages.map((_, idx) => (
           <button
             key={idx}

@@ -27,7 +27,7 @@ export default function HomeQuickSearch({ lang }: HomeQuickSearchProps) {
   return (
     <div style={{
       maxWidth: '1000px',
-      margin: '-60px auto 4rem auto',
+      margin: '-35px auto 4rem auto',
       position: 'relative',
       zIndex: 10,
       background: 'white',
