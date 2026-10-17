@@ -8,6 +8,7 @@ import LangSwitcher from '@/components/LangSwitcher';
 import PublicCatalogFilter from './PublicCatalogFilter';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import Pagination from '@/components/Pagination';
+import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -219,7 +220,7 @@ export default async function PublicCatalog({
                 </Link>
 
                 {/* Buttons */}
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <CatalogInquiryButton 
                     lang={resolvedParams.lang as string}
                     dict={dict}
@@ -227,9 +228,16 @@ export default async function PublicCatalog({
                     forkliftName={`${fl.maker} ${fl.model}`}
                     internalCode={fl.internalCode || ''}
                   />
-                  <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                    📞 {resolvedParams.lang === 'vi' ? 'Gọi điện' : 'Call'}
+                  <a href="tel:84362396092" style={{ flex: 1, minWidth: '85px', backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                    📞 {resolvedParams.lang === 'vi' ? 'Gọi' : 'Call'}
                   </a>
+                  <DownloadForkliftImagesButton 
+                    forkliftId={fl.id}
+                    forkliftName={`${fl.maker} ${fl.model}`}
+                    internalCode={fl.internalCode || ''}
+                    lang={resolvedParams.lang}
+                    variant="card"
+                  />
                 </div>
 
               </div>

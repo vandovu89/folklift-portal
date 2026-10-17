@@ -258,4 +258,3 @@ model MediaVideo {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
-

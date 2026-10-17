@@ -30,8 +30,8 @@ const ALL_COLUMNS = [
   { id: 'price', label: 'Giá bán', default: true },
   { id: 'costPrice', label: 'Giá vốn', default: false },
   { id: 'expenses', label: 'Chi phí phát sinh', default: false },
-  { id: 'purchaseSource', label: 'Nguồn nhập', default: false },
-  { id: 'status', label: 'Trạng thái', default: false },
+  { id: 'purchaseSource', label: 'Nguồn nhập', default: true },
+  { id: 'status', label: 'Trạng thái', default: true },
 ];
 
 export default function ExportButton({ 

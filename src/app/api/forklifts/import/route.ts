@@ -134,6 +134,23 @@ export async function POST(request: Request) {
         finalStatus = statusRaw;
       }
 
+      let source = null;
+      let sourceKey = '';
+      if (purchaseSourceAbbr) {
+        sourceKey = purchaseSourceAbbr.toLowerCase().trim();
+        source = sourceMap.get(sourceKey);
+      }
+
+      // Safeguard: Nếu người dùng gõ mã viết tắt nguồn nhập (VD: TU, YS, MCK, NK) vào cột Mã nội bộ
+      if (internalCodeInput && !internalCodeInput.includes('-') && sourceMap.has(internalCodeInput.toLowerCase())) {
+        if (!source) {
+          source = sourceMap.get(internalCodeInput.toLowerCase());
+          sourceKey = internalCodeInput.toLowerCase();
+        }
+        // Xóa internalCodeInput để hệ thống tự động sinh số thứ tự (TU-x, YS-x...), tránh các dòng ghi đè lẫn nhau
+        internalCodeInput = '';
+      }
+
       // Kiểm tra xe đã tồn tại theo mã nội bộ chưa
       let existingForklift = null;
       if (internalCodeInput) {
@@ -142,11 +159,25 @@ export async function POST(request: Request) {
         });
       }
 
-      let source = null;
-      let sourceKey = '';
-      if (purchaseSourceAbbr) {
-        sourceKey = purchaseSourceAbbr.toLowerCase();
-        source = sourceMap.get(sourceKey);
+      // Fallback 1: Trích xuất nguồn nhập từ tiền tố của Mã nội bộ (VD: TU-11 -> TU, MCK-3 -> MCK)
+      if (!source && internalCodeInput && internalCodeInput.includes('-')) {
+        const prefix = internalCodeInput.split('-')[0].trim().toLowerCase();
+        if (sourceMap.has(prefix)) {
+          source = sourceMap.get(prefix);
+          sourceKey = prefix;
+        }
+      }
+
+      // Fallback 2: Nếu xe đã tồn tại thì lấy lại nguồn nhập cũ của xe
+      if (!source && existingForklift && existingForklift.purchaseSource) {
+        const oldKey = existingForklift.purchaseSource.toLowerCase().trim();
+        source = sourceMap.get(oldKey) || (sources.length > 0 ? sources[0] : null);
+      }
+
+      // Fallback 3: Nếu là xe mới và file Excel không có cột nguồn nhập, gán nguồn đầu tiên trong hệ thống
+      if (!source && sources.length > 0) {
+        source = sources[0];
+        sourceKey = source.abbreviation.toLowerCase();
       }
 
       if (!existingForklift && !source) {
@@ -209,20 +240,44 @@ export async function POST(request: Request) {
       } else {
         // CREATE (Thêm mới)
         if (!source) {
-          // Double check
           return NextResponse.json({ error: `Lỗi không tìm thấy nguồn nhập ở dòng ${i + 1}` }, { status: 400 });
         }
 
-        const nextSeq = source.currentSeq + 1;
-        // Nếu user truyền internalCodeInput mà không trùng, vẫn ưu tiên sinh mới để đảm bảo tính tuần tự
-        const internalCode = `${source.abbreviation}-${nextSeq}`;
-        
-        source.currentSeq = nextSeq;
-        sourceMap.set(sourceKey, source);
-        await prisma.purchaseSource.update({
-          where: { id: source.id },
-          data: { currentSeq: nextSeq }
-        });
+        let internalCode = '';
+        // Ưu tiên dùng mã nội bộ user đã nhập trong Excel (VD: TU-11, TU-18) nếu chưa tồn tại
+        if (internalCodeInput) {
+          const codeTaken = await prisma.forklift.findFirst({
+            where: { internalCode: internalCodeInput }
+          });
+          if (!codeTaken) {
+            internalCode = internalCodeInput;
+            // Đồng bộ currentSeq nếu số thứ tự lớn hơn
+            const match = internalCodeInput.match(/-(\d+)$/);
+            if (match && source) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > source.currentSeq) {
+                source.currentSeq = num;
+                sourceMap.set(source.abbreviation.toLowerCase(), source);
+                await prisma.purchaseSource.update({
+                  where: { id: source.id },
+                  data: { currentSeq: num }
+                });
+              }
+            }
+          }
+        }
+
+        // Nếu chưa có mã nội bộ hoặc mã bị trùng thì tự động sinh theo chuỗi
+        if (!internalCode) {
+          const nextSeq = source.currentSeq + 1;
+          internalCode = `${source.abbreviation}-${nextSeq}`;
+          source.currentSeq = nextSeq;
+          sourceMap.set(source.abbreviation.toLowerCase(), source);
+          await prisma.purchaseSource.update({
+            where: { id: source.id },
+            data: { currentSeq: nextSeq }
+          });
+        }
 
         await prisma.forklift.create({
           data: {
