@@ -193,7 +193,9 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
             <FaMagic /> Trợ lý AI Marketing
           </button>
-          <button type="button" onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
+          {userRole === 'ADMIN' && (
+            <button type="button" onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
+          )}
         </div>
       </div>
 
