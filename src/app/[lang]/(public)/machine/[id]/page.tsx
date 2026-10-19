@@ -9,7 +9,8 @@ import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
-import { FaMoneyBillWave } from 'react-icons/fa';
+import { FaMoneyBillWave, FaFilePdf, FaPrint, FaQrcode } from 'react-icons/fa';
+import VideoEmbed from '@/components/VideoEmbed';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
@@ -57,7 +58,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           <div style={{ flex: '1 1 60%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: '300px' }}>
             <PublicImageSlider media={forklift.media} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
-              <DownloadForkliftImagesButton 
+              <DownloadForkliftImagesButton
                 images={forklift.media.map(m => m.url)}
                 forkliftName={`${forklift.maker} ${forklift.model}`}
                 internalCode={forklift.internalCode || ''}
@@ -120,15 +121,31 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                 internalCode={forklift.internalCode || ''}
               />
               <a href="https://zalo.me/84362396092" target="_blank" className="btn-primary hover-lift-sm" style={{ flex: 1, minWidth: '130px', textAlign: 'center', backgroundColor: '#0068ff', borderColor: '#0068ff', fontSize: '0.95rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-                <span style={{ fontSize: '1.1rem' }}>💬</span> Nhắn tin Zalo
+                <span style={{ fontSize: '1.1rem' }}>💬</span> {resolvedParams.lang === 'vi' ? 'Nhắn tin Zalo' : 'Chat Zalo'}
               </a>
               <Link 
                 href={`/${resolvedParams.lang}/quotation/${forklift.id}`} 
                 target="_blank"
-                style={{ flex: 1, minWidth: '130px', textAlign: 'center', backgroundColor: '#0f172a', color: 'white', border: '1px solid #334155', fontSize: '0.95rem', padding: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', textDecoration: 'none', fontWeight: 700 }}
+                style={{ 
+                  flex: 1, 
+                  minWidth: '130px',
+                  textAlign: 'center', 
+                  backgroundColor: '#0284c7', 
+                  color: 'white', 
+                  fontSize: '0.95rem', 
+                  padding: '0.8rem', 
+                  borderRadius: '8px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '0.4rem', 
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)' 
+                }}
                 className="hover-lift-sm"
               >
-                📄 {resolvedParams.lang === 'vi' ? 'Báo Giá PDF' : 'PDF Quote'}
+                <FaFilePdf size={16} /> {resolvedParams.lang === 'vi' ? 'Báo Giá PDF' : 'PDF Quote'}
               </Link>
             </div>
 
@@ -136,10 +153,32 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               <div style={{ flexShrink: 0, width: '80px', height: '80px' }}>
                 <QRCodeComponent value={qrUrl} />
               </div>
-              <div>
-                <strong style={{ display: 'block', marginBottom: '0.2rem', color: '#1e293b' }}>{resolvedParams.lang === 'vi' ? 'Lưu thông tin' : 'Save Info'}</strong>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <strong style={{ color: '#1e293b' }}>{resolvedParams.lang === 'vi' ? 'Lưu thông tin / In tem' : 'Save Info / Print QR'}</strong>
+                  <Link
+                    href={`/${resolvedParams.lang}/print-qr?ids=${forklift.id}`}
+                    target="_blank"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      background: '#eff6ff',
+                      color: '#0284c7',
+                      border: '1px solid #bae6fd',
+                      padding: '0.3rem 0.7rem',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      textDecoration: 'none'
+                    }}
+                    className="hover-lift-sm"
+                  >
+                    <FaPrint size={12} /> {resolvedParams.lang === 'vi' ? 'In Tem Dán Xe' : 'Print Label'}
+                  </Link>
+                </div>
                 <span style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.4', display: 'block' }}>
-                  {resolvedParams.lang === 'vi' ? 'Quét mã QR bằng Zalo/Camera để lưu lại trang này vào điện thoại của bạn.' : 'Scan with your camera to save this page on your phone.'}
+                  {resolvedParams.lang === 'vi' ? 'Quét mã QR bằng Zalo/Camera để lưu lại hoặc in tem nhãn chuẩn để dán lên xe nâng.' : 'Scan with phone camera or print standard label to attach to the forklift.'}
                 </span>
               </div>
             </div>
@@ -174,6 +213,18 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
                   Bảo hành <strong>03 tháng</strong> (Bình ắc quy & Bo mạch điện tử). Giới thiệu thợ sửa chữa trọn đời với chi phí thực tế cực rẻ, không lấy lãi qua trung gian.
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Video Review Thực Tế */}
+        {forklift.videoUrl && (
+          <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.4rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              🎥 Video Review &amp; Vận Hành Thực Tế
+            </h3>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <VideoEmbed url={forklift.videoUrl} title={`Video Xe Nâng ${forklift.maker} ${forklift.model}`} />
             </div>
           </div>
         )}
@@ -254,7 +305,14 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           forkliftName={`${forklift.maker} ${forklift.model}`}
           internalCode={forklift.internalCode || ''}
         />
-        <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+        <Link 
+          href={`/${resolvedParams.lang}/quotation/${forklift.id}`} 
+          target="_blank"
+          style={{ flex: 1, backgroundColor: '#0284c7', color: 'white', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+        >
+          📄 Báo Giá
+        </Link>
+        <a href="tel:84362396092" style={{ flex: 1, backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
           📞 {resolvedParams.lang === 'vi' ? 'Gọi ngay' : 'Call Now'}
         </a>
       </div>

@@ -186,10 +186,19 @@ export default function InquiryDetailPage({ params }: { params: Promise<{ id: st
               <div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: '0.5rem' }}>
                 {inquiry.forklift.maker} {inquiry.forklift.model}
               </div>
-              <div style={{ color: '#666', marginBottom: '1rem' }}>Mã kho: {inquiry.forklift.stockNo || inquiry.forklift.internalCode}</div>
-              <Link href={`/${resolvedParams.lang}/machine/${inquiry.forklift.id}`} target="_blank" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none' }}>
-                Xem chi tiết xe
-              </Link>
+              <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+                <Link href={`/${resolvedParams.lang}/machine/${inquiry.forklift.id}`} target="_blank" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none' }}>
+                  Xem chi tiết xe
+                </Link>
+                <Link 
+                  href={`/${resolvedParams.lang}/quotation/${inquiry.forklift.id}?customerName=${encodeURIComponent(inquiry.customerName)}&phone=${encodeURIComponent(inquiry.phone || '')}&company=${encodeURIComponent(inquiry.company || '')}`} 
+                  target="_blank" 
+                  className="btn-primary" 
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none', backgroundColor: '#0284c7', borderColor: '#0284c7' }}
+                >
+                  📄 Xuất Báo Giá PDF Cho Khách
+                </Link>
+              </div>
             </div>
           )}
 

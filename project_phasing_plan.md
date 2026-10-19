@@ -4,7 +4,7 @@ Dựa trên tài liệu yêu cầu nghiệp vụ "Requirement Specification Cust
 
 Để đảm bảo dự án sớm đưa vào sử dụng và mang lại giá trị tức thì, hệ thống được đề xuất chia thành 5 giai đoạn (Phase). 
 - **Phase 1 (Hoàn thành):** Thay thế Excel, số hóa dữ liệu cơ bản và cổng thông tin công khai (Public Portal).
-- **Phase 2 (Đang triển khai):** Số hóa quy trình vận hành sâu (Kiểm tra, Sửa chữa), tối ưu bán hàng (CRM, Chi phí) và Trợ lý Content, Báo giá.
+- **Phase 2 (Hoàn thành):** Số hóa quy trình vận hành sâu (Kiểm tra, Sửa chữa), tối ưu bán hàng (CRM, Chi phí, Báo giá PDF) và Trợ lý Content, Video, Media & Mạng xã hội.
 - **Phase 3 (Kế hoạch mở rộng):** Các giải pháp nâng cấp & tối ưu bán hàng.
 - **Phase 4 (Kế hoạch tương lai):** Hệ thống Tự học AI "Học có kiểm duyệt" (Human-in-the-loop).
 - **Phase 5 (Kế hoạch tương lai):** Huấn luyện AI chuyên sâu để chốt sale (Fine-tuning).
@@ -37,43 +37,27 @@ Dựa trên tài liệu yêu cầu nghiệp vụ "Requirement Specification Cust
 
 ---
 
-## 🛠 PHASE 2: Chức năng Mở rộng (Vận hành & Bán hàng)
-**Mục tiêu:** Hoàn thiện luồng quy trình nghiệp vụ chuyên sâu, tính toán chi phí/lợi nhuận, tự động hóa marketing, xuất báo giá và quản lý phễu bán hàng.
+## 🛠 PHASE 2: Số hóa Vận hành & Nâng cấp Trải nghiệm Khách hàng
+**Mục tiêu:** Hoàn thiện luồng quy trình nghiệp vụ chuyên sâu, tính toán chi phí/lợi nhuận, tự động hóa marketing, xuất báo giá, phễu bán hàng và tích hợp mạng xã hội đa kênh.
 
-### 1. Module Quản lý Tình trạng (Inspection)
-* Áp dụng **Checklist kiểm tra chi tiết** theo từng hạng mục (Engine, Transmission, Hydraulic, Mast, Tire, Electrical, Body, Safety) và đánh giá mức độ (Good, Fair, Needs Repair, NG).
-* Upload ảnh minh chứng cho từng lỗi (Damage, Leakage...) đính kèm ngay trong mục kiểm tra.
-* **Ràng buộc quy trình:** Tích hợp quy tắc (theo mục 21) bắt buộc phải tiến hành Repair nếu kết quả Inspection phát hiện lỗi (NG) trước khi chuyển sang trạng thái "Published". Khách hàng có thể xem được toàn bộ inspection.
+### A. Quản trị Bán hàng & Chi phí (CRM & Costing)
+* **1. Dashboard Chi phí & Tính toán Lợi nhuận (Costing):** 🟢 *Đã triển khai.* Tracking chi phí cấu thành (giá nhập, vận chuyển, sửa chữa, phụ tùng) và tự động tính Tổng giá vốn và Lợi nhuận dự kiến / thực tế (bảo mật nội bộ).
+* **2. Quản lý 7 Trạng thái xe thông minh:** 🟢 *Đã triển khai.* Hỗ trợ các trạng thái vòng đời chi tiết: Nhật Bản, Đang rút Container, Đang kiểm tra/sửa chữa, Sẵn sàng bán, Đã cọc/giữ chỗ, Đã bán, Đã xuất kho.
+* **3. Tự động hóa Quản lý Nguồn Nhập & Mã Nội Bộ:** 🟢 *Đã triển khai.* Quản lý danh mục nguồn mua (Yahoo Auction, Đại lý Nhật...), tự động sinh và kiểm soát mã nội bộ.
+* **4. Hệ thống tự động hóa Chính sách Đặc quyền & Bảo hành:** 🟢 *Đã triển khai.* Áp dụng chính sách bảo hành 3 tháng riêng cho Ắc quy / Bo mạch xe nâng điện, cam kết dung lượng bình >80%.
+* **5. CRM: Phễu khách hàng & Quản lý Giao dịch (Chốt đơn):** 🟢 *Đã triển khai.* Quản lý Inquiry theo phễu (New -> Contacted -> Negotiating -> Quoted -> Won/Lost), gắn link xe nâng cụ thể, ghi nhận thông tin chốt bán, ngày bán, giá bán thực tế.
+* **6. Phân quyền User chi tiết:** 🟢 *Đã triển khai.* Quản lý người dùng với các vai trò phân quyền bảo mật (Admin, Sales, Viewer), bảo vệ giá nhập và dữ liệu nhạy cảm.
+* **7. Hệ thống Tự động Xuất và Gửi Báo giá (Instant PDF Quotation):** 🟢 *Đã triển khai.* Khách hàng hoặc Sale tạo báo giá nhanh. Hệ thống tự động sinh báo giá chuẩn A4/PDF chuyên nghiệp (logo công ty, hình ảnh xe, thông số kỹ thuật, bảng giá, con dấu và cam kết bảo hành) để in hoặc tải về gửi khách hàng.
+* **8. Tổng hợp Dữ liệu Kế toán (Export to MISA):** 🟢 *Đã triển khai.* Bảng kê tổng hợp chi phí giá vốn, bảng kê bán hàng, xuất file Excel chuẩn template MISA và cơ chế khóa dữ liệu kế toán.
 
-### 2. Module Quản lý Sửa chữa & Bảo dưỡng (Repair)
-* Tạo danh sách task/hạng mục sửa chữa dựa trên kết quả Inspection.
-* Ghi nhận nội dung sửa chữa, tiến độ, người/đơn vị phụ trách, ngày hoàn thành.
-* Cập nhật hình ảnh Before/After (Trước và sau khi sửa) và ghi nhận lịch sử bảo dưỡng.
-
-### 3. Quản lý Chi phí, Giá & Lợi nhuận (Costing)
-* Tracking tổng hợp chi phí cấu thành: Giá mua (Goods price), phí vận chuyển, chi phí inspection, chi phí phụ tùng và sửa chữa.
-* Hệ thống tự động tính toán **Tổng giá vốn**, và so sánh với Giá bán để ra **Lợi nhuận dự kiến / thực tế**. (Thông tin này bảo mật nội bộ, giới hạn quyền xem).
-
-### 4. Quản lý Khách hàng & Giao dịch Bán hàng (CRM & Sales)
-* **Tiếp nhận Inquiry:** Khách hàng có thể gửi form yêu cầu (Inquiry) trực tiếp từ trang chi tiết của một máy cụ thể. Inquiry tự động gắn link với máy đó.
-* **Quản lý phễu Sales:** Theo dõi và cập nhật trạng thái xử lý Inquiry (New -> Contacted -> Negotiating -> Quoted -> Won/Lost).
-* **Quản lý Giao dịch (Chốt đơn):** Chức năng Reserved (đánh dấu giữ chỗ), ghi nhận thông tin chốt sale (Sold), cập nhật hợp đồng, giá bán chốt, thông tin khách hàng chi tiết, ngày bán, và người phụ trách giao dịch.
-* **Hệ thống Tự động Xuất và Gửi Báo giá (Instant PDF Quotation):** Khách hàng tự điền form nhận báo giá. Hệ thống tự động render file PDF chuyên nghiệp (có logo, chữ ký, thông số) và gửi trực tiếp qua Zalo/Email.
-
-### 5. Dashboard, Lịch sử (Timeline) & Phân quyền nâng cao
-* **Dashboard thống kê:** Báo cáo tổng quan số lượng tồn kho, giá trị inventory, phân bổ trạng thái (đang sửa, đang chờ bán, tồn lâu), số lượng inquiry chưa xử lý.
-* **Timeline lịch sử máy:** Ghi nhận tự động vòng đời của từng máy (từ Purchase -> Received -> Inspection -> Repair -> Published -> Sold/Delivered) kèm người thao tác và thời gian nhằm tăng tính minh bạch.
-* **Mở rộng Role người dùng:** Bổ sung các quyền chi tiết cho Sales, Inspector, Warehouse để đảm bảo tính an toàn dữ liệu và đúng chức năng nghiệp vụ.
-
-### 6. Trợ lý Content & Tự động hóa Facebook (AI Social Media Manager)
-* Sinh tự động bài viết Facebook chuẩn SEO bằng AI dựa trên thông số máy.
-* Tính năng Auto-post đẩy thẳng bài đăng và hình ảnh lên Fanpage, tiết kiệm thời gian cho Marketing.
-
-### 7. Tổng hợp Dữ liệu Kế toán (Export to MISA)
-* **Bảng kê Tổng hợp Chi phí & Giá vốn:** Tự động gom toàn bộ các khoản chi liên quan đến 1 chiếc xe (Giá nhập, vận chuyển, sửa chữa) thành một bảng kê duy nhất.
-* **Bảng kê Giao dịch Bán hàng:** Ghi nhận chính xác giá chốt bán, số tiền cọc (Deposit), số tiền còn lại phải thu.
-* **Xuất Excel chuẩn định dạng MISA:** Tính năng xuất danh sách phát sinh chi phí/doanh thu ra file Excel với các cột tương thích sẵn template của MISA, kế toán chỉ việc import thẳng vào phần mềm.
-* **Chốt số liệu & Khóa dữ liệu (Data Locking):** Trạng thái "Đã chuyển Kế toán" để khóa các giao dịch/chi phí, tránh bị sửa đổi làm lệch số với MISA.
+### B. Tích hợp Mạng Xã Hội & Đa Phương Tiện (Social Network & Media)
+* **7. Trợ lý Content & Tự động hóa Facebook (AI Social Media Manager):** 🟢 *Đã triển khai.* Sinh bài viết chuẩn SEO và đăng bài tự động lên Fanpage Facebook trực tiếp từ dữ liệu xe.
+* **8. Trang "Góc Khách Hàng": Hình ảnh bàn giao & Đánh giá (Testimonials):** 🟢 *Đã triển khai.* Mục hình ảnh bàn giao xe tại kho/xưởng cho các doanh nghiệp đối tác kèm đánh giá thực tế trên website và trang quản trị riêng, gia tăng uy tín và tỷ lệ chốt sale.
+* **9. Video Review: Gắn Link YouTube/TikTok chạy trực tiếp trên từng xe:** 🟢 *Đã triển khai.* Nhúng video vận hành thực tế (YouTube/TikTok Shorts/Reels) ngay trên trang chi tiết xe để khách xem khả năng nâng hạ thực tế.
+* **10. AI Video: Bot tự động đề xuất video YouTube/TikTok khi tư vấn:** 🟢 *Đã triển khai.* Khi khách hỏi bot tư vấn về xe hoặc muốn xem video máy chạy thực tế, AI Bot tự động gửi link/video YouTube/TikTok của xe đó cho khách.
+* **11. Thư viện Truyền thông: Chuyên mục Video bàn giao xe / kho bãi (Media Gallery):** 🟢 *Đã triển khai.* Trang tổng hợp video chuyên nghiệp về kho bãi, xe mới về, quy trình test tải xe nâng Nhật Bản, kèm trang Admin quản lý.
+* **12. Floating Social Buttons: Nút liên hệ nhanh qua đa nền tảng:** 🟢 *Đã triển khai.* Bộ nút floating liên hệ đa kênh nổi bật góc màn hình (Gọi Hotline nhanh với hiệu ứng rung chuông, Zalo, Facebook Messenger, xem YouTube/TikTok).
+* **13. Trợ lý Sản xuất Video Tự động bằng AI (AI Video Sales Assistant):** 🟢 *Đã triển khai.* Tự động sinh kịch bản review xe bằng AI, quản lý render video và gắn làm video review chính thức cho xe.
 
 ---
 

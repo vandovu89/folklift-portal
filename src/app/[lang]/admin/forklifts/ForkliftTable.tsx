@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './forklifts.module.css';
 import ExportButton from './ExportButton';
+import { FaQrcode } from 'react-icons/fa';
 
 export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[]; userRole?: string }) {
   const router = useRouter();
@@ -97,6 +98,25 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
               selectedIds={selectedIds} 
               buttonText="Xuất Excel Các Mục Đã Chọn"
             />
+            <Link
+              href={`/vi/print-qr?ids=${selectedIds.join(',')}`}
+              target="_blank"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                backgroundColor: '#0284c7',
+                color: 'white',
+                padding: '0.4rem 0.8rem',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+              }}
+            >
+              <FaQrcode /> In Mã QR ({selectedIds.length} xe)
+            </Link>
             {role === 'ADMIN' && (
               <button 
                 onClick={handleBulkDelete} 
@@ -169,9 +189,20 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
                   {getStatusBadge(fl.status)}
                 </td>
                 <td>
-                  <Link href={`/admin/forklifts/${fl.id}/edit`} className="btn-action">
-                    ✏️ Sửa
-                  </Link>
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                    <Link href={`/admin/forklifts/${fl.id}/edit`} className="btn-action" title="Chỉnh sửa thông tin">
+                      ✏️ Sửa
+                    </Link>
+                    <Link 
+                      href={`/vi/print-qr?ids=${fl.id}`} 
+                      target="_blank" 
+                      className="btn-action"
+                      style={{ color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                      title="In tem mã QR xe này"
+                    >
+                      <FaQrcode size={12} /> QR
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))

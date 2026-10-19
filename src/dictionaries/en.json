@@ -9,6 +9,8 @@
   "nav": {
     "home": "Home",
     "catalog": "Products",
+    "media": "Media Gallery",
+    "customer_stories": "Customer Stories",
     "about": "About Us",
     "policies": "Policies",
     "contact": "Contact"

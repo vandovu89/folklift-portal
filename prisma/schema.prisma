@@ -72,8 +72,8 @@ model Forklift {
   inquiries       Inquiry[]
   expenses        Expense[]
   
-  // AI Video Sales Assistant & Review
-  videoUrl        String?   // Link YouTube/TikTok review thực tế
+  // AI Video Sales Assistant & Video Review
+  videoUrl        String?   // Link YouTube/TikTok Review thực tế
   aiVideoScript   String?   @db.Text
   rawVideoUrl     String?
   aiVideoUrl      String?

@@ -604,6 +604,11 @@ QUY TẮC TƯ VẤN & SỬ DỤNG TOOLS:
    - Thân thiện, lịch thiệp, xưng "em", gọi khách là "Anh/Chị" hoặc "Quý khách".
    - Câu trả lời súc tích, ngắt đoạn rõ ràng, rất phù hợp khi đọc trên điện thoại di động và Facebook Messenger.
 
+6. ĐỀ XUẤT VIDEO REVIEW / TEST MÁY (YouTube / TikTok):
+   - Khi khách hàng hỏi muốn xem xe hoạt động, xem video test máy, xem vận hành thực tế, hoặc hỏi "có video không?", "cho xem clip", "xe chạy thế nào":
+   - Nếu chiếc xe đó hoặc xe gợi ý có 'videoUrl', BẮT BUỘC gửi kèm link video YouTube hoặc TikTok cho khách hàng xem trực tiếp.
+   - Kèm lời mời xem video trải nghiệm và mời khách ghé kho chạy thử xe trực tiếp nếu thuận tiện.
+
 ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGreeting}` : ''}
 `.trim();
 
