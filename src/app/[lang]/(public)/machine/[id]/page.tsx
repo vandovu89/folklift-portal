@@ -9,7 +9,7 @@ import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
 import { formatCapacity } from '@/lib/utils';
-import { FaMoneyBillWave, FaFilePdf } from 'react-icons/fa';
+import { FaMoneyBillWave, FaFilePdf, FaPrint, FaQrcode } from 'react-icons/fa';
 import VideoEmbed from '@/components/VideoEmbed';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
@@ -153,10 +153,32 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
               <div style={{ flexShrink: 0, width: '80px', height: '80px' }}>
                 <QRCodeComponent value={qrUrl} />
               </div>
-              <div>
-                <strong style={{ display: 'block', marginBottom: '0.2rem', color: '#1e293b' }}>{resolvedParams.lang === 'vi' ? 'Lưu thông tin' : 'Save Info'}</strong>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <strong style={{ color: '#1e293b' }}>{resolvedParams.lang === 'vi' ? 'Lưu thông tin / In tem' : 'Save Info / Print QR'}</strong>
+                  <Link
+                    href={`/${resolvedParams.lang}/print-qr?ids=${forklift.id}`}
+                    target="_blank"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      background: '#eff6ff',
+                      color: '#0284c7',
+                      border: '1px solid #bae6fd',
+                      padding: '0.3rem 0.7rem',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      textDecoration: 'none'
+                    }}
+                    className="hover-lift-sm"
+                  >
+                    <FaPrint size={12} /> {resolvedParams.lang === 'vi' ? 'In Tem Dán Xe' : 'Print Label'}
+                  </Link>
+                </div>
                 <span style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.4', display: 'block' }}>
-                  {resolvedParams.lang === 'vi' ? 'Quét mã QR bằng Zalo/Camera để lưu lại trang này vào điện thoại của bạn.' : 'Scan with your camera to save this page on your phone.'}
+                  {resolvedParams.lang === 'vi' ? 'Quét mã QR bằng Zalo/Camera để lưu lại hoặc in tem nhãn chuẩn để dán lên xe nâng.' : 'Scan with phone camera or print standard label to attach to the forklift.'}
                 </span>
               </div>
             </div>

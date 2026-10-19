@@ -3,10 +3,11 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../forklifts.module.css';
+import Link from 'next/link';
 import MediaManager from '@/components/MediaManager';
 import AiMarketingModal from '@/components/AiMarketingModal';
 import AiVideoModal from '@/components/AiVideoModal';
-import { FaMagic, FaVideo } from 'react-icons/fa';
+import { FaMagic, FaVideo, FaQrcode } from 'react-icons/fa';
 
 export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -186,7 +187,24 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
     <div className="glass-panel" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
       <div className={styles.pageHeader}>
         <h2>Chỉnh sửa Thông tin Xe Nâng</h2>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+          <Link 
+            href={`/vi/print-qr?ids=${resolvedParams.id}`} 
+            target="_blank"
+            className="btn-secondary" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              background: '#eff6ff', 
+              borderColor: '#bfdbfe', 
+              color: '#0284c7',
+              textDecoration: 'none',
+              fontWeight: 700
+            }}
+          >
+            <FaQrcode /> In Tem QR Dán Xe
+          </Link>
           <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
             <FaVideo /> AI Video Studio
           </button>
