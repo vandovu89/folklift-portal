@@ -18,6 +18,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [script, setScript] = useState('');
   const [rawVideoUrl, setRawVideoUrl] = useState('');
   const [aiVideoUrl, setAiVideoUrl] = useState('');
+  const [aiAudioUrl, setAiAudioUrl] = useState('');
+  const [selectedVoice, setSelectedVoice] = useState('7o71dj6r5wK2rRwMRJhN');
+  const [audioMode, setAudioMode] = useState('replace');
 
   // Fetch current data
   useEffect(() => {
@@ -32,6 +35,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
             setScript(data.aiVideoScript || '');
             setRawVideoUrl(data.rawVideoUrl || '');
             setAiVideoUrl(data.aiVideoUrl || '');
+            const voiceoverMedia = data.media?.find((m: any) => m.category === 'AI_VOICEOVER');
+            if (voiceoverMedia?.url) {
+              setAiAudioUrl(voiceoverMedia.url);
+            }
           }
         })
         .catch(console.error);
@@ -104,16 +111,25 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       const res = await fetch('/api/ai/video-render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forkliftId, script, rawVideoUrl })
+        body: JSON.stringify({
+          forkliftId,
+          script,
+          rawVideoUrl,
+          voiceId: selectedVoice,
+          audioMode
+        })
       });
       const data = await res.json();
       if (data.success) {
         setAiVideoUrl(data.videoUrl);
+        if (data.audioUrl) {
+          setAiAudioUrl(data.audioUrl);
+        }
       } else {
         alert('Lỗi tạo video: ' + data.error);
       }
-    } catch (error) {
-      alert('Lỗi hệ thống');
+    } catch (error: any) {
+      alert('Lỗi hệ thống: ' + (error.message || 'Lỗi không xác định'));
     }
     setLoadingVideo(false);
   };
@@ -176,10 +192,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 )}
               </div>
 
-              {/* Bước 2: Kịch bản */}
+              {/* Bước 2: Kịch bản & Giọng đọc */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h4 style={{ margin: 0, color: '#475569' }}>Bước 2: Lên kịch bản lồng tiếng</h4>
+                  <h4 style={{ margin: 0, color: '#475569' }}>Bước 2: Lên kịch bản & Chọn giọng đọc</h4>
                   <button onClick={handleGenerateScript} disabled={loadingScript} style={{ background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
                     <FaMagic /> {loadingScript ? 'Đang viết...' : 'AI Viết Kịch Bản'}
                   </button>
@@ -189,55 +205,109 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   onChange={e => setScript(e.target.value)}
                   placeholder="Kịch bản lời thoại sẽ được AI tự động sinh ra dựa trên thông số của chiếc xe này..."
                   style={{ 
-                    width: '100%', height: '180px', padding: '1rem', 
+                    width: '100%', height: '140px', padding: '0.8rem', 
                     borderRadius: '8px', border: '1px solid #cbd5e1',
-                    resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem'
+                    resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem'
                   }}
                 />
+
+                <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                      🎙️ Giọng đọc AI:
+                    </label>
+                    <select
+                      value={selectedVoice}
+                      onChange={e => setSelectedVoice(e.target.value)}
+                      style={{
+                        width: '100%', padding: '0.5rem', borderRadius: '6px',
+                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
+                      }}
+                    >
+                      <option value="7o71dj6r5wK2rRwMRJhN">Xe Nâng MCK (Nam - Giọng Bắc)</option>
+                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Nữ - Truyền cảm & Tự nhiên)</option>
+                      <option value="IKne3meq5aSn9XLyUdCD">Charlie (Nam - Trầm ấm, Quyết đoán)</option>
+                      <option value="hpp4J3VqNfWAUOO0d1Us">Bella (Nữ - Tươi sáng, Chuyên nghiệp)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                      🔊 Xử lý âm thanh xe:
+                    </label>
+                    <select
+                      value={audioMode}
+                      onChange={e => setAudioMode(e.target.value)}
+                      style={{
+                        width: '100%', padding: '0.5rem', borderRadius: '6px',
+                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
+                      }}
+                    >
+                      <option value="replace">Tắt tiếng ồn gốc (Chỉ giữ lời đọc AI)</option>
+                      <option value="mix">Hòa âm (-30% tiếng máy xe + Lời đọc AI)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Cột phải: Output */}
-            <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
               <h4 style={{ margin: '0 0 1rem 0', color: '#475569' }}>Bước 3: Thành phẩm Video AI</h4>
               
               {!aiVideoUrl ? (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', margin: 'auto 0' }}>
                   <div style={{ 
                     width: '60px', height: '60px', borderRadius: '50%', background: '#ede9fe', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto'
                   }}>
                     <FaRobot size={30} color="#8b5cf6" />
                   </div>
-                  <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-                    AI sẽ tự động đọc kịch bản bằng giọng nói chuẩn (Voice Cloning) và lồng ghép vào video gốc của bạn.
+                  <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                    {loadingVideo 
+                      ? 'Đang gọi ElevenLabs tạo giọng đọc chuẩn tiếng Việt & lồng ghép âm thanh vào video qua Cloudinary...' 
+                      : 'AI sẽ tự động đọc kịch bản bằng giọng nói truyền cảm (Voice Cloning) và lồng ghép âm thanh chuẩn vào video xe của bạn.'}
                   </p>
                   <button 
                     onClick={handleCreateVideo}
                     disabled={loadingVideo || !rawVideoUrl || !script}
                     className="btn-primary"
-                    style={{ background: '#8b5cf6', borderColor: '#8b5cf6', padding: '0.8rem 2rem', fontSize: '1rem', width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
+                    style={{ background: '#8b5cf6', borderColor: '#8b5cf6', padding: '0.8rem 2rem', fontSize: '0.95rem', width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
                   >
-                    {loadingVideo ? 'Đang xử lý Video...' : <><FaPlay /> Tạo Video AI Ngay</>}
+                    {loadingVideo ? 'Đang tạo giọng đọc & lồng tiếng video...' : <><FaPlay /> Tạo Video Lồng Tiếng AI</>}
                   </button>
                 </div>
               ) : (
                 <div>
-                  <video src={aiVideoUrl} controls autoPlay style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '1rem' }} />
+                  <video src={aiVideoUrl} controls autoPlay style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '0.8rem', maxHeight: '240px' }} />
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.8rem' }}>
+                  {aiAudioUrl && (
+                    <div style={{ background: '#f1f5f9', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.8rem', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                          🎧 File thu âm giọng đọc AI (MP3):
+                        </span>
+                        <a href={aiAudioUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#8b5cf6', textDecoration: 'underline' }}>
+                          Nghe / Tải MP3
+                        </a>
+                      </div>
+                      <audio src={aiAudioUrl} controls style={{ width: '100%', height: '36px' }} />
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '0.8rem' }}>
                     <button 
                       onClick={handleCreateVideo}
                       disabled={loadingVideo}
                       className="btn-secondary"
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', fontSize: '0.85rem' }}
                     >
                       {loadingVideo ? 'Đang xử lý...' : 'Tạo lại Video'}
                     </button>
                     
                     <button 
                       className="btn-primary"
-                      style={{ background: '#1877f2', borderColor: '#1877f2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                      style={{ background: '#1877f2', borderColor: '#1877f2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
                       onClick={() => alert('Chức năng đang được tích hợp Facebook API')}
                     >
                       <FaFacebook /> Đăng lên Reels
@@ -271,7 +341,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       borderRadius: '8px',
                       fontWeight: 700,
                       cursor: 'pointer',
-                      fontSize: '0.9rem',
+                      fontSize: '0.85rem',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
