@@ -56,12 +56,42 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     }
   }, [isOpen, forkliftId]);
 
+  // Chủ động dò tìm thời lượng video chuẩn xác khi có rawVideoUrl
+  useEffect(() => {
+    if (!rawVideoUrl) {
+      setVideoDuration(0);
+      return;
+    }
+    const tempVideo = document.createElement('video');
+    tempVideo.preload = 'metadata';
+    tempVideo.src = rawVideoUrl;
+    tempVideo.onloadedmetadata = () => {
+      const dur = Math.round(tempVideo.duration);
+      if (dur > 0 && !isNaN(dur)) {
+        setVideoDuration(dur);
+      }
+    };
+    tempVideo.onerror = (err) => {
+      console.warn('Cannot probe video duration:', err);
+    };
+  }, [rawVideoUrl]);
+
   const handleGenerateScript = async () => {
     setLoadingScript(true);
     try {
+      // Đảm bảo lấy duration chính xác nhất từ state hoặc từ video element
+      let currentDuration = videoDuration;
+      if (!currentDuration && typeof document !== 'undefined') {
+        const videoEl = document.querySelector('video') as HTMLVideoElement | null;
+        if (videoEl && videoEl.duration && !isNaN(videoEl.duration) && videoEl.duration > 0) {
+          currentDuration = Math.round(videoEl.duration);
+          setVideoDuration(currentDuration);
+        }
+      }
+
       const effectiveDuration = targetDurationOption === 'auto'
-        ? (videoDuration > 0 ? videoDuration : 60)
-        : (parseInt(targetDurationOption) || videoDuration || 60);
+        ? (currentDuration > 0 ? currentDuration : 60)
+        : (parseInt(targetDurationOption) || currentDuration || 60);
 
       const res = await fetch('/api/ai/video-script', {
         method: 'POST',
@@ -90,7 +120,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
     
-    // Đo trước thời lượng video từ file
+    // Đo trước thời lượng video từ file local
     try {
       const tempVideo = document.createElement('video');
       tempVideo.preload = 'metadata';
@@ -116,6 +146,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
 
       if (result.success && result.url) {
         setRawVideoUrl(result.url);
+        if (result.duration && result.duration > 0) {
+          setVideoDuration(result.duration);
+        }
         await fetch(`/api/forklifts/${forkliftId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -204,6 +237,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                     <video 
                       src={rawVideoUrl} 
                       controls 
+                      preload="metadata"
                       onLoadedMetadata={(e) => {
                         const dur = Math.round(e.currentTarget.duration);
                         if (dur > 0 && !isNaN(dur)) setVideoDuration(dur);
@@ -285,9 +319,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       fontWeight: 500
                     }}
                   >
-                    {videoDuration > 0 && (
-                      <option value="auto">Khớp tự động theo video ({formatDuration(videoDuration)})</option>
-                    )}
+                    <option value="auto">
+                      {videoDuration > 0 ? `Khớp tự động theo video (${formatDuration(videoDuration)})` : 'Khớp tự động theo video'}
+                    </option>
                     <option value="30">30 giây (Ngắn gọn / Reels)</option>
                     <option value="60">60 giây (1 phút tiêu chuẩn)</option>
                     <option value="90">90 giây (1 phút 30s - Chi tiết)</option>
@@ -307,8 +341,8 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  <span>Độ dài: <strong>{script ? script.trim().split(/\s+/).length : 0}</strong> từ</span>
-                  <span>Ước tính đọc: ~<strong>{script ? Math.round(script.trim().split(/\s+/).length / 2.2) : 0}s</strong> {videoDuration > 0 ? `(Video: ${videoDuration}s)` : ''}</span>
+                  <span>Độ dài: <strong>{script ? script.trim().split(/\s+/).filter(Boolean).length : 0}</strong> từ</span>
+                  <span>Ước tính đọc: ~<strong>{script ? Math.round(script.trim().split(/\s+/).filter(Boolean).length / 3.85) : 0}s</strong> {videoDuration > 0 ? `(Video: ${formatDuration(videoDuration)})` : ''}</span>
                 </div>
 
                 <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem' }}>

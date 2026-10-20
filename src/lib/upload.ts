@@ -8,6 +8,7 @@ export interface DirectUploadResult {
   success: boolean;
   url: string;
   media: any;
+  duration?: number;
 }
 
 /**
@@ -85,6 +86,7 @@ export async function uploadMediaDirectly(
   return {
     success: true,
     url: fileUrl,
-    media: saveResult.media
+    media: saveResult.media,
+    duration: typeof cloudData.duration === 'number' ? Math.round(cloudData.duration) : undefined
   };
 }
