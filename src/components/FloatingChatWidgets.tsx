@@ -13,8 +13,8 @@ export default function FloatingChatWidgets() {
   const widgets = [
     {
       id: 'hotline',
-      href: 'tel:0989319888',
-      title: lang === 'vi' ? 'Gọi Hotline: 0989.319.888' : 'Call Hotline: 0989.319.888',
+      href: 'tel:0362396092',
+      title: lang === 'vi' ? 'Gọi Hotline: 0362-396-092' : 'Call Hotline: 0362-396-092',
       label: lang === 'vi' ? 'Gọi ngay' : 'Call now',
       bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
       icon: <FaPhoneAlt size={20} className="phone-ring" />,
@@ -23,7 +23,7 @@ export default function FloatingChatWidgets() {
     },
     {
       id: 'zalo',
-      href: 'https://zalo.me/84989319888',
+      href: 'https://zalo.me/84362396092',
       title: lang === 'vi' ? 'Chat Zalo Tư Vấn' : 'Zalo Chat Support',
       label: 'Zalo',
       bg: '#0068FF',

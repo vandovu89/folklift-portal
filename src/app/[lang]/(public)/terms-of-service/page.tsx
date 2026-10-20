@@ -5,10 +5,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   return {
     title: lang === 'en' 
-      ? 'Terms of Service | Viet Nhat Forklifts' 
-      : 'Điều Khoản Dịch Vụ | Xe Nâng Việt Nhật',
+      ? 'Terms of Service | MCK Japan Forklifts' 
+      : 'Điều Khoản Dịch Vụ | Xe Nâng MCK Japan',
     description: lang === 'en'
-      ? 'Terms of Service for Viet Nhat Forklift portal and Facebook Messenger services.'
+      ? 'Terms of Service for MCK Japan Forklift portal and Facebook Messenger services.'
       : 'Điều khoản dịch vụ áp dụng cho cổng thông tin xe nâng và ứng dụng chatbot Facebook Messenger.'
   };
 }
@@ -27,7 +27,7 @@ export default async function TermsOfServicePage({ params }: { params: Promise<{
         <p style={{ opacity: 0.9, maxWidth: '750px', margin: '0 auto', fontSize: '1.05rem', lineHeight: 1.6 }}>
           {isEn 
             ? 'Guidelines and legal terms governing the use of our Website, Products, and Facebook Chatbot Services.'
-            : 'Các quy định và thỏa thuận pháp lý khi sử dụng Website, Sản phẩm và Dịch vụ Chatbot của Xe Nâng Việt Nhật.'}
+            : 'Các quy định và thỏa thuận pháp lý khi sử dụng Website, Sản phẩm và Dịch vụ Chatbot của Xe Nâng MCK Japan.'}
         </p>
         <div style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.8 }}>
           {isEn ? 'Last updated: October 2026' : 'Cập nhật lần cuối: Tháng 10/2026'}
@@ -64,11 +64,11 @@ export default async function TermsOfServicePage({ params }: { params: Promise<{
             <p>
               {isEn ? (
                 <>
-                  Viet Nhat Co., Ltd. provides an online inventory catalog of Japanese imported electric, diesel, and gasoline forklifts, transparent battery health statistics, and an automated AI customer assistance chatbot connected via Meta&apos;s Messenger API to provide real-time responses to customer inquiries.
+                  MCK Japan Forklift provides an online inventory catalog of Japanese imported electric, diesel, and gasoline forklifts, transparent battery health statistics, and an automated AI customer assistance chatbot connected via Meta&apos;s Messenger API to provide real-time responses to customer inquiries.
                 </>
               ) : (
                 <>
-                  Công ty TNHH Kinh Doanh SX &amp; TM Việt Nhật cung cấp cổng thông tin tra cứu danh mục xe nâng nhập khẩu Nhật Bản (xe nâng điện, dầu, xăng, phụ kiện), dữ liệu thực tế về tình trạng bình ắc quy và hệ thống trợ lý ảo AI Chatbot kết nối qua Facebook Messenger API nhằm hỗ trợ tư vấn tức thì cho khách hàng.
+                  Xe Nâng MCK Japan cung cấp cổng thông tin tra cứu danh mục xe nâng nhập khẩu Nhật Bản (xe nâng điện, dầu, xăng, phụ kiện), dữ liệu thực tế về tình trạng bình ắc quy và hệ thống trợ lý ảo AI Chatbot kết nối qua Facebook Messenger API nhằm hỗ trợ tư vấn tức thì cho khách hàng.
                 </>
               )}
             </p>
@@ -124,11 +124,11 @@ export default async function TermsOfServicePage({ params }: { params: Promise<{
             <p>
               {isEn ? (
                 <>
-                  All trademarks, logos, texts, photographs, and system designs published on this website are the property of Viet Nhat Co., Ltd. or their respective makers (Komatsu, Toyota, Nichiyu, TCM, Sumitomo...). Reproduction without permission is prohibited.
+                  All trademarks, logos, texts, photographs, and system designs published on this website are the property of MCK Japan Forklift or their respective makers (Komatsu, Toyota, Nichiyu, TCM, Sumitomo...). Reproduction without permission is prohibited.
                 </>
               ) : (
                 <>
-                  Toàn bộ logo, hình ảnh xe thực tế, nội dung và giao diện hệ thống thuộc quyền sở hữu của Công ty TNHH Kinh Doanh SX &amp; TM Việt Nhật hoặc các thương hiệu sản xuất xe (Komatsu, Toyota, Nichiyu, TCM, Sumitomo...). Nghiêm cấm sao chép khi chưa có sự đồng ý.
+                  Toàn bộ logo, hình ảnh xe thực tế, nội dung và giao diện hệ thống thuộc quyền sở hữu của Xe Nâng MCK Japan hoặc các thương hiệu sản xuất xe (Komatsu, Toyota, Nichiyu, TCM, Sumitomo...). Nghiêm cấm sao chép khi chưa có sự đồng ý.
                 </>
               )}
             </p>
@@ -186,8 +186,8 @@ export default async function TermsOfServicePage({ params }: { params: Promise<{
             </p>
             <div style={{ marginTop: '0.8rem', background: '#f8fafc', padding: '1rem 1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <p style={{ margin: '0.3rem 0' }}><strong>Email:</strong> <a href="mailto:info@xenangmck.jp" style={{ color: '#0284c7' }}>info@xenangmck.jp</a></p>
-              <p style={{ margin: '0.3rem 0' }}><strong>Hotline / Zalo:</strong> 0989 319 888</p>
-              <p style={{ margin: '0.3rem 0' }}><strong>Đơn vị:</strong> CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT</p>
+              <p style={{ margin: '0.3rem 0' }}><strong>Hotline / Zalo:</strong> 0362-396-092</p>
+              <p style={{ margin: '0.3rem 0' }}><strong>Đơn vị:</strong> XE NÂNG MCK JAPAN</p>
             </div>
           </section>
 

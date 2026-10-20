@@ -19,7 +19,7 @@ export async function generateMetadata({
     .map(s => s.trim())
     .filter(Boolean);
 
-  let title = 'In Mã QR Xe Nâng | Xe Nâng Việt Nhật';
+  let title = 'In Mã QR Xe Nâng | Xe Nâng MCK Japan';
   if (idList.length === 1) {
     const fl = await prisma.forklift.findUnique({
       where: { id: idList[0] },
@@ -29,7 +29,7 @@ export async function generateMetadata({
       title = `In Tem QR: ${fl.internalCode ? `[${fl.internalCode}] ` : ''}${fl.maker} ${fl.model}`;
     }
   } else if (idList.length > 1) {
-    title = `In Tem QR (${idList.length} xe) | Xe Nâng Việt Nhật`;
+    title = `In Tem QR (${idList.length} xe) | Xe Nâng MCK Japan`;
   }
 
   return {

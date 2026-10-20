@@ -305,7 +305,7 @@ export async function getForkliftDetailInDb(identifier: string) {
       otherSpecs: forklift.otherSpecs || 'Không có ghi chú thêm',
       condition: forklift.condition || 'Hoạt động tốt',
       engineCondition: forklift.engineCondition || 'Bảo dưỡng định kỳ',
-      location: forklift.location || 'Tại kho Việt Nhật',
+      location: forklift.location || 'Tại kho Xe Nâng MCK Japan',
       status: forklift.status === 'Available' ? 'Sẵn sàng giao dịch tại kho' : forklift.status,
       price: forklift.price ? `${forklift.price.toLocaleString('vi-VN')} VNĐ` : 'Giá thỏa thuận / Ưu đãi trực tiếp khi liên hệ',
       images: forklift.media.map(m => m.url),
@@ -520,25 +520,23 @@ export async function processAiChat(params: {
   }
 
   const systemInstruction = `
-Bạn là Chuyên viên Tư vấn Kỹ thuật & Bán hàng AI chính thức của "Xe Nâng MCK" (trực thuộc CÔNG TY TNHH KINH DOANH SẢN XUẤT VÀ THƯƠNG MẠI VIỆT NHẬT).
+Bạn là Chuyên viên Tư vấn Kỹ thuật & Bán hàng AI chính thức của "Xe Nâng MCK Japan".
 Bạn am hiểu sâu sắc về xe nâng bãi nhập khẩu trực tiếp từ Nhật Bản và có quyền truy cập trực tiếp vào cơ sở dữ liệu kho xe của công ty.
 
 ==================================================
 HỒ SƠ THÔNG TIN CÔNG TY (BẮT BUỘC TRẢ LỜI CHÍNH XÁC 100%, TUYỆT ĐỐI KHÔNG BỊA ĐẶT):
 ==================================================
 1. TÊN DOANH NGHIỆP:
-   - Tên công ty: CÔNG TY TNHH KINH DOANH SẢN XUẤT VÀ THƯƠNG MẠI VIỆT NHẬT
-   - Tên thương hiệu nhận diện: Xe Nâng MCK (Machiko Tran - Xe Nâng Nhật Bản)
+   - Tên thương hiệu nhận diện chính thức: Xe Nâng MCK Japan (MCK Forklift Japan)
    - Lĩnh vực kinh doanh: Bán sỉ, bán lẻ và cho thuê xe nâng cũ (xe bãi) nhập khẩu nguyên chiếc từ Nhật Bản.
 
 2. ĐỊA CHỈ TRỤ SỞ VÀ HỆ THỐNG KHO BÃI XEM XE:
    - Trụ sở chính / Văn phòng giao dịch: Tầng 2 Shophouse số Park 2-05, KĐT Eurowindow River Park, đường Trường Sa, Xã Đông Anh, TP. Hà Nội.
-   - Kho bãi 1 (Hà Nội): Bãi xe Quốc Huy, Quốc Lộ 3 (QL3), Phù Lỗ, Huyện Sóc Sơn, TP. Hà Nội (cách sân bay Nội Bài khoảng 3km).
-   - Kho bãi 2 (Hưng Yên): Công ty CP Đầu Tư Sakai, ĐT379, Xã Việt Yên, Tỉnh Hưng Yên.
+   - Kho bãi xem và chạy thử xe trực tiếp: Thôn Bình Phú, xã Việt Yên, tỉnh Hưng Yên.
    - Hỗ trợ giao xe toàn quốc: Giao xe tận nơi trên toàn quốc (Hà Nội, Hải Phòng, Bắc Ninh, Hưng Yên, Đà Nẵng, Bình Dương, Đồng Nai, TP.HCM...). Khách hàng luôn được chào đón đến tận bãi lái thử, nâng thử tải thực tế trước khi đặt cọc.
 
 3. THÔNG TIN LIÊN HỆ & TÀI KHOẢN NGÂN HÀNG CHÍNH THỨC:
-   - Hotline tư vấn 24/7 / Zalo: 0989.319.888 hoặc 0934.166.618 (Zalo kỹ thuật: 0362.396.092)
+   - Hotline tư vấn 24/7 / Zalo: 0362-396-092 (0362.396.092)
    - Email: info@xenangmck.jp | Website: xenangmck.jp
    - Tài khoản ngân hàng công ty (Dùng cho khách cọc hoặc thanh toán hợp đồng):
      + Ngân hàng VPBank: STK 5252729999 - Tên thụ hưởng: VIET NHAT SX AND TM BUSINESS CO LTD
@@ -739,7 +737,7 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
           }
         } else {
           if (!reply || !reply.trim()) {
-            reply = 'Dạ chào quý khách! Hiện tại trong kho của Việt Nhật đang tạm hết dòng xe đúng như tiêu chí này. Quý khách vui lòng để lại số điện thoại hoặc kết nối Zalo để khi có đợt xe mới về bên em báo ngay nhé!';
+            reply = 'Dạ chào quý khách! Hiện tại trong kho của Xe Nâng MCK Japan đang tạm hết dòng xe đúng như tiêu chí này. Quý khách vui lòng để lại số điện thoại hoặc kết nối Zalo để khi có đợt xe mới về bên em báo ngay nhé!';
           }
         }
 
@@ -752,7 +750,7 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
 
       let reply = response.text() || '';
       if (!reply || !reply.trim()) {
-        reply = 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ?';
+        reply = 'Dạ chào quý khách! Em là chuyên viên tư vấn Xe Nâng MCK Japan. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ?';
       }
 
       return {
@@ -778,7 +776,7 @@ ${params.customGreeting ? `Lưu ý riêng của Fanpage này: ${params.customGre
 
   // Fallback an toàn nếu tất cả model đều bị lỗi
   return {
-    replyText: 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ? Quý khách cũng có thể để lại số điện thoại để bên em gửi báo giá và hình ảnh chi tiết qua Zalo nhé!'
+    replyText: 'Dạ chào quý khách! Em là chuyên viên tư vấn Xe Nâng MCK Japan. Quý khách đang quan tâm dòng xe nâng tải trọng bao nhiêu tấn hoặc mã xe cụ thể nào ạ? Quý khách cũng có thể để lại số điện thoại để bên em gửi báo giá và hình ảnh chi tiết qua Zalo nhé!'
   };
 }
 

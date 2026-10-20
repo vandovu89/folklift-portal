@@ -5,10 +5,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   return {
     title: lang === 'en' 
-      ? 'Privacy Policy | Viet Nhat Forklifts' 
-      : 'Chính Sách Quyền Riêng Tư & Bảo Mật | Xe Nâng Việt Nhật',
+      ? 'Privacy Policy | MCK Japan Forklifts' 
+      : 'Chính Sách Quyền Riêng Tư & Bảo Mật | Xe Nâng MCK Japan',
     description: lang === 'en'
-      ? 'Privacy Policy for Viet Nhat Forklift portal and Facebook Messenger services.'
+      ? 'Privacy Policy for MCK Japan Forklift portal and Facebook Messenger services.'
       : 'Chính sách bảo mật thông tin và quyền riêng tư cho cổng thông tin xe nâng và ứng dụng Facebook Messenger.'
   };
 }
@@ -46,11 +46,11 @@ export default async function PrivacyPolicyPage({ params }: { params: Promise<{ 
             <p>
               {isEn ? (
                 <>
-                  <strong>VIET NHAT PRODUCTION, TRADING AND MANUFACTURING CO., LTD.</strong> (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), operating the domain <strong>https://xenangmck.jp</strong>, is committed to respecting and protecting the privacy of our website visitors, customers, and users interacting with our services, including our <strong>Facebook Messenger Chatbot</strong> and integrated systems.
+                  <strong>MCK JAPAN FORKLIFT</strong> (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), operating the domain <strong>https://xenangmck.jp</strong>, is committed to respecting and protecting the privacy of our website visitors, customers, and users interacting with our services, including our <strong>Facebook Messenger Chatbot</strong> and integrated systems.
                 </>
               ) : (
                 <>
-                  <strong>CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT</strong> (&quot;chúng tôi&quot;), đơn vị vận hành trang web <strong>https://xenangmck.jp</strong>, cam kết tôn trọng và bảo vệ quyền riêng tư của khách hàng, khách truy cập và người dùng tương tác với dịch vụ của chúng tôi, bao gồm <strong>Chatbot AI trên Facebook Messenger</strong> và các hệ thống liên kết.
+                  <strong>XE NÂNG MCK JAPAN</strong> (&quot;chúng tôi&quot;), đơn vị vận hành trang web <strong>https://xenangmck.jp</strong>, cam kết tôn trọng và bảo vệ quyền riêng tư của khách hàng, khách truy cập và người dùng tương tác với dịch vụ của chúng tôi, bao gồm <strong>Chatbot AI trên Facebook Messenger</strong> và các hệ thống liên kết.
                 </>
               )}
             </p>
@@ -183,7 +183,7 @@ export default async function PrivacyPolicyPage({ params }: { params: Promise<{ 
                 : 'Mọi thắc mắc liên quan đến chính sách quyền riêng tư hoặc dữ liệu người dùng, xin vui lòng liên hệ:'}
             </p>
             <div style={{ marginTop: '0.8rem', background: '#f8fafc', padding: '1rem 1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <p style={{ margin: '0.3rem 0' }}><strong>{isEn ? 'Company:' : 'Đơn vị:'}</strong> CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT</p>
+              <p style={{ margin: '0.3rem 0' }}><strong>{isEn ? 'Company:' : 'Đơn vị:'}</strong> XE NÂNG MCK JAPAN</p>
               <p style={{ margin: '0.3rem 0' }}><strong>{isEn ? 'Email:' : 'Email hỗ trợ:'}</strong> <a href="mailto:info@xenangmck.jp" style={{ color: '#0284c7' }}>info@xenangmck.jp</a></p>
               <p style={{ margin: '0.3rem 0' }}><strong>{isEn ? 'Website:' : 'Website chính thức:'}</strong> https://xenangmck.jp</p>
               <p style={{ margin: '0.3rem 0' }}><strong>{isEn ? 'Address:' : 'Địa chỉ:'}</strong> Tầng 2 Shophouse Park 2-05, KĐT Eurowindow River Park, Đông Anh, Hà Nội</p>

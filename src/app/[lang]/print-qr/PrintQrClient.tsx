@@ -174,7 +174,7 @@ export default function PrintQrClient({
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('XE NÂNG VIỆT NHẬT - MCK FORKLIFT • HOTLINE: 0989 319 888', canvas.width / 2, 65);
+        ctx.fillText('XE NÂNG MCK JAPAN • HOTLINE: 0362-396-092', canvas.width / 2, 65);
 
         // Draw QR Code
         ctx.drawImage(img, 100, 140, 1000, 1000);
@@ -555,10 +555,10 @@ export default function PrintQrClient({
                         <div className="label-brand-header">
                           <div className="brand-logo-name">
                             <span className="brand-badge">MCK</span>
-                            <span className="brand-title">XE NÂNG VIỆT NHẬT</span>
+                            <span className="brand-title">XE NÂNG MCK JAPAN</span>
                           </div>
                           <div className="brand-hotline">
-                            HOTLINE: <strong>0989.319.888</strong>
+                            HOTLINE: <strong>0362.396.092</strong>
                           </div>
                         </div>
                       )}
@@ -651,9 +651,9 @@ export default function PrintQrClient({
                         <div className="grid4-header">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <div style={{ background: '#b91c1c', color: 'white', fontWeight: 900, fontSize: '11px', padding: '2px 5px', borderRadius: '3px' }}>MCK</div>
-                            <span style={{ fontWeight: 800, fontSize: '12px', color: '#0f172a' }}>XE NÂNG VIỆT NHẬT</span>
+                            <span style={{ fontWeight: 800, fontSize: '12px', color: '#0f172a' }}>XE NÂNG MCK JAPAN</span>
                           </div>
-                          <span style={{ fontSize: '11px', color: '#b91c1c', fontWeight: 700 }}>☎ 0989.319.888</span>
+                          <span style={{ fontSize: '11px', color: '#b91c1c', fontWeight: 700 }}>☎ 0362.396.092</span>
                         </div>
                       )}
 
@@ -737,10 +737,10 @@ export default function PrintQrClient({
                             </div>
                             <div>
                               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
-                                CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT
+                                XE NÂNG MCK JAPAN
                               </div>
                               <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                Bãi xe Quốc Huy, QL3, Phù Lỗ, Sóc Sơn &amp; ĐT379 Hưng Yên • Hotline: 0989 319 888 - 0362 396 092
+                                Kho bãi: Thôn Bình Phú, xã Việt Yên, Hưng Yên • Hotline / Zalo: 0362-396-092
                               </div>
                             </div>
                           </div>
@@ -886,7 +886,7 @@ export default function PrintQrClient({
                           <div><strong>Vận chuyển:</strong> Miễn phí giao xe 50km từ bãi Hà Nội</div>
                         </div>
                         <div style={{ color: '#0284c7', fontWeight: 700 }}>
-                          xenangmck.jp • Hotline: 0989 319 888
+                          xenangmck.jp • Hotline: 0362-396-092
                         </div>
                       </div>
 

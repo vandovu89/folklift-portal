@@ -8,8 +8,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   return {
     title: lang === 'en'
-      ? 'Customer Deliveries & Testimonials | Viet Nhat Forklifts'
-      : 'Góc Khách Hàng - Hình Ảnh Bàn Giao & Đánh Giá | Xe Nâng Việt Nhật',
+      ? 'Customer Deliveries & Testimonials | MCK Japan Forklift'
+      : 'Góc Khách Hàng - Hình Ảnh Bàn Giao & Đánh Giá | Xe Nâng MCK Japan',
     description: lang === 'en'
       ? 'Actual forklift delivery photos, company customer stories, and genuine reviews.'
       : 'Hình ảnh bàn giao xe nâng thực tế tại nhà máy kho xưởng, đánh giá và cảm nhận thực tế từ các doanh nghiệp đối tác.'
@@ -175,7 +175,7 @@ export default async function CustomerStoriesPage({ params }: { params: Promise<
               Xem Kho Xe Nâng &rarr;
             </Link>
             <a 
-              href="tel:0989319888"
+              href="tel:0362396092"
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
@@ -186,7 +186,7 @@ export default async function CustomerStoriesPage({ params }: { params: Promise<
                 textDecoration: 'none'
               }}
             >
-              📞 Hotline: 0989 319 888
+              📞 Hotline: 0362-396-092
             </a>
           </div>
         </div>

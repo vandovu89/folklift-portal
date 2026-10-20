@@ -12,7 +12,7 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
         {/* Company Info */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <img src="/logo.png" alt="Việt Nhật Logo" style={{ height: '50px', width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+            <img src="/logo.png" alt="Xe Nâng MCK Japan" style={{ height: '50px', width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
             <p style={{ opacity: 0.9, lineHeight: 1.4, fontSize: '1rem', margin: 0, fontWeight: 600 }}>
               {dict.footer.company_name}
             </p>
@@ -27,8 +27,8 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
             <div style={{ width: '36px', height: '36px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaMapMarkerAlt color="#38bdf8" />
             </div>
-            <a href="https://maps.app.goo.gl/fRUEKPmvbmDwVUXb8?g_st=ic" target="_blank" rel="noopener noreferrer" style={{ flex: 1, lineHeight: 1.5, color: '#f8fafc', textDecoration: 'none' }}>
-              {dict.footer.warehouse || "Kho bãi (Xem bản đồ)"}
+            <a href="https://maps.google.com/?q=Th%C3%B4n+B%C3%ACnh+Ph%C3%BA,+x%C3%A3+Vi%E1%BB%87t+Y%C3%AAn,+t%E1%BB%89nh+H%C6%B0ng+Y%C3%AAn" target="_blank" rel="noopener noreferrer" style={{ flex: 1, lineHeight: 1.5, color: '#f8fafc', textDecoration: 'none' }}>
+              {dict.footer.warehouse || "Kho bãi: Thôn Bình Phú, xã Việt Yên, tỉnh Hưng Yên"}
             </a>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', opacity: 0.9 }}>
@@ -82,7 +82,7 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
             <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1rem', color: '#38bdf8' }}>Kho bãi</h4>
             <div style={{ width: '100%', height: '150px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <iframe 
-                src="https://maps.google.com/maps?q=C%C3%B4ng+ty+c%E1%BB%95+ph%E1%BA%A7n+%C4%90%E1%BA%A7u+T%C6%B0+Sakai,+%C4%90T379,+Vi%E1%BB%87t+Y%C3%AAn,+H%C6%B0ng+Y%C3%AAn&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                src="https://maps.google.com/maps?q=Th%C3%B4n+B%C3%ACnh+Ph%C3%BA,+x%C3%A3+Vi%E1%BB%87t+Y%C3%AAn,+t%E1%BB%89nh+H%C6%B0ng+Y%C3%AAn&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 

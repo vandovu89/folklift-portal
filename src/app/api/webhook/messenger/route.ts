@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
 
         const textToSend = (aiResult.replyText && aiResult.replyText.trim().length > 0)
           ? aiResult.replyText.trim()
-          : 'Dạ chào quý khách! Em là chuyên viên tư vấn xe nâng Việt Nhật. Em đã ghi nhận yêu cầu của quý khách và sẽ kiểm tra kho báo giá trong giây lát nhé!';
+          : 'Dạ chào quý khách! Em là chuyên viên tư vấn Xe Nâng MCK Japan. Em đã ghi nhận yêu cầu của quý khách và sẽ kiểm tra kho báo giá trong giây lát nhé!';
 
         // 4. Gửi câu trả lời về cho khách qua Facebook Send API
         const sendResult = await sendTextMessage(fbPage.accessToken, senderPsid, textToSend);

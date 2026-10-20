@@ -96,7 +96,7 @@ export default function DataDeletionPage({ params }: { params: Promise<{ lang: s
                 <strong>{isEn ? 'Apps and Websites' : 'Ứng dụng và trang web (Apps and Websites)'}</strong>.
               </li>
               <li>
-                {isEn ? 'Find our Application ("Viet Nhat Forklift Portal" or connected Page service).' : 'Tìm tên Ứng dụng của chúng tôi trong danh sách đã cấp quyền.'}
+                {isEn ? 'Find our Application ("MCK Japan Forklift Portal" or connected Page service).' : 'Tìm tên Ứng dụng của chúng tôi ("Xe Nâng MCK Japan") trong danh sách đã cấp quyền.'}
               </li>
               <li>
                 {isEn ? 'Click the ' : 'Bấm nút '}
@@ -163,7 +163,7 @@ export default function DataDeletionPage({ params }: { params: Promise<{ lang: s
                       required
                       value={formData.emailOrPhone}
                       onChange={e => setFormData({ ...formData, emailOrPhone: e.target.value })}
-                      placeholder={isEn ? 'e.g. contact@example.com' : 'Ví dụ: 0989xxxxxx hoặc email@gmail.com'}
+                      placeholder={isEn ? 'e.g. contact@example.com' : 'Ví dụ: 0362xxxxxx hoặc email@gmail.com'}
                       style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
                     />
                   </div>

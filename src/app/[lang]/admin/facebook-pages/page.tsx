@@ -627,7 +627,7 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
                 <input
                   type="text"
                   required
-                  placeholder="Ví dụ: Xe Nâng Việt Nhật - Miền Bắc"
+                  placeholder="Ví dụ: Xe Nâng MCK Japan - Miền Bắc"
                   value={formData.pageName}
                   onChange={(e) => setFormData({ ...formData, pageName: e.target.value })}
                   style={{

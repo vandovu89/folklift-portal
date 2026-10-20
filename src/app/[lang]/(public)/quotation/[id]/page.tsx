@@ -15,8 +15,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   return {
     title: forklift 
-      ? `Báo Giá Xe Nâng ${forklift.maker} ${forklift.model} | Xe Nâng Việt Nhật`
-      : 'Bảng Báo Giá Xe Nâng | Xe Nâng Việt Nhật',
+      ? `Báo Giá Xe Nâng ${forklift.maker} ${forklift.model} | Xe Nâng MCK Japan`
+      : 'Bảng Báo Giá Xe Nâng | Xe Nâng MCK Japan',
     robots: { index: false, follow: false } // Báo giá không cần Google index
   };
 }
@@ -96,12 +96,12 @@ export default async function QuotationPage({
             />
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#0369a1', margin: 0, textTransform: 'uppercase' }}>
-                CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT
+                XE NÂNG MCK JAPAN
               </h2>
               <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px', lineHeight: 1.4 }}>
                 <div><strong>Văn phòng:</strong> Park 2-05, KĐT Eurowindow River Park, Đông Anh, Hà Nội</div>
-                <div><strong>Kho bãi:</strong> Bãi xe Quốc Huy, QL3, Phù Lỗ, Sóc Sơn &amp; ĐT379, Hưng Yên</div>
-                <div><strong>Hotline / Zalo:</strong> 0989 319 888 &bull; <strong>Email:</strong> info@xenangmck.jp</div>
+                <div><strong>Kho bãi:</strong> Thôn Bình Phú, xã Việt Yên, tỉnh Hưng Yên</div>
+                <div><strong>Hotline / Zalo:</strong> 0362-396-092 &bull; <strong>Email:</strong> info@xenangmck.jp</div>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default async function QuotationPage({
         </div>
 
         <p style={{ margin: '0 0 16px 0', fontSize: '13px', textAlign: 'justify' }}>
-          Công ty TNHH Kinh Doanh SX &amp; TM Việt Nhật trân trọng gửi tới Quý khách hàng báo giá chi tiết dòng thiết bị xe nâng nhập khẩu trực tiếp từ Nhật Bản theo thông số kỹ thuật như sau:
+          Xe Nâng MCK Japan trân trọng gửi tới Quý khách hàng báo giá chi tiết dòng thiết bị xe nâng nhập khẩu trực tiếp từ Nhật Bản theo thông số kỹ thuật như sau:
         </p>
 
         {/* Khung Thông Tin Xe & Hình Ảnh */}
@@ -233,7 +233,7 @@ export default async function QuotationPage({
             <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>(Ký và ghi rõ họ tên)</div>
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>CÔNG TY TNHH KINH DOANH SX &amp; TM VIỆT NHẬT</div>
+            <div style={{ fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>XE NÂNG MCK JAPAN</div>
             <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>Đại diện bán hàng</div>
             <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#dc2626', fontWeight: 800, border: '2px dashed #dc2626', padding: '4px 14px', borderRadius: '6px', fontSize: '13px', transform: 'rotate(-5deg)' }}>

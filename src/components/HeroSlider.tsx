@@ -64,7 +64,7 @@ export default function HeroSlider({ dict, lang, images = [] }: HeroSliderProps)
           className="float-anim" 
           style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '50px', backdropFilter: 'blur(10px)', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}
         >
-          Việt Nhật
+          Xe Nâng MCK Japan
         </motion.span>
         
         <motion.h1 
