@@ -174,12 +174,12 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
         Quản lý Hình ảnh & Tài liệu
       </h3>
       
-      <form onSubmit={handleUpload} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 250px' }}>
+      <form onSubmit={handleUpload} className="glass-panel" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={{ flex: '2 1 220px', minWidth: '180px' }}>
           <label className="form-label">Chọn File (Ảnh/PDF/Doc) - Có thể chọn nhiều file</label>
           <input type="file" multiple className="form-control" onChange={(e) => setFiles(Array.from(e.target.files || []))} required />
         </div>
-        <div style={{ flex: '1 1 200px' }}>
+        <div style={{ flex: '1 1 150px', minWidth: '130px' }}>
           <label className="form-label">Phân loại nhóm</label>
           <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="Tổng thể">Ảnh Tổng thể (Front, Rear...)</option>
@@ -190,16 +190,16 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
             <option value="Maintenance">Hồ sơ bảo dưỡng</option>
           </select>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: '42px', flex: '0 0 auto' }}>
           <input type="checkbox" id="isPublic" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem' }} />
-          <label htmlFor="isPublic" style={{ fontWeight: '600' }}>Hiển thị ra Public</label>
+          <label htmlFor="isPublic" style={{ fontWeight: '600', fontSize: '0.9rem' }}>Hiển thị ra Public</label>
         </div>
-        <button type="submit" className="btn-primary" disabled={loading || files.length === 0} style={{ height: '40px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <button type="submit" className="btn-primary" disabled={loading || files.length === 0} style={{ height: '42px', padding: '0 1.5rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flex: '1 1 140px' }}>
           <FaFileUpload /> {loading ? `Đang tải... ${uploadProgress.current}/${uploadProgress.total}` : 'Tải lên'}
         </button>
       </form>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))', gap: '1rem' }}>
         {mediaList.map((m) => (
           <div 
             key={m.id} 

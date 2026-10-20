@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { FaTractor, FaBoxOpen, FaEye, FaUsers, FaMoneyBillWave } from 'react-icons/fa';
+import styles from './admin.module.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,52 +28,52 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '2rem' }}>Bảng điều khiển</h1>
+      <h1 style={{ marginBottom: '1.5rem', fontSize: 'clamp(1.4rem, 4vw, 1.8rem)' }}>Bảng điều khiển</h1>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(37, 99, 235, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--primary)', flexShrink: 0 }}>
-            <FaTractor size={30} />
+      <div className={styles.dashboardStatsGrid}>
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ backgroundColor: 'rgba(37, 99, 235, 0.1)', padding: '0.85rem', borderRadius: '50%', color: 'var(--primary)', flexShrink: 0 }}>
+            <FaTractor size={26} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tổng số xe nâng</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{total}</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tổng số xe nâng</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, overflowWrap: 'break-word' }}>{total}</div>
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--success)', flexShrink: 0 }}>
-            <FaEye size={30} />
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', padding: '0.85rem', borderRadius: '50%', color: 'var(--success)', flexShrink: 0 }}>
+            <FaEye size={26} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Đang bán trên Web</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{published}</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Đang bán trên Web</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, overflowWrap: 'break-word' }}>{published}</div>
           </div>
         </div>
         
-        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', padding: '1rem', borderRadius: '50%', color: '#eab308', flexShrink: 0 }}>
-            <FaUsers size={30} />
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', padding: '0.85rem', borderRadius: '50%', color: '#eab308', flexShrink: 0 }}>
+            <FaUsers size={26} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Yêu cầu (Inquiry)</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, overflowWrap: 'break-word' }}>{totalInquiries}</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Yêu cầu (Inquiry)</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, overflowWrap: 'break-word' }}>{totalInquiries}</div>
           </div>
         </div>
         
-        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '50%', color: '#ef4444', flexShrink: 0 }}>
-            <FaMoneyBillWave size={30} />
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '0.85rem', borderRadius: '50%', color: '#ef4444', flexShrink: 0 }}>
+            <FaMoneyBillWave size={26} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.9rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Giá trị Tồn kho</div>
-            <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', fontWeight: 800, overflowWrap: 'break-word', lineHeight: '1.2' }}>{totalValue.toLocaleString()} ¥</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Giá trị Tồn kho</div>
+            <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, overflowWrap: 'break-word', lineHeight: '1.2' }}>{totalValue.toLocaleString()} ¥</div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+      <div className={styles.dashboardMainGrid}>
+        <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem' }}>Chào mừng đến với hệ thống quản lý</h3>
           <p style={{ color: '#666', marginBottom: '1.5rem' }}>Hệ thống Forklift Portal (Phase 2) đã cập nhật luồng CRM & Costing.</p>
           <Link href="/admin/forklifts" className="btn-primary">

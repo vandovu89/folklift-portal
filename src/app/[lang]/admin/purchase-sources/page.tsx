@@ -83,15 +83,15 @@ export default function PurchaseSourcesPage() {
   if (loading) return <div style={{ padding: '2rem' }}>Đang tải...</div>;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>Quản lý Nguồn nhập & Mã viết tắt</h2>
+    <div style={{ padding: '0', maxWidth: '1000px', margin: '0 auto' }}>
+      <h2 style={{ marginBottom: '1.5rem', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 600 }}>Quản lý Nguồn nhập & Mã viết tắt</h2>
       
-      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+      <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '2rem' }}>
         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
           {editingId ? 'Cập nhật Nguồn nhập' : 'Thêm Nguồn nhập mới'}
         </h3>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 200px' }}>
+          <div style={{ flex: '2 1 200px', minWidth: '180px' }}>
             <label className="form-label">Tên nguồn nhập *</label>
             <input 
               required
@@ -101,7 +101,7 @@ export default function PurchaseSourcesPage() {
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
-          <div style={{ width: '150px' }}>
+          <div style={{ flex: '1 1 130px', minWidth: '110px' }}>
             <label className="form-label">Mã viết tắt *</label>
             <input 
               required
@@ -112,7 +112,7 @@ export default function PurchaseSourcesPage() {
               onChange={e => setFormData({ ...formData, abbreviation: e.target.value.toUpperCase() })}
             />
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flex: '1 1 130px', minWidth: '120px', alignItems: 'flex-end' }}>
             {editingId && (
               <button 
                 type="button" 
@@ -122,7 +122,7 @@ export default function PurchaseSourcesPage() {
                 Hủy
               </button>
             )}
-            <button type="submit" disabled={submitting} className="btn-primary">
+            <button type="submit" disabled={submitting} className="btn-primary" style={{ flex: 1, minHeight: '42px', justifyContent: 'center' }}>
               {submitting ? 'Đang lưu...' : (editingId ? 'Cập nhật' : 'Thêm mới')}
             </button>
           </div>

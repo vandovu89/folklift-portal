@@ -90,16 +90,16 @@ export default function AccountingPage() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', color: '#1e293b', margin: 0 }}>Tổng hợp dữ liệu Kế toán</h2>
+    <div style={{ padding: '0', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', color: '#1e293b', margin: 0 }}>Tổng hợp dữ liệu Kế toán</h2>
         
         {activeTab === 'pending' && (
           <button 
             className="btn-primary" 
             onClick={handleExport}
             disabled={exporting || selectedIds.length === 0}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#10b981', borderColor: '#10b981' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#10b981', borderColor: '#10b981', padding: '0.6rem 1.2rem' }}
           >
             {exporting ? <FaSpinner className="fa-spin" /> : <FaFileExcel />} 
             Xuất Excel MISA & Khóa Sổ ({selectedIds.length})
@@ -107,14 +107,15 @@ export default function AccountingPage() {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', overflowX: 'auto', whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
         <button 
           onClick={() => setActiveTab('pending')}
           style={{
-            padding: '0.75rem 1.5rem', background: 'none', border: 'none',
+            padding: '0.75rem 1.25rem', background: 'none', border: 'none',
             borderBottom: activeTab === 'pending' ? '3px solid #3b82f6' : '3px solid transparent',
             color: activeTab === 'pending' ? '#3b82f6' : '#64748b',
-            fontWeight: 600, cursor: 'pointer', fontSize: '1rem'
+            fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem',
+            whiteSpace: 'nowrap'
           }}
         >
           <FaCheckCircle style={{ marginRight: '0.5rem' }}/> 
@@ -123,10 +124,11 @@ export default function AccountingPage() {
         <button 
           onClick={() => setActiveTab('archived')}
           style={{
-            padding: '0.75rem 1.5rem', background: 'none', border: 'none',
+            padding: '0.75rem 1.25rem', background: 'none', border: 'none',
             borderBottom: activeTab === 'archived' ? '3px solid #64748b' : '3px solid transparent',
             color: activeTab === 'archived' ? '#333' : '#64748b',
-            fontWeight: 600, cursor: 'pointer', fontSize: '1rem'
+            fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem',
+            whiteSpace: 'nowrap'
           }}
         >
           <FaLock style={{ marginRight: '0.5rem' }}/> 

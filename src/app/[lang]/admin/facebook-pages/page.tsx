@@ -402,8 +402,8 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
       </div>
 
       {/* Pages Table */}
-      <div className="table-container" style={{ background: 'var(--card-bg, #fff)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ background: 'var(--card-bg, #fff)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div style={{ fontWeight: 600, fontSize: '1.05rem' }}>Danh sách Fanpage ({pages.length})</div>
           <button 
             onClick={fetchPages} 
@@ -430,7 +430,8 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
             </button>
           </div>
         ) : (
-          <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table className="table" style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'rgba(0,0,0,0.02)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                 <th style={{ padding: '0.9rem 1.25rem' }}>Tên Fanpage</th>
@@ -557,6 +558,7 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -580,8 +582,9 @@ export default function FacebookPagesAdminPage({ params }: { params: Promise<{ l
             borderRadius: '16px',
             width: '100%',
             maxWidth: '560px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            overflow: 'hidden'
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
           }}>
             <div style={{
               padding: '1.25rem 1.5rem',

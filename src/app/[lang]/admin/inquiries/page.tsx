@@ -27,15 +27,15 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
   };
 
   return (
-    <div className="admin-container fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--foreground)' }}>Quản lý Yêu cầu (Inquiries)</h1>
+    <div className="admin-container fade-in" style={{ padding: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', fontWeight: 700, color: 'var(--foreground)', margin: 0 }}>Quản lý Yêu cầu (Inquiries)</h1>
         
         <select 
           className="form-control" 
           value={filter} 
           onChange={(e) => setFilter(e.target.value)}
-          style={{ width: '200px' }}
+          style={{ width: '100%', maxWidth: '220px' }}
         >
           <option value="All">Tất cả trạng thái</option>
           <option value="New">Mới (New)</option>
@@ -47,11 +47,11 @@ export default function InquiriesPage({ params }: { params: Promise<{ lang: stri
         </select>
       </div>
 
-      <div className="table-container">
+      <div className="table-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải dữ liệu...</div>
         ) : (
-          <table className="table">
+          <table className="table" style={{ minWidth: '850px' }}>
             <thead>
               <tr>
                 <th>Khách hàng</th>

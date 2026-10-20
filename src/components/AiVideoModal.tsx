@@ -143,9 +143,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
           </button>
         </div>
 
-        <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, color: '#333' }}>
+        <div style={{ padding: 'clamp(1rem, 3vw, 1.5rem)', overflowY: 'auto', flex: 1, color: '#333' }}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1.5rem' }}>
             {/* Cột trái: Input */}
             <div>
               {/* Bước 1: Video gốc */}

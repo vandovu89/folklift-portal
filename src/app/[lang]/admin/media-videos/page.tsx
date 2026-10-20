@@ -123,18 +123,18 @@ export default function AdminMediaVideosPage() {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: '0' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+          <h1 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', fontWeight: 800, color: '#0f172a', margin: 0 }}>
             🎬 Thư Viện Media & Video Review
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', margin: '0.3rem 0 0 0' }}>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.3rem 0 0 0' }}>
             Quản lý video YouTube, TikTok về lễ bàn giao xe, test tải và kho bãi thực tế
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <a
             href="/vi/media"
             target="_blank"
@@ -143,7 +143,7 @@ export default function AdminMediaVideosPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              padding: '0.75rem 1.2rem',
+              padding: '0.65rem 1.1rem',
               borderRadius: '8px',
               border: '1px solid #cbd5e1',
               background: 'white',
@@ -161,7 +161,7 @@ export default function AdminMediaVideosPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              padding: '0.75rem 1.4rem',
+              padding: '0.65rem 1.25rem',
               borderRadius: '8px',
               border: 'none',
               background: 'var(--primary)',
@@ -207,7 +207,7 @@ export default function AdminMediaVideosPage() {
           <p style={{ color: '#64748b', fontSize: '1rem' }}>Chưa có video nào trong mục này.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
           {filteredVideos.map(v => (
             <div key={v.id} style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <div style={{ padding: '0.5rem', background: '#0f172a' }}>
@@ -289,7 +289,9 @@ export default function AdminMediaVideosPage() {
             borderRadius: '16px',
             width: '100%',
             maxWidth: '550px',
-            padding: '2rem',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: 'clamp(1.2rem, 3vw, 2rem)',
             boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>

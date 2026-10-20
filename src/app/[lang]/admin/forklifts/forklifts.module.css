@@ -3,6 +3,21 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -12,7 +27,7 @@
 }
 
 .table th, .table td {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--surface-border);
 }
 
@@ -23,6 +38,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .table tr:hover td {
@@ -35,12 +51,6 @@
   gap: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .formSection {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
@@ -51,4 +61,81 @@
   margin-bottom: 1.5rem;
   color: var(--primary);
   font-size: 1.1rem;
+}
+
+.expenseRow {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr 2fr auto;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.profitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions > * {
+    flex: 1 1 auto;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .table th, .table td {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .expenseRow {
+    grid-template-columns: 1fr 1fr;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+  }
+
+  .expenseRow > *:first-child {
+    grid-column: span 2;
+  }
+
+  .expenseRow > *:nth-child(4) {
+    grid-column: span 2;
+  }
+
+  .expenseRow > button {
+    grid-column: span 2;
+    width: 100%;
+  }
+
+  .profitGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .profitGrid > div {
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.75rem;
+  }
 }

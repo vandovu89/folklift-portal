@@ -144,8 +144,8 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
         </div>
 
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, color: '#333' }}>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem' }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 220px' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Giọng điệu (Tone):</label>
               <select value={tone} onChange={e => setTone(e.target.value)} className="form-control" style={{ background: '#fff' }}>
                 <option value="chuyên nghiệp và thuyết phục">Chuyên nghiệp, uy tín</option>
@@ -154,12 +154,12 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
                 <option value="thân thiện, gần gũi">Thân thiện, gần gũi</option>
               </select>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', flex: '1 1 auto' }}>
               <button 
                 onClick={handleGenerate} 
                 disabled={loadingAi}
                 className="btn-primary" 
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: '42px', padding: '0 1.5rem' }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', height: '42px', padding: '0 1.5rem', width: '100%' }}
               >
                 {loadingAi ? 'Đang viết...' : <><FaMagic /> Tự động viết bài</>}
               </button>
@@ -314,12 +314,12 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#0369a1' }}>
               Đăng lên Fanpage đích:
             </label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <select 
                 value={selectedPageId} 
                 onChange={e => setSelectedPageId(e.target.value)} 
                 className="form-control" 
-                style={{ flex: 1, background: '#fff' }}
+                style={{ flex: '2 1 200px', background: '#fff' }}
               >
                 <option value="">-- Chọn Fanpage --</option>
                 {pages.map(p => (
@@ -330,7 +330,7 @@ export default function AiMarketingModal({ isOpen, onClose, forkliftId }: AiMark
                 onClick={handlePublish}
                 disabled={loadingPublish || !content || !selectedPageId}
                 className="btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1877f2', borderColor: '#1877f2' }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#1877f2', borderColor: '#1877f2', flex: '1 1 140px' }}
               >
                 {loadingPublish ? 'Đang đăng...' : <><FaFacebook /> Đăng ngay</>}
               </button>

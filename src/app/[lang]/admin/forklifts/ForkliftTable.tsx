@@ -83,20 +83,23 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
       
       {selectedIds.length > 0 && (
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, 
-          padding: '10px 1rem', background: 'rgba(239, 68, 68, 0.15)', 
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+          padding: '10px 1rem', 
+          background: 'rgba(239, 68, 68, 0.12)', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          borderBottom: '1px solid rgba(239, 68, 68, 0.25)',
           backdropFilter: 'blur(8px)',
-          zIndex: 10
         }}>
-          <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+          <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem' }}>
             Đã chọn {selectedIds.length} xe nâng
           </span>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <ExportButton 
               selectedIds={selectedIds} 
-              buttonText="Xuất Excel Các Mục Đã Chọn"
+              buttonText="Xuất Excel"
             />
             <Link
               href={`/vi/print-qr?ids=${selectedIds.join(',')}`}
@@ -115,7 +118,7 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
                 boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
               }}
             >
-              <FaQrcode /> In Mã QR ({selectedIds.length} xe)
+              <FaQrcode /> In QR ({selectedIds.length})
             </Link>
             {role === 'ADMIN' && (
               <button 
@@ -124,14 +127,15 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
                 className="btn-danger"
                 style={{ padding: '0.4rem 1rem' }}
               >
-                {isDeleting ? 'Đang xóa...' : 'Xóa Các Mục Đã Chọn'}
+                {isDeleting ? 'Đang xóa...' : 'Xóa Đã Chọn'}
               </button>
             )}
           </div>
         </div>
       )}
 
-      <table className={styles.table} style={{ marginTop: selectedIds.length > 0 ? '55px' : '0', transition: 'margin-top 0.2s' }}>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table} style={{ minWidth: '850px' }}>
         <thead>
           <tr>
             <th style={{ width: '40px', textAlign: 'center' }}>
@@ -209,6 +213,7 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

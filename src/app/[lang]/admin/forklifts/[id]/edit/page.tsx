@@ -184,16 +184,16 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   if (initialLoading) return <div style={{ padding: '2rem' }}>Đang tải dữ liệu...</div>;
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="glass-panel" style={{ padding: 'clamp(1rem, 3vw, 2rem)', maxWidth: '1000px', margin: '0 auto' }}>
       <div className={styles.pageHeader}>
-        <h2>Chỉnh sửa Thông tin Xe Nâng</h2>
-        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+        <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)' }}>Chỉnh sửa Thông tin Xe Nâng</h2>
+        <div className={styles.headerActions}>
           <Link 
             href={`/vi/print-qr?ids=${resolvedParams.id}`} 
             target="_blank"
             className="btn-secondary" 
             style={{ 
-              display: 'flex', 
+              display: 'inline-flex', 
               alignItems: 'center', 
               gap: '0.5rem', 
               background: '#eff6ff', 
@@ -203,12 +203,12 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               fontWeight: 700
             }}
           >
-            <FaQrcode /> In Tem QR Dán Xe
+            <FaQrcode /> In QR Dán Xe
           </Link>
-          <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
+          <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
             <FaVideo /> AI Video Studio
           </button>
-          <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
+          <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
             <FaMagic /> Trợ lý AI Marketing
           </button>
           {userRole === 'ADMIN' && (
@@ -357,19 +357,19 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             <div style={{ marginTop: '1rem' }}>
               <label className="form-label">Chi phí phát sinh</label>
               {formData.expenses.map((exp, index) => (
-                <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-                  <input required placeholder="Tên chi phí (VD: Vận chuyển)" value={exp.title} onChange={e => handleExpenseChange(index, 'title', e.target.value)} className="form-control" style={{ flex: 2 }} />
-                  <input required type="number" placeholder="Số tiền" value={exp.amount} onChange={e => handleExpenseChange(index, 'amount', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
-                  <input type="date" value={exp.date} onChange={e => handleExpenseChange(index, 'date', e.target.value)} className="form-control" style={{ flex: 1.5 }} />
-                  <input placeholder="Ghi chú" value={exp.note} onChange={e => handleExpenseChange(index, 'note', e.target.value)} className="form-control" style={{ flex: 2 }} />
-                  <button type="button" onClick={() => removeExpense(index)} className="btn-danger" style={{ padding: '0.5rem' }}>Xóa</button>
+                <div key={index} className={styles.expenseRow}>
+                  <input required placeholder="Tên chi phí (VD: Vận chuyển)" value={exp.title} onChange={e => handleExpenseChange(index, 'title', e.target.value)} className="form-control" />
+                  <input required type="number" placeholder="Số tiền" value={exp.amount} onChange={e => handleExpenseChange(index, 'amount', e.target.value)} className="form-control" />
+                  <input type="date" value={exp.date} onChange={e => handleExpenseChange(index, 'date', e.target.value)} className="form-control" />
+                  <input placeholder="Ghi chú" value={exp.note} onChange={e => handleExpenseChange(index, 'note', e.target.value)} className="form-control" />
+                  <button type="button" onClick={() => removeExpense(index)} className="btn-danger" style={{ padding: '0.5rem 1rem' }}>Xóa</button>
                 </div>
               ))}
               <button type="button" onClick={addExpense} className="btn-secondary" style={{ marginTop: '0.5rem' }}>+ Thêm chi phí</button>
             </div>
             
             <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', textAlign: 'center' }}>
+              <div className={styles.profitGrid}>
                 <div>
                   <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tổng vốn nhập (Bao gồm chi phí)</div>
                   <div style={{ fontSize: '1.2rem', color: '#ffb703', fontWeight: 600 }}>

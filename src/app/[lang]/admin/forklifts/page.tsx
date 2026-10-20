@@ -111,8 +111,8 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
   return (
     <div>
       <div className={styles.pageHeader}>
-        <h1>Quản lý Xe Nâng ({forklifts.length})</h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)' }}>Quản lý Xe Nâng ({forklifts.length})</h1>
+        <div className={styles.headerActions}>
           <ExportButton 
             currentFilters={{ q, status, category, capacity, height, price }}
           />

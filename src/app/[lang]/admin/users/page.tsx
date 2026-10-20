@@ -138,11 +138,11 @@ export default function UserManagement() {
       </div>
 
       {/* Form thêm user */}
-      <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
-        <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div className="glass-panel" style={{ padding: 'clamp(1.2rem, 3vw, 2rem)', marginBottom: '2rem' }}>
+        <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem' }}>
           <FaPlus style={{ color: 'var(--primary)' }} /> Thêm tài khoản mới
         </h3>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem', alignItems: 'end' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 600, color: 'var(--foreground)' }}>Tên hiển thị</label>
             <input 
@@ -195,9 +195,9 @@ export default function UserManagement() {
 
       {/* Danh sách user (Dạng Card) */}
       <h3 style={{ marginBottom: '1rem' }}>Danh sách nhân sự ({users.length})</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
         {users.map(u => (
-          <div key={u.id} className="glass-panel hover-scale" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', transition: 'var(--transition)' }}>
+          <div key={u.id} className="glass-panel hover-scale" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'var(--transition)' }}>
              {/* Avatar */}
              <div style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 4px 10px rgba(79, 70, 229, 0.3)' }}>
                {u.name?.charAt(0).toUpperCase() || 'U'}
@@ -270,7 +270,7 @@ export default function UserManagement() {
             borderRadius: '16px',
             width: '100%',
             maxWidth: '520px',
-            padding: '2rem',
+            padding: 'clamp(1.2rem, 3vw, 2rem)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             maxHeight: '90vh',
             overflowY: 'auto'
@@ -336,7 +336,7 @@ export default function UserManagement() {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.4rem', fontWeight: 600, color: '#334155' }}>
                     Phân quyền

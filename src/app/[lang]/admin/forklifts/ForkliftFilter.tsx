@@ -39,10 +39,10 @@ export default function ForkliftFilter() {
   };
 
   return (
-    <form onSubmit={handleFilter} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-      <div style={{ flex: '1 1 300px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
-          Tìm kiếm (Hãng, Model, Stock No...)
+    <form onSubmit={handleFilter} className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.5rem', display: 'flex', gap: '0.85rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+      <div style={{ flex: '2 1 240px', minWidth: '200px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
+          Tìm kiếm (Hãng, Model, Mã xe...)
         </label>
         <input 
           value={q} 
@@ -51,8 +51,8 @@ export default function ForkliftFilter() {
           placeholder="Nhập từ khóa tìm kiếm..." 
         />
       </div>
-      <div style={{ width: '150px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+      <div style={{ flex: '1 1 135px', minWidth: '125px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
           Loại (Type 2)
         </label>
         <select value={category} onChange={e => setCategory(e.target.value)} className="form-control">
@@ -62,8 +62,8 @@ export default function ForkliftFilter() {
           <option value="OTHER">Other (Khác)</option>
         </select>
       </div>
-      <div style={{ width: '200px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+      <div style={{ flex: '1 1 160px', minWidth: '140px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
           Trạng thái
         </label>
         <select value={status} onChange={e => setStatus(e.target.value)} className="form-control">
@@ -77,8 +77,8 @@ export default function ForkliftFilter() {
           <option value="InJapan">Nhật Bản</option>
         </select>
       </div>
-      <div style={{ width: '150px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+      <div style={{ flex: '1 1 135px', minWidth: '125px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
           Tải trọng
         </label>
         <select value={capacity} onChange={e => setCapacity(e.target.value)} className="form-control">
@@ -88,8 +88,8 @@ export default function ForkliftFilter() {
           <option value=">2500">Trên 2.5 tấn</option>
         </select>
       </div>
-      <div style={{ width: '150px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+      <div style={{ flex: '1 1 135px', minWidth: '125px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
           Chiều cao nâng
         </label>
         <select value={height} onChange={e => setHeight(e.target.value)} className="form-control">
@@ -99,8 +99,8 @@ export default function ForkliftFilter() {
           <option value=">4000">Trên 4m</option>
         </select>
       </div>
-      <div style={{ width: '150px' }}>
-        <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontSize: '0.9rem', color: '#666' }}>
+      <div style={{ flex: '1 1 135px', minWidth: '125px' }}>
+        <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block', fontSize: '0.85rem', color: '#666' }}>
           Tầm giá
         </label>
         <select value={price} onChange={e => setPrice(e.target.value)} className="form-control">
@@ -110,7 +110,7 @@ export default function ForkliftFilter() {
           <option value=">300000000">Trên 300 triệu</option>
         </select>
       </div>
-      <button type="submit" className="btn-primary" style={{ height: '42px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+      <button type="submit" className="btn-primary" style={{ height: '42px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flex: '1 1 140px', minWidth: '130px' }}>
         <FaSearch /> Lọc kết quả
       </button>
     </form>

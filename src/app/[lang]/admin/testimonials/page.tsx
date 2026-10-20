@@ -107,12 +107,12 @@ export default function AdminTestimonialsPage() {
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+          <h2 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', fontWeight: 800, margin: 0, color: '#0f172a' }}>
             Quản Lý Góc Khách Hàng &amp; Bàn Giao
           </h2>
-          <p style={{ color: '#64748b', margin: '0.4rem 0 0 0', fontSize: '0.95rem' }}>
+          <p style={{ color: '#64748b', margin: '0.4rem 0 0 0', fontSize: '0.9rem' }}>
             Thêm hình ảnh thực tế giao xe và cảm nhận của khách để hiển thị trên website công khai.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function AdminTestimonialsPage() {
             border: 'none',
             fontWeight: 700,
             cursor: 'pointer',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
             boxShadow: '0 4px 12px rgba(194, 39, 45, 0.3)'
@@ -144,7 +144,7 @@ export default function AdminTestimonialsPage() {
           Chưa có đánh giá hoặc ảnh bàn giao nào. Hãy bấm &quot;Thêm Bàn Giao / Đánh Giá&quot; để tạo mới.
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: '1.25rem' }}>
           {stories.map(item => (
             <div key={item.id} style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -207,17 +207,17 @@ export default function AdminTestimonialsPage() {
           zIndex: 9999,
           padding: '1rem'
         }}>
-          <div style={{ background: 'white', borderRadius: '16px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'white', borderRadius: '16px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(1.2rem, 3vw, 2rem)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Thêm Câu Chuyện Bàn Giao &amp; Đánh Giá</h3>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Thêm Câu Chuyện Bàn Giao &amp; Đánh Giá</h3>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b' }}>
                 <FaTimes />
               </button>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.3rem' }}>Họ tên khách hàng *</label>
                   <input
@@ -239,7 +239,7 @@ export default function AdminTestimonialsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.3rem' }}>Địa điểm (KCN / Tỉnh thành)</label>
                   <input
@@ -282,7 +282,7 @@ export default function AdminTestimonialsPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.3rem' }}>Đánh giá số sao</label>
                   <select
