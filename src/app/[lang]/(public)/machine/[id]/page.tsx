@@ -8,7 +8,9 @@ import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
-import { formatCapacity } from '@/lib/utils';
+import { formatCapacity, parseCapacityKg } from '@/lib/utils';
+import RoiCalculator from '@/components/RoiCalculator';
+import ConditionMap from '@/components/ConditionMap';
 import { FaMoneyBillWave, FaFilePdf, FaPrint, FaQrcode } from 'react-icons/fa';
 import VideoEmbed from '@/components/VideoEmbed';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
@@ -27,6 +29,10 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           { order: 'asc' },
           { createdAt: 'asc' }
         ]
+      },
+      conditionMarkers: {
+        where: { isPublic: true },
+        orderBy: { createdAt: 'asc' }
       }
     }
   });
@@ -216,6 +222,22 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </div>
           </div>
         )}
+
+        {/* Bản đồ Minh bạch Tình trạng Xe */}
+        <ConditionMap
+          forkliftId={forklift.id}
+          lang={resolvedParams.lang}
+          mode="view"
+          initialMarkers={forklift.conditionMarkers}
+        />
+
+        {/* Công cụ Tính toán Hiệu quả Đầu tư (Xe Điện vs Xe Dầu) */}
+        <RoiCalculator
+          lang={resolvedParams.lang}
+          capacityKg={parseCapacityKg(forklift.loadCapacity)}
+          isElectric={Boolean(isElectric)}
+          forkliftPrice={forklift.price}
+        />
 
         {/* Video Review Thực Tế */}
         {forklift.videoUrl && (

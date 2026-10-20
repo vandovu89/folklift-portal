@@ -61,16 +61,25 @@ model Forklift {
   soldPrice       Float?
   contractUrl     String?
   customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   assignedToId    String?
   assignedTo      User?     @relation("ForkliftAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   // Khóa dữ liệu Kế toán
   lockedForAccounting Boolean @default(false)
 
+  // Hậu mãi (Phase 3 - Post-Sale Customer Portal)
+  warrantyEndDate           DateTime?
+  maintenanceIntervalMonths Int?      @default(3)
+  nextMaintenanceDate       DateTime?
+
   // Quan hệ
-  media           Media[]
-  inquiries       Inquiry[]
-  expenses        Expense[]
+  media            Media[]
+  inquiries        Inquiry[]
+  expenses         Expense[]
+  conditionMarkers ConditionMarker[]
+  maintenanceLogs  MaintenanceLog[]
+  serviceRequests  ServiceRequest[]
   
   // AI Video Sales Assistant & Video Review
   videoUrl        String?   // Link YouTube/TikTok Review thực tế
@@ -257,4 +266,71 @@ model MediaVideo {
   isFeatured   Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+// Phase 3 - Bản đồ Minh bạch Tình trạng Xe (Visual Condition Mapping)
+model ConditionMarker {
+  id          String   @id @default(uuid())
+  forkliftId  String
+  forklift    Forklift @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  x           Float    // Vị trí ngang trên sơ đồ, % (0-100)
+  y           Float    // Vị trí dọc trên sơ đồ, % (0-100)
+  type        String   @default("REPAIRED") // REPAIRED | REPLACED | SCRATCH
+  title       String
+  note        String?  @db.Text
+  imageUrl    String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([forkliftId])
+}
+
+// Phase 3 - Hồ sơ Quản lý Xe & Hậu mãi (Post-Sale Customer Portal)
+model Customer {
+  id              String           @id @default(uuid())
+  name            String
+  phone           String           @unique // Dùng làm tên đăng nhập
+  email           String?
+  company         String?
+  address         String?
+  passwordHash    String
+  isActive        Boolean          @default(true)
+  note            String?          @db.Text
+  lastLoginAt     DateTime?
+
+  forklifts       Forklift[]
+  serviceRequests ServiceRequest[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model MaintenanceLog {
+  id          String   @id @default(uuid())
+  forkliftId  String
+  forklift    Forklift @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  date        DateTime
+  hourMeter   Int?
+  description String   @db.Text
+  performedBy String?
+  createdAt   DateTime @default(now())
+
+  @@index([forkliftId])
+}
+
+model ServiceRequest {
+  id            String    @id @default(uuid())
+  customerId    String
+  customer      Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  forkliftId    String?
+  forklift      Forklift? @relation(fields: [forkliftId], references: [id], onDelete: SetNull)
+  type          String    // MAINTENANCE | REPAIR | PARTS
+  message       String?   @db.Text
+  preferredDate DateTime?
+  status        String    @default("New") // New | InProgress | Done | Cancelled
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([customerId])
 }

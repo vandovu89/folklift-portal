@@ -48,3 +48,11 @@ export function formatCapacity(input?: string | number | null, lang: 'vi' | 'en'
   }
   return `${kg} kg`;
 }
+
+/**
+ * Nhận diện xe nâng điện từ trường nhiên liệu (ví dụ: "XE NÂNG ĐIỆN", "Battery", "Electric")
+ */
+export function isElectricPower(powerType?: string | null): boolean {
+  const p = (powerType || '').toLowerCase();
+  return p.includes('điện') || p.includes('dien') || p.includes('battery') || p.includes('electric');
+}

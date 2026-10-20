@@ -9,6 +9,7 @@
   "nav": {
     "home": "Trang chủ",
     "catalog": "Sản phẩm",
+    "find_forklift": "Tìm xe phù hợp",
     "media": "Thư viện Video",
     "customer_stories": "Góc Khách Hàng",
     "about": "Về chúng tôi",
@@ -25,6 +26,7 @@
     "privacy_policy": "Chính sách bảo mật",
     "terms_of_service": "Điều khoản dịch vụ",
     "data_deletion": "Xóa dữ liệu người dùng",
+    "customer_portal": "Cổng khách hàng (Xe đã mua)",
     "follow_us": "Kết nối với chúng tôi",
     "rights": "© 2026 Xe Nâng MCK Japan. All rights reserved."
   },

@@ -5,7 +5,7 @@ Dựa trên tài liệu yêu cầu nghiệp vụ "Requirement Specification Cust
 Để đảm bảo dự án sớm đưa vào sử dụng và mang lại giá trị tức thì, hệ thống được đề xuất chia thành 5 giai đoạn (Phase). 
 - **Phase 1 (Hoàn thành):** Thay thế Excel, số hóa dữ liệu cơ bản và cổng thông tin công khai (Public Portal).
 - **Phase 2 (Hoàn thành):** Số hóa quy trình vận hành sâu (Kiểm tra, Sửa chữa), tối ưu bán hàng (CRM, Chi phí, Báo giá PDF) và Trợ lý Content, Video, Media & Mạng xã hội.
-- **Phase 3 (Kế hoạch mở rộng):** Các giải pháp nâng cấp & tối ưu bán hàng.
+- **Phase 3 (Đang triển khai - mục 1–4 hoàn thành):** Các giải pháp nâng cấp & tối ưu bán hàng.
 - **Phase 4 (Kế hoạch tương lai):** Hệ thống Tự học AI "Học có kiểm duyệt" (Human-in-the-loop).
 - **Phase 5 (Kế hoạch tương lai):** Huấn luyện AI chuyên sâu để chốt sale (Fine-tuning).
 
@@ -64,19 +64,19 @@ Dựa trên tài liệu yêu cầu nghiệp vụ "Requirement Specification Cust
 ## 📈 PHASE 3: Các Tính năng Nâng cấp & Tối ưu Bán hàng (Mở rộng)
 **Mục tiêu:** Cung cấp các công cụ sắc bén giúp đội ngũ Sale tự động hóa công việc, tăng cường trải nghiệm người dùng và gia tăng tỷ lệ chuyển đổi.
 
-### 1. Công cụ Tính toán Hiệu quả Đầu tư (ROI & Cost Calculator)
+### 1. Công cụ Tính toán Hiệu quả Đầu tư (ROI & Cost Calculator) 🟢 *Đã triển khai*
 * Ứng dụng kéo-thả để so sánh chi phí nhiên liệu/vận hành (Xe Điện vs Xe Dầu).
 * Tạo động lực mạnh mẽ để chốt sale bằng cách chứng minh số tiền khách hàng có thể tiết kiệm được.
 
-### 2. Bản đồ Minh bạch Tình trạng Xe (Visual Condition Mapping)
+### 2. Bản đồ Minh bạch Tình trạng Xe (Visual Condition Mapping) 🟢 *Đã triển khai*
 * Sơ đồ 2D cho phép đánh dấu vị trí các bộ phận có sửa chữa, thay thế hoặc xước xát.
 * Khách bấm vào các "chấm đỏ" trên bản đồ 2D để xem ảnh thực tế. Tăng uy tín và độ tin cậy.
 
-### 3. Trợ lý Ảo Chọn Xe Thông Minh (AI "Find My Forklift" Wizard)
+### 3. Trợ lý Ảo Chọn Xe Thông Minh (AI "Find My Forklift" Wizard) 🟢 *Đã triển khai*
 * Luồng khảo sát ngắn (Wizard) 3-4 câu hỏi đơn giản để phân loại nhu cầu khách hàng.
 * Tự động đề xuất top 3 sản phẩm phù hợp nhất trong kho mà không cần hiểu biết kỹ thuật sâu.
 
-### 4. Hồ sơ Quản lý Xe & Hậu mãi (Post-Sale Customer Portal)
+### 4. Hồ sơ Quản lý Xe & Hậu mãi (Post-Sale Customer Portal) 🟢 *Đã triển khai*
 * Cấp tài khoản cho khách hàng quản lý xe đã mua.
 * Nhắc lịch bảo dưỡng định kỳ và cung cấp nút "Gọi thợ bảo dưỡng/Mua phụ tùng" trực tiếp.
 

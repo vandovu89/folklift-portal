@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/en', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/vi/catalog', priority: 0.9, changeFrequency: 'daily' as const },
     { path: '/en/catalog', priority: 0.8, changeFrequency: 'daily' as const },
+    { path: '/vi/find-forklift', priority: 0.8, changeFrequency: 'weekly' as const },
+    { path: '/en/find-forklift', priority: 0.6, changeFrequency: 'weekly' as const },
     { path: '/vi/about', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/en/about', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/vi/contact', priority: 0.7, changeFrequency: 'monthly' as const },

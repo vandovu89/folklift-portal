@@ -55,6 +55,8 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
             <li><Link href={`/${lang}/media`} className="footer-link">{dict.nav.media || 'Thư viện Video'}</Link></li>
             <li><Link href={`/${lang}/about`} className="footer-link">{dict.nav.about}</Link></li>
             <li><Link href={`/${lang}/policies`} className="footer-link">{dict.nav.policies}</Link></li>
+            <li><Link href={`/${lang}/find-forklift`} className="footer-link">{dict.nav.find_forklift}</Link></li>
+            <li><Link href={`/${lang}/customer/login`} className="footer-link">{dict.footer.customer_portal}</Link></li>
             <li><Link href={`/${lang}/privacy-policy`} className="footer-link">{dict.footer.privacy_policy || 'Chính sách bảo mật'}</Link></li>
             <li><Link href={`/${lang}/terms-of-service`} className="footer-link">{dict.footer.terms_of_service || 'Điều khoản dịch vụ'}</Link></li>
             <li><Link href={`/${lang}/data-deletion`} className="footer-link">{dict.footer.data_deletion || 'Xóa dữ liệu người dùng'}</Link></li>

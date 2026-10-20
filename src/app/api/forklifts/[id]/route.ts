@@ -1,34 +1,80 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { jwtVerify } from 'jose';
+import { getStaffUser } from '@/lib/auth';
 
 import { logActivity } from '@/lib/activity-logger';
 
-async function getUser(request: Request) {
-  const token = request.headers.get('cookie')?.split('auth_token=')[1]?.split(';')[0];
-  if (!token) return { role: 'GUEST', id: null };
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
-    const { payload } = await jwtVerify(token, secret);
-    return { role: payload.role as string, id: payload.id as string };
-  } catch (error) {
-    return { role: 'GUEST', id: null };
+// Trạng thái được phép hiển thị cho khách (khớp với trang catalog public)
+const PUBLIC_STATUSES = ['Available', 'Incoming', 'Reserved', 'Unpacking', 'InJapan'];
+
+// Các trường an toàn cho khách chưa đăng nhập: không có giá vốn, nguồn hàng, hợp đồng, khách hàng, kịch bản AI...
+const PUBLIC_FORKLIFT_SELECT = {
+  id: true,
+  maker: true,
+  model: true,
+  year: true,
+  hour: true,
+  category: true,
+  type: true,
+  powerType: true,
+  productGroup: true,
+  mast: true,
+  liftHeight: true,
+  loadCapacity: true,
+  attachment: true,
+  forkLength: true,
+  dimensions: true,
+  weight: true,
+  otherSpecs: true,
+  location: true,
+  status: true,
+  condition: true,
+  engineCondition: true,
+  price: true,
+  videoUrl: true,
+  aiVideoUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  media: {
+    where: { isPublic: true },
+    orderBy: { order: 'asc' as const },
+    select: { id: true, url: true, fileName: true, fileType: true, category: true, isThumbnail: true, order: true }
   }
-}
+};
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
+    const { role } = await getStaffUser(request);
+
+    // Khách chưa đăng nhập: chỉ trả về trường public và xe đang ở trạng thái public
+    if (role === 'GUEST') {
+      const publicForklift = await prisma.forklift.findFirst({
+        where: { id: resolvedParams.id, status: { in: PUBLIC_STATUSES } },
+        select: PUBLIC_FORKLIFT_SELECT
+      });
+      if (!publicForklift) {
+        return NextResponse.json({ error: 'Forklift not found' }, { status: 404 });
+      }
+      return NextResponse.json(publicForklift);
+    }
+
     const forklift = await prisma.forklift.findUnique({
       where: { id: resolvedParams.id },
       include: {
         media: true,
-        expenses: true
+        expenses: role === 'ADMIN' ? { orderBy: { createdAt: 'asc' } } : false
       }
     });
 
     if (!forklift) {
       return NextResponse.json({ error: 'Forklift not found' }, { status: 404 });
+    }
+
+    // SALES/VIEWER không được xem giá vốn & chi phí
+    if (role !== 'ADMIN') {
+      const { costPrice, ...rest } = forklift;
+      return NextResponse.json(rest);
     }
 
     return NextResponse.json(forklift);
@@ -42,7 +88,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const resolvedParams = await params;
     const body = await request.json();
-    const { role, id: userId } = await getUser(request);
+    const { role, id: userId } = await getStaffUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const forklift = await prisma.forklift.findUnique({ where: { id: resolvedParams.id } });
@@ -118,7 +164,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { role, id: userId } = await getUser(request);
+    const { role, id: userId } = await getStaffUser(request);
     if (role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     const resolvedParams = await params;

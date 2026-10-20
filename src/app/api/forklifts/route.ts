@@ -1,25 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { jwtVerify } from 'jose';
+import { getStaffUser } from '@/lib/auth';
 
 import { logActivity } from '@/lib/activity-logger';
 
-async function getUser(request: Request) {
-  const token = request.headers.get('cookie')?.split('auth_token=')[1]?.split(';')[0];
-  if (!token) return { role: 'GUEST', id: null };
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_forlift_portal_2026');
-    const { payload } = await jwtVerify(token, secret);
-    return { role: payload.role as string, id: payload.id as string };
-  } catch (error) {
-    return { role: 'GUEST', id: null };
-  }
-}
-
 export async function GET(request: Request) {
   try {
-    const { role } = await getUser(request);
-    
+    const { role } = await getStaffUser(request);
+    // Danh sách đầy đủ chỉ phục vụ trang admin; trang public đọc trực tiếp qua prisma nên khách không cần endpoint này
+    if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const forklifts = await prisma.forklift.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -44,7 +34,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { role, id: userId } = await getUser(request);
+    const { role, id: userId } = await getStaffUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();

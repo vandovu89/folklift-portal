@@ -9,6 +9,7 @@
   "nav": {
     "home": "Home",
     "catalog": "Products",
+    "find_forklift": "Find My Forklift",
     "media": "Media Gallery",
     "customer_stories": "Customer Stories",
     "about": "About Us",
@@ -24,6 +25,7 @@
     "quick_links": "Quick Links",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
+    "customer_portal": "Customer portal (My forklifts)",
     "data_deletion": "User Data Deletion",
     "follow_us": "Follow Us",
     "rights": "© 2026 MCK Japan Forklift. All rights reserved."

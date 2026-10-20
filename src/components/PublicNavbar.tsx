@@ -13,6 +13,7 @@ export default function PublicNavbar({ lang, dict }: { lang: 'en' | 'vi', dict: 
   const navLinks = [
     { href: `/${lang}`, label: dict.nav.home, exact: true },
     { href: `/${lang}/catalog`, label: dict.nav.catalog },
+    { href: `/${lang}/find-forklift`, label: dict.nav.find_forklift },
     { href: `/${lang}/customer-stories`, label: dict.nav.customer_stories },
     { href: `/${lang}/media`, label: dict.nav.media },
     { href: `/${lang}/about`, label: dict.nav.about },

@@ -14,6 +14,7 @@ import {
   FaFileExcel, 
   FaStar, 
   FaVideo,
+  FaUserTie,
   FaBars,
   FaTimes
 } from 'react-icons/fa';
@@ -67,6 +68,7 @@ export default function AdminLayout({
     if (pathWithoutLang.startsWith('/admin/forklifts')) return 'Quản lý Xe Nâng';
     if (pathWithoutLang.startsWith('/admin/purchase-sources')) return 'Nguồn Nhập';
     if (pathWithoutLang.startsWith('/admin/inquiries')) return 'Quản lý Khách hàng';
+    if (pathWithoutLang.startsWith('/admin/customers')) return 'Hậu mãi & Bảo dưỡng';
     if (pathWithoutLang.startsWith('/admin/facebook-pages')) return 'Fanpage & Bot AI';
     if (pathWithoutLang.startsWith('/admin/accounting')) return 'Sổ Sách Kế Toán';
     if (pathWithoutLang.startsWith('/admin/testimonials')) return 'Góc Khách Hàng';
@@ -142,6 +144,13 @@ export default function AdminLayout({
             className={`${styles.navItem} ${isActive('/admin/inquiries') ? styles.active : ''}`}
           >
             <FaUsers /> Khách hàng
+          </Link>
+          <Link 
+            href="/admin/customers" 
+            onClick={closeSidebar}
+            className={`${styles.navItem} ${isActive('/admin/customers') ? styles.active : ''}`}
+          >
+            <FaUserTie /> Hậu mãi & Bảo dưỡng
           </Link>
           <Link 
             href="/admin/facebook-pages" 

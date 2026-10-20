@@ -7,6 +7,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import AiMarketingModal from '@/components/AiMarketingModal';
 import AiVideoModal from '@/components/AiVideoModal';
+import ConditionMap from '@/components/ConditionMap';
 import { FaMagic, FaVideo, FaQrcode } from 'react-icons/fa';
 
 const MediaManager = dynamic(() => import('@/components/MediaManager'), {
@@ -74,9 +75,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     const fetchForklift = async () => {
       try {
-        const res = await fetch(`/api/forklifts`);
-        const all = await res.json();
-        const found = all.find((fl: any) => fl.id === resolvedParams.id);
+        const res = await fetch(`/api/forklifts/${resolvedParams.id}`);
+        const found = res.ok ? await res.json() : null;
         if (found) {
           setFormData({
             id: found.id || '',
@@ -411,6 +411,8 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       </form>
 
       <MediaManager forkliftId={resolvedParams.id} />
+
+      {userRole !== 'VIEWER' && <ConditionMap forkliftId={resolvedParams.id} mode="edit" />}
       
       <div className={styles.formSection} style={{ marginTop: '2rem' }}>
         <h3>Lịch sử hoạt động (Timeline)</h3>
