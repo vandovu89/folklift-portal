@@ -32,7 +32,7 @@ export async function uploadMediaDirectly(
   }
 
   const signData = await signRes.json();
-  const isVideo = file.type.startsWith('video/');
+  const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v|3gp|ts)$/i.test(file.name);
   const resourceType = isVideo ? 'video' : 'auto';
 
   // Step 2: Upload file directly from browser to Cloudinary CDN endpoint

@@ -229,7 +229,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                     )}
                     <label className="btn-secondary" style={{ display: 'block', textAlign: 'center', marginTop: '0.5rem', cursor: 'pointer' }}>
                       {uploadingRaw ? 'Đang tải lên...' : 'Thay đổi video gốc'}
-                      <input type="file" accept="video/*" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
+                      <input type="file" accept="video/*,video/mp4,video/quicktime,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
                     </label>
                   </div>
                 ) : (
@@ -238,10 +238,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                     borderRadius: '8px', background: '#f8fafc' 
                   }}>
                     <FaUpload size={24} color="#94a3b8" style={{ marginBottom: '0.5rem' }} />
-                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>Tải lên video thô bạn vừa quay bằng điện thoại</p>
+                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>Tải lên video thô bạn vừa quay bằng điện thoại (MP4, MOV, AVI, WebM...)</p>
                     <label className="btn-secondary" style={{ cursor: 'pointer' }}>
                       {uploadingRaw ? 'Đang tải lên...' : 'Chọn Video'}
-                      <input type="file" accept="video/*" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
+                      <input type="file" accept="video/*,video/mp4,video/quicktime,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
                     </label>
                   </div>
                 )}
