@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaEye, FaEyeSlash, FaFileUpload, FaStar, FaRegStar } from 'react-icons/fa';
-import heic2any from 'heic2any';
 import { uploadMediaDirectly } from '@/lib/upload';
 
 export default function MediaManager({ forkliftId }: { forkliftId: string }) {
@@ -43,6 +42,8 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
       // Convert HEIC to JPEG if needed
       if (currentFile.type === 'image/heic' || currentFile.name.toLowerCase().endsWith('.heic')) {
         try {
+          const heic2anyModule = await import('heic2any');
+          const heic2any = heic2anyModule.default || heic2anyModule;
           const convertedBlob = await heic2any({
             blob: currentFile,
             toType: 'image/jpeg',

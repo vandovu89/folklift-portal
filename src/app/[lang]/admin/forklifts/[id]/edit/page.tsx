@@ -4,10 +4,15 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../forklifts.module.css';
 import Link from 'next/link';
-import MediaManager from '@/components/MediaManager';
+import dynamic from 'next/dynamic';
 import AiMarketingModal from '@/components/AiMarketingModal';
 import AiVideoModal from '@/components/AiVideoModal';
 import { FaMagic, FaVideo, FaQrcode } from 'react-icons/fa';
+
+const MediaManager = dynamic(() => import('@/components/MediaManager'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Đang tải quản lý thư viện ảnh...</div>
+});
 
 export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
