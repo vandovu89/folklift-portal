@@ -13,13 +13,14 @@ function cleanScriptForTts(text: string): string {
     .replace(/\[.*?\]/g, '') // Bỏ các chỉ dẫn kịch bản [Cảnh quay...]
     .replace(/\(.*?\)/g, '') // Bỏ các ghi chú trong ngoặc đơn (cười)...
     .replace(/[*_#`~>]/g, '') // Bỏ ký tự markdown
+    .replace(/(\d+)\.(\d{3})(?=\s*(?:giờ|tiếng|km|kg|đồng|đ|vnđ|vòng|năm))/gi, '$1 nghìn $2') // Đọc số ngàn chuẩn tiếng Việt
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 export async function POST(request: Request) {
   try {
-    const { forkliftId, script, rawVideoUrl, voiceId, audioMode } = await request.json();
+    const { forkliftId, script, rawVideoUrl, voiceId, audioMode, speed } = await request.json();
 
     if (!forkliftId || !script || !rawVideoUrl) {
       return NextResponse.json({ success: false, error: 'Thiếu thông tin bắt buộc (forkliftId, script, rawVideoUrl)' }, { status: 400 });
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
     // 2. Gọi ElevenLabs Text-to-Speech API
     // Mặc định: Giọng "Xe Nâng MCK Japan" (7o71dj6r5wK2rRwMRJhN) - Nam giọng Bắc chuẩn
     const selectedVoiceId = voiceId || '7o71dj6r5wK2rRwMRJhN';
+    const speechSpeed = speed ? Math.max(0.7, Math.min(1.2, parseFloat(speed))) : 0.95;
 
     const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
       method: 'POST',
@@ -51,10 +53,14 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         text: cleanedScript,
-        model_id: 'eleven_multilingual_v2',
+        model_id: 'eleven_turbo_v2_5', // Model chuyên dụng đa ngôn ngữ mới nhất, hỗ trợ tiếng Việt chuẩn
+        language_code: 'vi', // Bắt buộc để ElevenLabs phát âm tiếng Việt chuẩn có dấu, không bị ngọng
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75
+          stability: 0.55,
+          similarity_boost: 0.85,
+          style: 0.0,
+          use_speaker_boost: true,
+          speed: speechSpeed
         }
       })
     });

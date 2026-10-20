@@ -21,6 +21,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [aiAudioUrl, setAiAudioUrl] = useState('');
   const [selectedVoice, setSelectedVoice] = useState('7o71dj6r5wK2rRwMRJhN');
   const [audioMode, setAudioMode] = useState('replace');
+  const [speed, setSpeed] = useState('0.95');
 
   // Fetch current data
   useEffect(() => {
@@ -116,7 +117,8 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
           script,
           rawVideoUrl,
           voiceId: selectedVoice,
-          audioMode
+          audioMode,
+          speed
         })
       });
       const data = await res.json();
@@ -205,13 +207,13 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   onChange={e => setScript(e.target.value)}
                   placeholder="Kịch bản lời thoại sẽ được AI tự động sinh ra dựa trên thông số của chiếc xe này..."
                   style={{ 
-                    width: '100%', height: '140px', padding: '0.8rem', 
+                    width: '100%', height: '130px', padding: '0.8rem', 
                     borderRadius: '8px', border: '1px solid #cbd5e1',
                     resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem'
                   }}
                 />
 
-                <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem' }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
                       🎙️ Giọng đọc AI:
@@ -220,31 +222,49 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       value={selectedVoice}
                       onChange={e => setSelectedVoice(e.target.value)}
                       style={{
-                        width: '100%', padding: '0.5rem', borderRadius: '6px',
+                        width: '100%', padding: '0.45rem', borderRadius: '6px',
                         border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
                       }}
                     >
-                      <option value="7o71dj6r5wK2rRwMRJhN">Xe Nâng MCK (Nam - Giọng Bắc)</option>
-                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Nữ - Truyền cảm & Tự nhiên)</option>
-                      <option value="IKne3meq5aSn9XLyUdCD">Charlie (Nam - Trầm ấm, Quyết đoán)</option>
-                      <option value="hpp4J3VqNfWAUOO0d1Us">Bella (Nữ - Tươi sáng, Chuyên nghiệp)</option>
+                      <option value="7o71dj6r5wK2rRwMRJhN">⭐ Xe Nâng MCK (Nam - Hà Nội)</option>
+                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Nữ - Giọng Quốc tế)</option>
+                      <option value="IKne3meq5aSn9XLyUdCD">Charlie (Nam - Giọng Quốc tế)</option>
                     </select>
                   </div>
 
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                      🔊 Xử lý âm thanh xe:
+                      ⚡ Tốc độ đọc:
+                    </label>
+                    <select
+                      value={speed}
+                      onChange={e => setSpeed(e.target.value)}
+                      style={{
+                        width: '100%', padding: '0.45rem', borderRadius: '6px',
+                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
+                      }}
+                    >
+                      <option value="0.95">Rõ chữ (0.95x - Chuẩn)</option>
+                      <option value="1.0">Bình thường (1.0x)</option>
+                      <option value="0.90">Chậm rãi (0.90x)</option>
+                      <option value="1.05">Sôi nổi (1.05x)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                      🔊 Âm thanh xe:
                     </label>
                     <select
                       value={audioMode}
                       onChange={e => setAudioMode(e.target.value)}
                       style={{
-                        width: '100%', padding: '0.5rem', borderRadius: '6px',
+                        width: '100%', padding: '0.45rem', borderRadius: '6px',
                         border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
                       }}
                     >
-                      <option value="replace">Tắt tiếng ồn gốc (Chỉ giữ lời đọc AI)</option>
-                      <option value="mix">Hòa âm (-30% tiếng máy xe + Lời đọc AI)</option>
+                      <option value="replace">Tắt tiếng ồn gốc (Khuyên dùng)</option>
+                      <option value="mix">Hòa âm (-30% máy xe)</option>
                     </select>
                   </div>
                 </div>
