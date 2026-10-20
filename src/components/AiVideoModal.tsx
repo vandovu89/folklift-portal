@@ -10,6 +10,14 @@ interface AiVideoModalProps {
   forkliftId: string;
 }
 
+function formatDuration(sec: number): string {
+  if (!sec || isNaN(sec)) return '0s';
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  if (m > 0) return `${m}p ${s > 0 ? (s < 10 ? '0' : '') + s + 's' : ''}`;
+  return `${s}s`;
+}
+
 export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoModalProps) {
   const [loadingScript, setLoadingScript] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
@@ -22,6 +30,8 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [selectedVoice, setSelectedVoice] = useState('7o71dj6r5wK2rRwMRJhN');
   const [audioMode, setAudioMode] = useState('replace');
   const [speed, setSpeed] = useState('0.95');
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [targetDurationOption, setTargetDurationOption] = useState<string>('auto');
 
   // Fetch current data
   useEffect(() => {
@@ -49,10 +59,14 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const handleGenerateScript = async () => {
     setLoadingScript(true);
     try {
+      const effectiveDuration = targetDurationOption === 'auto'
+        ? (videoDuration > 0 ? videoDuration : 60)
+        : (parseInt(targetDurationOption) || videoDuration || 60);
+
       const res = await fetch('/api/ai/video-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forkliftId })
+        body: JSON.stringify({ forkliftId, duration: effectiveDuration })
       });
       const data = await res.json();
       if (data.success) {
@@ -76,6 +90,20 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
     
+    // Đo trước thời lượng video từ file
+    try {
+      const tempVideo = document.createElement('video');
+      tempVideo.preload = 'metadata';
+      tempVideo.src = URL.createObjectURL(file);
+      tempVideo.onloadedmetadata = () => {
+        const dur = Math.round(tempVideo.duration);
+        if (dur > 0 && !isNaN(dur)) setVideoDuration(dur);
+        URL.revokeObjectURL(tempVideo.src);
+      };
+    } catch (err) {
+      console.warn('Cannot read video duration:', err);
+    }
+
     setUploadingRaw(true);
 
     try {
@@ -173,7 +201,32 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 <h4 style={{ margin: '0 0 0.5rem 0', color: '#475569' }}>Bước 1: Video quay xe thực tế</h4>
                 {rawVideoUrl ? (
                   <div style={{ position: 'relative' }}>
-                    <video src={rawVideoUrl} controls style={{ width: '100%', borderRadius: '8px', background: '#000' }} />
+                    <video 
+                      src={rawVideoUrl} 
+                      controls 
+                      onLoadedMetadata={(e) => {
+                        const dur = Math.round(e.currentTarget.duration);
+                        if (dur > 0 && !isNaN(dur)) setVideoDuration(dur);
+                      }}
+                      style={{ width: '100%', borderRadius: '8px', background: '#000' }} 
+                    />
+                    {videoDuration > 0 && (
+                      <div style={{
+                        marginTop: '0.4rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.35rem 0.6rem',
+                        background: '#ede9fe',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        color: '#6d28d9',
+                        fontWeight: 600
+                      }}>
+                        <span>⏱️ Thời lượng video: {formatDuration(videoDuration)} ({videoDuration} giây)</span>
+                        <span style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 500 }}>Sẽ tự khớp kịch bản</span>
+                      </div>
+                    )}
                     <label className="btn-secondary" style={{ display: 'block', textAlign: 'center', marginTop: '0.5rem', cursor: 'pointer' }}>
                       {uploadingRaw ? 'Đang tải lên...' : 'Thay đổi video gốc'}
                       <input type="file" accept="video/*" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
@@ -202,16 +255,61 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                     <FaMagic /> {loadingScript ? 'Đang viết...' : 'AI Viết Kịch Bản'}
                   </button>
                 </div>
+
+                {/* Tùy chọn khớp độ dài video */}
+                <div style={{
+                  marginBottom: '0.5rem',
+                  padding: '0.45rem 0.65rem',
+                  background: '#f8fafc',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap'
+                }}>
+                  <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
+                    🎯 Độ dài kịch bản mong muốn:
+                  </span>
+                  <select
+                    value={targetDurationOption}
+                    onChange={e => setTargetDurationOption(e.target.value)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.8rem',
+                      background: '#fff',
+                      color: '#1e293b',
+                      fontWeight: 500
+                    }}
+                  >
+                    {videoDuration > 0 && (
+                      <option value="auto">Khớp tự động theo video ({formatDuration(videoDuration)})</option>
+                    )}
+                    <option value="30">30 giây (Ngắn gọn / Reels)</option>
+                    <option value="60">60 giây (1 phút tiêu chuẩn)</option>
+                    <option value="90">90 giây (1 phút 30s - Chi tiết)</option>
+                    <option value="120">120 giây (2 phút - Đầy đủ)</option>
+                  </select>
+                </div>
+
                 <textarea 
                   value={script}
                   onChange={e => setScript(e.target.value)}
-                  placeholder="Kịch bản lời thoại sẽ được AI tự động sinh ra dựa trên thông số của chiếc xe này..."
+                  placeholder="Kịch bản lời thoại sẽ được AI tự động sinh ra khớp chính xác với độ dài video..."
                   style={{ 
                     width: '100%', height: '130px', padding: '0.8rem', 
                     borderRadius: '8px', border: '1px solid #cbd5e1',
                     resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem'
                   }}
                 />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                  <span>Độ dài: <strong>{script ? script.trim().split(/\s+/).length : 0}</strong> từ</span>
+                  <span>Ước tính đọc: ~<strong>{script ? Math.round(script.trim().split(/\s+/).length / 2.2) : 0}s</strong> {videoDuration > 0 ? `(Video: ${videoDuration}s)` : ''}</span>
+                </div>
 
                 <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem' }}>
                   <div>
