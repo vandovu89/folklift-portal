@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaEye, FaEyeSlash, FaFileUpload, FaStar, FaRegStar } from 'react-icons/fa';
 import heic2any from 'heic2any';
+import { uploadMediaDirectly } from '@/lib/upload';
 
 export default function MediaManager({ forkliftId }: { forkliftId: string }) {
   const [mediaList, setMediaList] = useState<any[]>([]);
@@ -58,22 +59,14 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
         }
       }
 
-      const formData = new FormData();
-      formData.append('file', currentFile);
-      formData.append('forkliftId', forkliftId);
-      formData.append('category', category);
-      formData.append('isPublic', isPublic.toString());
-
       try {
-        const res = await fetch('/api/media/upload', {
-          method: 'POST',
-          body: formData
+        await uploadMediaDirectly(currentFile, {
+          forkliftId,
+          category,
+          isPublic
         });
-        if (!res.ok) {
-          hasError = true;
-        }
       } catch(err) {
-        console.error(err);
+        console.error('Upload error:', err);
         hasError = true;
       }
     }

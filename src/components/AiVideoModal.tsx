@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot } from 'react-icons/fa';
+import { uploadMediaDirectly } from '@/lib/upload';
 
 interface AiVideoModalProps {
   isOpen: boolean;
@@ -68,33 +69,30 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     const file = e.target.files[0];
     
     setUploadingRaw(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('forkliftId', forkliftId);
-    formData.append('category', 'RAW_VIDEO');
-    formData.append('isPublic', 'false');
 
     try {
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        body: formData
+      // Tải trực tiếp lên Cloudinary CDN để không bị giới hạn 4.5MB của serverless (Vercel)
+      const result = await uploadMediaDirectly(file, {
+        forkliftId,
+        category: 'RAW_VIDEO',
+        isPublic: false
       });
-      const data = await res.json();
-      if (data.success && data.media?.url) {
-        setRawVideoUrl(data.media.url);
+
+      if (result.success && result.url) {
+        setRawVideoUrl(result.url);
         await fetch(`/api/forklifts/${forkliftId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rawVideoUrl: data.media.url })
+          body: JSON.stringify({ rawVideoUrl: result.url })
         });
-      } else {
-        alert('Lỗi upload: ' + (data.error || 'Tải video lên thất bại'));
       }
     } catch (error: any) {
       console.error('Upload video error:', error);
-      alert('Lỗi hệ thống khi tải video lên');
+      alert('Lỗi tải video: ' + (error.message || 'Lỗi hệ thống khi tải video lên'));
+    } finally {
+      setUploadingRaw(false);
+      e.target.value = '';
     }
-    setUploadingRaw(false);
   };
 
   const handleCreateVideo = async () => {

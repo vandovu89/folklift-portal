@@ -10,6 +10,32 @@ cloudinary.config({
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get('content-type') || '';
+
+    // Direct upload flow: Client already uploaded directly to Cloudinary and sends metadata to save
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      const { url, publicId, fileName, fileType, category, isPublic, forkliftId } = body;
+
+      if (!url || !forkliftId) {
+        return NextResponse.json({ error: 'Missing url or forkliftId' }, { status: 400 });
+      }
+
+      const media = await prisma.media.create({
+        data: {
+          url,
+          publicId: publicId || null,
+          fileName: fileName || null,
+          fileType: fileType || 'IMAGE',
+          category: category || null,
+          isPublic: Boolean(isPublic),
+          forkliftId
+        }
+      });
+
+      return NextResponse.json({ success: true, media });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const forkliftId = formData.get('forkliftId') as string;
