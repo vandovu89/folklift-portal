@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot } from 'react-icons/fa';
 import { uploadMediaDirectly } from '@/lib/upload';
+import { countSpokenWords, wordsPerSecond } from '@/lib/vietnamese-tts';
 
 interface AiVideoModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [speed, setSpeed] = useState('0.95');
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [targetDurationOption, setTargetDurationOption] = useState<string>('auto');
+  const [renderInfo, setRenderInfo] = useState<{ audioDuration?: number; appliedSpeed?: number; warning?: string } | null>(null);
 
   // Fetch current data
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       const res = await fetch('/api/ai/video-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forkliftId, duration: effectiveDuration })
+        body: JSON.stringify({ forkliftId, duration: effectiveDuration, speed })
       });
       const data = await res.json();
       if (data.success) {
@@ -169,6 +171,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     if (!script) return alert('Vui lòng sinh kịch bản trước.');
 
     setLoadingVideo(true);
+    setRenderInfo(null);
     try {
       const res = await fetch('/api/ai/video-render', {
         method: 'POST',
@@ -179,7 +182,8 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
           rawVideoUrl,
           voiceId: selectedVoice,
           audioMode,
-          speed
+          speed,
+          videoDuration
         })
       });
       const data = await res.json();
@@ -188,6 +192,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
         if (data.audioUrl) {
           setAiAudioUrl(data.audioUrl);
         }
+        setRenderInfo({ audioDuration: data.audioDuration, appliedSpeed: data.appliedSpeed, warning: data.warning });
       } else {
         alert('Lỗi tạo video: ' + data.error);
       }
@@ -196,6 +201,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     }
     setLoadingVideo(false);
   };
+
+  const spokenWords = script ? countSpokenWords(script) : 0;
+  const estimatedSeconds = Math.round(spokenWords / wordsPerSecond(parseFloat(speed)));
 
   if (!isOpen) return null;
 
@@ -341,8 +349,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  <span>Độ dài: <strong>{script ? script.trim().split(/\s+/).filter(Boolean).length : 0}</strong> từ</span>
-                  <span>Ước tính đọc: ~<strong>{script ? Math.round(script.trim().split(/\s+/).filter(Boolean).length / 3.85) : 0}s</strong> {videoDuration > 0 ? `(Video: ${formatDuration(videoDuration)})` : ''}</span>
+                  <span>Độ dài: <strong>{spokenWords}</strong> từ</span>
+                  <span style={{ color: estimatedSeconds > videoDuration && videoDuration > 0 ? '#dc2626' : undefined }}>
+                    Ước tính đọc: ~<strong>{estimatedSeconds}s</strong> {videoDuration > 0 ? `(Video: ${formatDuration(videoDuration)})` : ''}
+                  </span>
                 </div>
 
                 <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem' }}>
@@ -432,6 +442,18 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
               ) : (
                 <div>
                   <video src={aiVideoUrl} controls autoPlay style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '0.8rem', maxHeight: '240px' }} />
+
+                  {renderInfo?.audioDuration && (
+                    <div style={{
+                      padding: '0.5rem 0.65rem', borderRadius: '6px', marginBottom: '0.8rem', fontSize: '0.8rem',
+                      background: renderInfo.warning ? '#fef3c7' : '#dcfce7',
+                      color: renderInfo.warning ? '#92400e' : '#166534'
+                    }}>
+                      🎙️ Giọng đọc {renderInfo.audioDuration}s{videoDuration > 0 ? ` / video ${videoDuration}s` : ''}
+                      {renderInfo.appliedSpeed && renderInfo.appliedSpeed !== parseFloat(speed) ? ` · đã tự chỉnh tốc độ ${speed}x → ${renderInfo.appliedSpeed}x` : ''}
+                      {renderInfo.warning && <div style={{ marginTop: '0.25rem' }}>⚠️ {renderInfo.warning}</div>}
+                    </div>
+                  )}
                   
                   {aiAudioUrl && (
                     <div style={{ background: '#f1f5f9', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.8rem', border: '1px solid #e2e8f0' }}>

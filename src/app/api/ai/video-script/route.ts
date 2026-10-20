@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { countSpokenWords, numberToVietnamese, wordsPerSecond, BASE_SPEED } from '@/lib/vietnamese-tts';
 
+function cleanGeminiText(raw: string): string {
+  return raw
+    .replace(/\[.*?\]/g, '')
+    .replace(/\(.*?\)/g, '')
+    .replace(/[*#_~`]/g, '')
+    .trim();
+}
 
 export async function POST(request: Request) {
   try {
-    const { forkliftId, duration } = await request.json();
+    const { forkliftId, duration, speed } = await request.json();
 
     if (!forkliftId) {
       return NextResponse.json({ success: false, error: 'Missing forkliftId' }, { status: 400 });
@@ -26,12 +34,16 @@ export async function POST(request: Request) {
 
     // Tính toán thời lượng đọc mục tiêu và số từ tiếng Việt tương ứng
     // Tiếng Việt là ngôn ngữ đơn âm tiết (mỗi từ là 1 âm tiết ngắn).
-    // Tốc độ đọc thực tế của phát thanh viên ElevenLabs: ~3.8 - 4.1 từ/giây (~230 - 245 từ/phút).
-    const targetDuration = duration && Number(duration) > 10 ? Math.round(Number(duration)) : 60;
-    const speechDuration = Math.max(15, targetDuration - 4); // Chừa 3-4s cuối cho câu kết / logo
-    const minWords = Math.round(speechDuration * 3.6);
-    const maxWords = Math.round(speechDuration * 4.1);
-    const targetWords = Math.round(speechDuration * 3.85);
+    // Tốc độ đọc của giọng ElevenLabs ~3.85 từ/giây ở speed 0.95, tỉ lệ thuận theo speed người dùng chọn.
+    const targetDuration = Number(duration) > 0 ? Math.round(Number(duration)) : 60;
+    const speechSpeed = Number(speed) > 0 ? Math.max(0.7, Math.min(1.2, Number(speed))) : BASE_SPEED;
+    const wps = wordsPerSecond(speechSpeed);
+    // Chừa ~10% (tối đa 4s) cuối video cho câu kết / logo
+    const tailSeconds = Math.min(4, Math.round(targetDuration * 0.1));
+    const speechDuration = Math.max(3, targetDuration - tailSeconds);
+    const targetWords = Math.round(speechDuration * wps);
+    const minWords = Math.round(targetWords * 0.93);
+    const maxWords = Math.round(targetWords * 1.05);
 
     const minutes = Math.floor(targetDuration / 60);
     const seconds = targetDuration % 60;
@@ -48,9 +60,10 @@ Bạn hãy viết một lời bình (Voice-over Script) để AI đọc lồng g
 
 YÊU CẦU BẮT BUỘC VỀ ĐỘ DÀI VÀ THỜI GIAN:
 - Thời lượng video thực tế: ${durationDesc} (${targetDuration} giây).
-- Thời lượng đọc mục tiêu: Khoảng ${speechDuration} giây (lời đọc liên tục từ đầu đến gần cuối video, chừa 3-4 giây cuối để kết video).
-- SỐ LƯỢNG TỪ BẮT BUỘC: Vì tiếng Việt là ngôn ngữ đơn âm tiết có tốc độ đọc khoảng 3.8 từ/giây, bạn PHẢI viết kịch bản có độ dài mục tiêu khoảng ${targetWords} từ (tối thiểu ${minWords} từ và tối đa ${maxWords} từ tiếng Việt). TUYỆT ĐỐI KHÔNG ĐƯỢC VIẾT NGẮN HƠN ${minWords} TỪ, nếu ngắn hơn video sẽ bị khoảng lặng kéo dài.
-- CÁCH TRIỂN KHAI ĐỂ ĐỦ ĐỘ DÀI:
+- Thời lượng đọc mục tiêu: Khoảng ${speechDuration} giây (lời đọc liên tục từ đầu đến gần cuối video, chừa ${tailSeconds} giây cuối để kết video).
+- SỐ LƯỢNG TỪ BẮT BUỘC: Vì tiếng Việt là ngôn ngữ đơn âm tiết có tốc độ đọc khoảng ${wps.toFixed(1)} từ/giây, bạn PHẢI viết kịch bản có độ dài mục tiêu khoảng ${targetWords} từ (tối thiểu ${minWords} từ và tối đa ${maxWords} từ tiếng Việt). Ngắn hơn thì video bị khoảng lặng, dài hơn thì giọng đọc bị cắt ngang khi video kết thúc.
+- VIẾT TẤT CẢ CON SỐ BẰNG CHỮ tiếng Việt (VD: "hai phẩy năm tấn", "ba trăm năm mươi triệu đồng", "ba nghìn giờ"), không dùng chữ số. Riêng tên model xe giữ nguyên ký hiệu.
+- CÁCH TRIỂN KHAI NỘI DUNG (lược bớt ý nếu video ngắn):
   + Mở đầu ấn tượng, nêu tên thương hiệu Xe Nâng MCK Japan và model xe ${forklift.maker} ${forklift.model}.
   + Đi sâu phân tích kỹ thuật: khung nâng, tải trọng, độ vững vàng khi nâng hạ, tầm nhìn thoáng cho tài xế.
   + Nhấn mạnh động cơ / bình điện bền bỉ, khả năng cơ động trong lối đi hẹp kho bãi, tiết kiệm chi phí nhiên liệu/điện năng.
@@ -70,7 +83,7 @@ Thông số xe:
 - Nhiên liệu: ${forklift.powerType || 'Đang cập nhật'}
 - Giờ hoạt động: ${forklift.hour ? forklift.hour + ' giờ' : 'Đang cập nhật'}
 - Tình trạng: ${forklift.condition || 'Hoạt động tốt'}
-- Giá bán tham khảo: ${forklift.price ? forklift.price.toLocaleString('vi-VN') + ' VNĐ' : 'Liên hệ'}
+- Giá bán tham khảo: ${forklift.price ? numberToVietnamese(forklift.price) + ' đồng' : 'Liên hệ'}
 - Càng: ${forklift.forkLength || 'Tiêu chuẩn'}
 - Phụ kiện: ${forklift.attachment || 'Không'}
 `;
@@ -83,40 +96,43 @@ Thông số xe:
         const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        text = response.text()
-          .replace(/\[.*?\]/g, '')
-          .replace(/\(.*?\)/g, '')
-          .replace(/[*#_~`]/g, '')
-          .trim();
+        text = cleanGeminiText(response.text());
+        if (!text) continue;
 
-        // Kiểm tra số lượng từ thực tế
-        if (text) {
-          const currentWords = text.split(/\s+/).filter(Boolean).length;
-          // Nếu ngắn hơn 85% của minWords, mở rộng kịch bản để đạt đủ thời lượng
-          if (currentWords < minWords * 0.85) {
-            try {
-              const expandPrompt = `Kịch bản hiện tại chỉ có ${currentWords} từ, quá ngắn so với yêu cầu thời lượng video ${durationDesc} (cần tối thiểu ${minWords} từ, mục tiêu ${targetWords} từ).
-Hãy bổ sung và mở rộng lời thoại thật chi tiết, phân tích sâu về hiệu suất vận hành thực tế, độ bền bỉ phụ tùng Nhật Bản, sự thoải mái và an toàn của người điều khiển, các cam kết hỗ trợ kỹ thuật và bảo hành từ Xe Nâng MCK Japan.
-CHỈ trả về toàn bộ đoạn văn lời thoại hoàn chỉnh (Plain text), không thêm tiêu đề hay chú thích.
+        // Kiểm tra số lượng từ thực tế, mở rộng / rút gọn tối đa 2 lần để khớp thời lượng video
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const currentWords = countSpokenWords(text);
+          const tooShort = currentWords < minWords;
+          const tooLong = currentWords > maxWords;
+          if (!tooShort && !tooLong) break;
 
-Kịch bản cần mở rộng:
-${text}`;
-              const expandResult = await model.generateContent(expandPrompt);
-              const expandedText = (await expandResult.response).text()
-                .replace(/\[.*?\]/g, '')
-                .replace(/\(.*?\)/g, '')
-                .replace(/[*#_~`]/g, '')
-                .trim();
-              const expandedWords = expandedText.split(/\s+/).filter(Boolean).length;
-              if (expandedWords > currentWords) {
-                text = expandedText;
-              }
-            } catch (expandErr) {
-              console.warn('[AI Video Script] Expand step skipped:', expandErr);
+          const adjustPrompt = tooShort
+            ? `Kịch bản hiện tại chỉ có ${currentWords} từ, quá ngắn so với video ${durationDesc} (cần khoảng ${targetWords} từ, trong khoảng ${minWords}-${maxWords} từ).
+Hãy bổ sung lời thoại chi tiết hơn: hiệu suất vận hành thực tế, độ bền phụ tùng Nhật Bản, sự thoải mái và an toàn của người điều khiển, cam kết hỗ trợ kỹ thuật và bảo hành từ Xe Nâng MCK Japan.`
+            : `Kịch bản hiện tại có ${currentWords} từ, quá dài so với video ${durationDesc} (cần khoảng ${targetWords} từ, trong khoảng ${minWords}-${maxWords} từ).
+Hãy rút gọn, bỏ bớt ý phụ nhưng giữ phần mở đầu thương hiệu và lời kêu gọi liên hệ ở cuối.`;
+
+          try {
+            const adjustResult = await model.generateContent(`${adjustPrompt}
+Viết tất cả con số bằng chữ tiếng Việt. CHỈ trả về toàn bộ đoạn văn lời thoại hoàn chỉnh (Plain text), không thêm tiêu đề hay chú thích.
+
+Kịch bản cần chỉnh:
+${text}`);
+            const adjustedText = cleanGeminiText((await adjustResult.response).text());
+            if (!adjustedText) break;
+            const adjustedWords = countSpokenWords(adjustedText);
+            // Chỉ nhận bản chỉnh nếu nó gần mục tiêu hơn bản cũ
+            if (Math.abs(adjustedWords - targetWords) < Math.abs(currentWords - targetWords)) {
+              text = adjustedText;
+            } else {
+              break;
             }
+          } catch (adjustErr) {
+            console.warn('[AI Video Script] Adjust step skipped:', adjustErr);
+            break;
           }
-          break;
         }
+        break;
       } catch (err: any) {
         console.warn(`[AI Video Script] Model ${modelName} failed:`, err?.message || err);
         lastError = err;
@@ -127,7 +143,13 @@ ${text}`;
       throw lastError || new Error('Không thể tạo kịch bản từ các model Gemini');
     }
 
-    return NextResponse.json({ success: true, script: text });
+    return NextResponse.json({
+      success: true,
+      script: text,
+      wordCount: countSpokenWords(text),
+      targetWords,
+      estimatedSeconds: Math.round(countSpokenWords(text) / wps)
+    });
 
   } catch (error: any) {
     console.error('AI Video Script Error:', error);
