@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+    const candidateModels = ['gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vietnhat-forklift.vercel.app';
     const detailUrl = `${baseUrl}/vi/machine/${forklift.id}`;
@@ -88,8 +88,24 @@ YÊU CẦU HASHTAG:
 LƯU Ý: KHÔNG thêm các câu giải thích thừa như "Dưới đây là bài đăng của bạn", chỉ xuất ra duy nhất nội dung bài đăng Facebook.
     `.trim();
 
-    const result = await model.generateContent(prompt);
-    const generatedText = result.response.text();
+    let generatedText = '';
+    let lastError: any = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        generatedText = result.response.text();
+        if (generatedText) break;
+      } catch (err: any) {
+        console.warn(`[Facebook Post] Model ${modelName} failed:`, err?.message || err);
+        lastError = err;
+      }
+    }
+
+    if (!generatedText) {
+      throw lastError || new Error('Không thể tạo bài viết từ các model Gemini');
+    }
 
     // Làm sạch triệt để các ký tự markdown * / ** / bullet points
     let cleanContent = generatedText

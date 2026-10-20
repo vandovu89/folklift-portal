@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +19,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Forklift not found' }, { status: 404 });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ success: false, error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const candidateModels = ['gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
 
     const prompt = `Bạn là một chuyên gia marketing và bán hàng xuất sắc trong lĩnh vực Xe Nâng hàng. 
 Khách hàng vừa quay một video ngắn về chiếc xe nâng này bằng điện thoại. 
@@ -43,9 +48,25 @@ Thông số xe:
 - Phụ kiện: ${forklift.attachment || 'Không'}
 `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().replace(/\[.*?\]/g, '').trim();
+    let text = '';
+    let lastError: any = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        text = response.text().replace(/\[.*?\]/g, '').trim();
+        if (text) break;
+      } catch (err: any) {
+        console.warn(`[AI Video Script] Model ${modelName} failed:`, err?.message || err);
+        lastError = err;
+      }
+    }
+
+    if (!text) {
+      throw lastError || new Error('Không thể tạo kịch bản từ các model Gemini');
+    }
 
     return NextResponse.json({ success: true, script: text });
 
