@@ -5,7 +5,7 @@ import { jwtVerify } from 'jose';
 const locales = ['en', 'vi'];
 const defaultLocale = 'vi';
 
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Bỏ qua static files và API routes
@@ -64,6 +64,8 @@ export default async function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+export default proxy;
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

@@ -16,6 +16,28 @@ async function getUser(request: Request) {
   }
 }
 
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const resolvedParams = await params;
+    const forklift = await prisma.forklift.findUnique({
+      where: { id: resolvedParams.id },
+      include: {
+        media: true,
+        expenses: true
+      }
+    });
+
+    if (!forklift) {
+      return NextResponse.json({ error: 'Forklift not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(forklift);
+  } catch (error) {
+    console.error('Fetch forklift error:', error);
+    return NextResponse.json({ error: 'Failed to fetch forklift' }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;

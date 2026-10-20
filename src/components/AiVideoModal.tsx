@@ -22,9 +22,12 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   useEffect(() => {
     if (isOpen && forkliftId) {
       fetch(`/api/forklifts/${forkliftId}`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
         .then(data => {
-          if (data) {
+          if (data && !data.error) {
             setScript(data.aiVideoScript || '');
             setRawVideoUrl(data.rawVideoUrl || '');
             setAiVideoUrl(data.aiVideoUrl || '');
@@ -77,7 +80,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
         body: formData
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.media?.url) {
         setRawVideoUrl(data.media.url);
         await fetch(`/api/forklifts/${forkliftId}`, {
           method: 'PUT',
@@ -85,10 +88,11 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
           body: JSON.stringify({ rawVideoUrl: data.media.url })
         });
       } else {
-        alert('Lỗi upload: ' + data.error);
+        alert('Lỗi upload: ' + (data.error || 'Tải video lên thất bại'));
       }
-    } catch (error) {
-      alert('Lỗi hệ thống khi upload');
+    } catch (error: any) {
+      console.error('Upload video error:', error);
+      alert('Lỗi hệ thống khi tải video lên');
     }
     setUploadingRaw(false);
   };

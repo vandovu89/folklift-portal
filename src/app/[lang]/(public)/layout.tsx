@@ -11,7 +11,7 @@ export default async function PublicLayout({
   params: Promise<{ lang: string }>;
 }) {
   const resolvedParams = await params;
-  const lang = resolvedParams.lang as 'en' | 'vi';
+  const lang: 'en' | 'vi' = resolvedParams?.lang === 'en' ? 'en' : 'vi';
   const dict = await getDictionary(lang);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--background)' }}>

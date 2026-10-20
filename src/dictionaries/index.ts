@@ -3,6 +3,8 @@ const dictionaries = {
   vi: () => import('./vi.json').then((module) => module.default),
 };
 
-export const getDictionary = async (locale: 'en' | 'vi') => {
-  return dictionaries[locale]();
+export const getDictionary = async (locale?: string) => {
+  const normalizedLocale = locale === 'en' ? 'en' : 'vi';
+  const loader = dictionaries[normalizedLocale] || dictionaries.vi;
+  return loader();
 };
