@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot, FaArrowUp, FaArrowDown, FaTrash } from 'react-icons/fa';
+import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot, FaArrowUp, FaArrowDown, FaTrash, FaVolumeUp, FaStop } from 'react-icons/fa';
 import { uploadMediaDirectly } from '@/lib/upload';
 import { countSpokenWords, wordsPerSecond, TTS_MODELS, DEFAULT_TTS_MODEL, type TtsModelId } from '@/lib/vietnamese-tts';
-import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, type ScriptStyle, type VideoFormat } from '@/lib/ai-video';
+import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
 
 interface AiVideoModalProps {
   isOpen: boolean;
@@ -69,7 +69,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [aiVideoUrl, setAiVideoUrl] = useState('');
   const [videoStatus, setVideoStatus] = useState<VideoStatus>('idle');
   const [aiAudioUrl, setAiAudioUrl] = useState('');
-  const [selectedVoice, setSelectedVoice] = useState('7o71dj6r5wK2rRwMRJhN');
+  const [selectedVoice, setSelectedVoice] = useState(DEFAULT_VOICE_ID);
+  const [voices, setVoices] = useState<VoiceOption[]>(FALLBACK_VOICES);
+  const [voicesError, setVoicesError] = useState('');
+  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [ttsModel, setTtsModel] = useState<TtsModelId>(DEFAULT_TTS_MODEL);
   const [audioMode, setAudioMode] = useState('replace');
   const [speed, setSpeed] = useState('0.95');
@@ -112,6 +115,40 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       })
       .catch(console.error);
   }, [isOpen, forkliftId]);
+
+  // Danh sách giọng trong tài khoản ElevenLabs (gồm các giọng mới thêm / clone)
+  const loadVoices = (refresh = false) =>
+    fetch(`/api/ai/voices${refresh ? '?refresh=1' : ''}`)
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok || !Array.isArray(data.voices)) throw new Error(data.error || `HTTP ${res.status}`);
+        setVoices(data.voices.length > 0 ? data.voices : FALLBACK_VOICES);
+        setVoicesError('');
+      })
+      .catch(err => setVoicesError(err instanceof Error ? err.message : 'Không tải được danh sách giọng'));
+
+  useEffect(() => {
+    if (isOpen) loadVoices();
+  }, [isOpen]);
+
+  // Dừng nghe thử khi đóng modal
+  useEffect(() => {
+    if (!isOpen && previewAudio) previewAudio.pause();
+  }, [isOpen, previewAudio]);
+
+  const togglePreviewVoice = () => {
+    if (previewAudio && !previewAudio.paused) {
+      previewAudio.pause();
+      setPreviewAudio(null);
+      return;
+    }
+    const url = voices.find(v => v.id === selectedVoice)?.previewUrl;
+    if (!url) return;
+    const audio = new Audio(url);
+    audio.onended = () => setPreviewAudio(null);
+    audio.play().catch(() => setPreviewAudio(null));
+    setPreviewAudio(audio);
+  };
 
   // Đo thời lượng các clip chưa biết duration từ metadata video
   useEffect(() => {
@@ -455,13 +492,42 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 </div>
 
                 <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.6rem' }}>
-                  <div>
-                    <label style={labelStyle}>🎙️ Giọng đọc AI:</label>
-                    <select value={selectedVoice} onChange={e => setSelectedVoice(e.target.value)} style={selectStyle}>
-                      <option value="7o71dj6r5wK2rRwMRJhN">⭐ Xe Nâng MCK (Nam - Hà Nội)</option>
-                      <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Nữ - Giọng Quốc tế)</option>
-                      <option value="IKne3meq5aSn9XLyUdCD">Charlie (Nam - Giọng Quốc tế)</option>
-                    </select>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ ...labelStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>🎙️ Giọng đọc AI ({voices.length}):</span>
+                      <button
+                        type="button"
+                        onClick={() => loadVoices(true)}
+                        title="Tải lại danh sách giọng từ ElevenLabs (sau khi thêm giọng mới)"
+                        style={{ background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', fontSize: '0.72rem', padding: 0 }}
+                      >
+                        ↻ Tải lại
+                      </button>
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      <select value={selectedVoice} onChange={e => { previewAudio?.pause(); setPreviewAudio(null); setSelectedVoice(e.target.value); }} style={{ ...selectStyle, flex: 1, minWidth: 0 }}>
+                        {voices.some(v => v.language === 'vi') && (
+                          <optgroup label="Giọng tiếng Việt">
+                            {voices.filter(v => v.language === 'vi').map(v => <option key={v.id} value={v.id}>{voiceLabel(v)}</option>)}
+                          </optgroup>
+                        )}
+                        {voices.some(v => v.language !== 'vi') && (
+                          <optgroup label="Giọng khác (đọc tiếng Việt có thể lơ lớ)">
+                            {voices.filter(v => v.language !== 'vi').map(v => <option key={v.id} value={v.id}>{voiceLabel(v)}</option>)}
+                          </optgroup>
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={togglePreviewVoice}
+                        disabled={!voices.find(v => v.id === selectedVoice)?.previewUrl}
+                        title="Nghe thử giọng mẫu"
+                        style={{ flexShrink: 0, width: '34px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#8b5cf6', cursor: 'pointer' }}
+                      >
+                        {previewAudio ? <FaStop /> : <FaVolumeUp />}
+                      </button>
+                    </div>
+                    {voicesError && <div style={{ fontSize: '0.7rem', color: '#dc2626', marginTop: '0.2rem' }}>{voicesError}</div>}
                   </div>
 
                   <div>

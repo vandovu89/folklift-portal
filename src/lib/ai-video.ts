@@ -124,3 +124,33 @@ export function buildVideoTransformation({ clipPublicIds, format, audioLayerId, 
   steps.push('ac_aac,q_auto,vc_h264');
   return steps.join('/');
 }
+
+// ===== Giọng đọc ElevenLabs =====
+export const DEFAULT_VOICE_ID = '7o71dj6r5wK2rRwMRJhN'; // "Xe Nâng MCK Japan" - Nam giọng Bắc
+
+export interface VoiceOption {
+  id: string;
+  name: string;
+  language: string | null;
+  gender: string | null;
+  accent: string | null;
+  category: string;
+  previewUrl: string | null;
+}
+
+// Dùng khi chưa tải được danh sách giọng từ ElevenLabs
+export const FALLBACK_VOICES: VoiceOption[] = [
+  { id: DEFAULT_VOICE_ID, name: 'Xe Nâng MCK Japan', language: 'vi', gender: 'male', accent: 'northern', category: 'professional', previewUrl: null },
+];
+
+const GENDER_LABELS: Record<string, string> = { male: 'Nam', female: 'Nữ', neutral: 'Trung tính' };
+const ACCENT_LABELS: Record<string, string> = { northern: 'Bắc', 'vi-northern': 'Bắc', southern: 'Nam', central: 'Trung' };
+
+export function voiceLabel(v: VoiceOption): string {
+  const details = [
+    v.gender ? GENDER_LABELS[v.gender] || v.gender : null,
+    v.language === 'vi' && v.accent ? `giọng ${ACCENT_LABELS[v.accent] || v.accent}` : null,
+    v.language && v.language !== 'vi' ? v.language.toUpperCase() : null,
+  ].filter(Boolean).join(', ');
+  return `${v.id === DEFAULT_VOICE_ID ? '⭐ ' : ''}${v.name}${details ? ` (${details})` : ''}`;
+}

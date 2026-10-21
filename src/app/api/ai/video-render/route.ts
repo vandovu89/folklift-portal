@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 import { spellOutNumbers, wordsPerSecond, DEFAULT_TTS_MODEL, isTtsModel, type TtsModelId } from '@/lib/vietnamese-tts';
-import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS } from '@/lib/ai-video';
+import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID } from '@/lib/ai-video';
 import { getStaffUser } from '@/lib/auth';
 
 cloudinary.config({
@@ -98,8 +98,8 @@ export async function POST(request: Request) {
     }
 
     // 2. Gọi ElevenLabs Text-to-Speech API
-    // Mặc định: Giọng "Xe Nâng MCK Japan" (7o71dj6r5wK2rRwMRJhN) - Nam giọng Bắc chuẩn
-    const selectedVoiceId = voiceId || '7o71dj6r5wK2rRwMRJhN';
+    // Giọng chọn từ danh sách ElevenLabs của tài khoản, mặc định "Xe Nâng MCK Japan" - Nam giọng Bắc
+    const selectedVoiceId = typeof voiceId === 'string' && /^[A-Za-z0-9]{10,40}$/.test(voiceId) ? voiceId : DEFAULT_VOICE_ID;
     const requestedSpeed = speed ? Math.max(0.7, Math.min(MAX_SPEED, parseFloat(speed))) : 0.95;
     const videoSeconds = Number(videoDuration) > 0 ? Number(videoDuration) : 0;
 
