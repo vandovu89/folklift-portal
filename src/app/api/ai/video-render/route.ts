@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
-import { spellOutNumbers, wordsPerSecond } from '@/lib/vietnamese-tts';
+import { spellOutNumbers, wordsPerSecond, DEFAULT_TTS_MODEL, isTtsModel, type TtsModelId } from '@/lib/vietnamese-tts';
+import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS } from '@/lib/ai-video';
+import { getStaffUser } from '@/lib/auth';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -22,7 +24,7 @@ const MIN_SPEED = 0.85; // Chậm hơn nữa giọng đọc bị lê thê, khôn
 const MAX_SPEED = 1.2;  // Giới hạn tối đa của ElevenLabs
 const TTS_BITRATE = 128_000; // output_format=mp3_44100_128 (CBR) => tính được thời lượng từ dung lượng file
 
-async function synthesizeSpeech(apiKey: string, voiceId: string, text: string, speed: number) {
+async function synthesizeSpeech(apiKey: string, voiceId: string, text: string, speed: number, model: TtsModelId) {
   const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
     method: 'POST',
     headers: {
@@ -31,8 +33,8 @@ async function synthesizeSpeech(apiKey: string, voiceId: string, text: string, s
     },
     body: JSON.stringify({
       text,
-      model_id: 'eleven_turbo_v2_5', // Model đa ngôn ngữ, hỗ trợ ép ngôn ngữ qua language_code
-      language_code: 'vi', // Bắt buộc để ElevenLabs phát âm tiếng Việt chuẩn có dấu, không bị ngọng
+      model_id: model, // Mặc định eleven_v4: phát âm tiếng Việt chuẩn nhất
+      language_code: 'vi', // Ép đọc tiếng Việt có dấu, không bị ngọng
       voice_settings: {
         stability: 0.55,
         similarity_boost: 0.85,
@@ -55,11 +57,31 @@ async function synthesizeSpeech(apiKey: string, voiceId: string, text: string, s
 
 export async function POST(request: Request) {
   try {
-    const { forkliftId, script, rawVideoUrl, voiceId, audioMode, speed, videoDuration } = await request.json();
-
-    if (!forkliftId || !script || !rawVideoUrl) {
-      return NextResponse.json({ success: false, error: 'Thiếu thông tin bắt buộc (forkliftId, script, rawVideoUrl)' }, { status: 400 });
+    const { role } = await getStaffUser(request);
+    if (role === 'GUEST' || role === 'VIEWER') {
+      return NextResponse.json({ success: false, error: 'Bạn không có quyền tạo video AI' }, { status: 401 });
     }
+
+    const { forkliftId, script, rawVideoUrl, clips, voiceId, audioMode, speed, videoDuration, ttsModel, videoFormat } = await request.json();
+
+    // Danh sách clip ghép theo thứ tự; tương thích ngược với bản cũ chỉ gửi 1 rawVideoUrl
+    const clipUrls: string[] = Array.isArray(clips) && clips.length > 0
+      ? clips.filter((u: unknown): u is string => typeof u === 'string' && u.length > 0)
+      : rawVideoUrl ? [rawVideoUrl] : [];
+
+    if (!forkliftId || !script || clipUrls.length === 0) {
+      return NextResponse.json({ success: false, error: 'Thiếu thông tin bắt buộc (forkliftId, script, video gốc)' }, { status: 400 });
+    }
+    if (clipUrls.length > MAX_CLIPS) {
+      return NextResponse.json({ success: false, error: `Chỉ ghép tối đa ${MAX_CLIPS} clip mỗi video` }, { status: 400 });
+    }
+    const clipPublicIds = clipUrls.map(cloudinaryPublicIdFromUrl);
+    const cloudBase = cloudinaryCloudBase(clipUrls[0]);
+    if (clipPublicIds.some(id => !id) || !cloudBase) {
+      return NextResponse.json({ success: false, error: 'Video gốc phải được tải lên Cloudinary của hệ thống' }, { status: 400 });
+    }
+    const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
+    const format = isVideoFormat(videoFormat) ? videoFormat : DEFAULT_VIDEO_FORMAT;
 
     const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
     if (!elevenLabsApiKey) {
@@ -84,7 +106,7 @@ export async function POST(request: Request) {
     let appliedSpeed = requestedSpeed;
     let tts;
     try {
-      tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, appliedSpeed);
+      tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, appliedSpeed, model);
 
       // 2b. Đo thời lượng giọng đọc thật, nếu lệch so với video thì tạo lại 1 lần với tốc độ đã hiệu chỉnh
       if (videoSeconds > 0) {
@@ -99,7 +121,7 @@ export async function POST(request: Request) {
         adjustedSpeed = Math.round(adjustedSpeed * 100) / 100;
         if (Math.abs(adjustedSpeed - appliedSpeed) >= 0.02) {
           console.log(`[AI Video Render] Audio ${tts.duration.toFixed(1)}s vs video ${videoSeconds}s => speed ${appliedSpeed} -> ${adjustedSpeed}`);
-          tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, adjustedSpeed);
+          tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, adjustedSpeed, model);
           appliedSpeed = adjustedSpeed;
         }
       }
@@ -114,7 +136,7 @@ export async function POST(request: Request) {
     let warning: string | undefined;
     if (videoSeconds > 0) {
       if (audioDuration > videoSeconds) {
-        warning = `Giọng đọc dài ${audioDuration}s, vượt video ${videoSeconds}s dù đã tăng tốc lên ${appliedSpeed}x. Hãy rút gọn kịch bản khoảng ${Math.ceil((audioDuration - videoSeconds) * wordsPerSecond(appliedSpeed))} từ.`;
+        warning = `Giọng đọc dài ${audioDuration}s, vượt video ${videoSeconds}s dù đã tăng tốc lên ${appliedSpeed}x. Hãy rút gọn kịch bản khoảng ${Math.ceil((audioDuration - videoSeconds) * wordsPerSecond(appliedSpeed, model))} từ.`;
       } else if (audioDuration < videoSeconds * 0.75) {
         warning = `Giọng đọc chỉ dài ${audioDuration}s trên video ${videoSeconds}s, cuối video sẽ có khoảng lặng. Hãy viết thêm kịch bản.`;
       }
@@ -141,26 +163,28 @@ export async function POST(request: Request) {
     const audioLayerId = audioPublicId.replace(/\//g, ':');
     const audioUrl = audioUploadResult.secure_url;
 
-    // 4. Lồng ghép âm thanh và watermark vào video gốc trên Cloudinary
-    let processedVideoUrl = rawVideoUrl;
+    // 4. Ghép các clip, chuẩn hóa khung hình (mặc định dọc 9:16) và lồng giọng đọc trên Cloudinary
+    // Luôn xuất MP4 (H.264/AAC) để video quay từ iPhone (.mov HEVC) vẫn phát được trên mọi trình duyệt
+    const transformation = buildVideoTransformation({
+      clipPublicIds: clipPublicIds as string[],
+      format,
+      audioLayerId,
+      audioMode: audioMode === 'mix' ? 'mix' : 'replace'
+    });
+    const baseClipId = clipPublicIds[0] as string;
+    const processedVideoUrl = `${cloudBase}/video/upload/${transformation}/${baseClipId}.mp4`;
 
-    if (rawVideoUrl.includes('cloudinary.com')) {
-      const parts = rawVideoUrl.split('/upload/');
-      if (parts.length === 2) {
-        // audioMode:
-        // - 'replace' (mặc định): Tắt âm thanh gốc của video (ac_none), lồng giọng đọc AI với codec AAC
-        // - 'mix': Giảm âm thanh gốc của xe 30% (e_volume:-30), hòa âm cùng giọng đọc AI
-        const audioTransformation = audioMode === 'mix'
-          ? `e_volume:-30/l_audio:${audioLayerId}/fl_layer_apply/ac_aac`
-          : `ac_none/l_audio:${audioLayerId}/fl_layer_apply/ac_aac`;
-
-        const watermarkTransformation = `l_text:Arial_32_bold:MCK%20AI%20STUDIO,g_south_east,y_25,x_25,co_white`;
-
-        // Luôn xuất MP4 (H.264/AAC) để video quay từ iPhone (.mov HEVC) vẫn phát được trên mọi trình duyệt
-        const outputPath = parts[1].replace(/\.[a-z0-9]+$/i, '.mp4');
-
-        processedVideoUrl = `${parts[0]}/upload/${audioTransformation}/${watermarkTransformation}/${outputPath}`;
-      }
+    // Video ghép dài có thể mất 1-2 phút để xử lý lần đầu: yêu cầu Cloudinary dựng sẵn ở chế độ nền (eager async)
+    // để khi người dùng mở video thì đã có bản hoàn chỉnh. Lỗi ở bước này không chặn kết quả trả về.
+    try {
+      await cloudinary.uploader.explicit(baseClipId, {
+        type: 'upload',
+        resource_type: 'video',
+        eager: [{ raw_transformation: transformation, format: 'mp4' }],
+        eager_async: true
+      });
+    } catch (eagerErr) {
+      console.warn('[AI Video Render] Eager generation request failed:', eagerErr);
     }
 
     // 5. Cập nhật URL video AI vào bảng Forklift
@@ -193,6 +217,9 @@ export async function POST(request: Request) {
       success: true,
       videoUrl: processedVideoUrl,
       audioUrl: audioUrl,
+      clipCount: clipUrls.length,
+      videoFormat: format,
+      ttsModel: model,
       audioDuration,
       videoDuration: videoSeconds || undefined,
       appliedSpeed,

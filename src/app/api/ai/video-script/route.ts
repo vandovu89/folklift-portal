@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { countSpokenWords, numberToVietnamese, wordsPerSecond, BASE_SPEED } from '@/lib/vietnamese-tts';
+import { getStaffUser } from '@/lib/auth';
+import { countSpokenWords, numberToVietnamese, wordsPerSecond, BASE_SPEED, DEFAULT_TTS_MODEL, isTtsModel } from '@/lib/vietnamese-tts';
+import { SCRIPT_STYLES, HOOK_IDEAS, isScriptStyle, type ScriptStyle } from '@/lib/ai-video';
 
 function cleanGeminiText(raw: string): string {
   return raw
@@ -13,7 +15,12 @@ function cleanGeminiText(raw: string): string {
 
 export async function POST(request: Request) {
   try {
-    const { forkliftId, duration, speed } = await request.json();
+    const { role } = await getStaffUser(request);
+    if (role === 'GUEST' || role === 'VIEWER') {
+      return NextResponse.json({ success: false, error: 'Bạn không có quyền tạo kịch bản AI' }, { status: 401 });
+    }
+
+    const { forkliftId, duration, speed, ttsModel, style, note } = await request.json();
 
     if (!forkliftId) {
       return NextResponse.json({ success: false, error: 'Missing forkliftId' }, { status: 400 });
@@ -34,10 +41,19 @@ export async function POST(request: Request) {
 
     // Tính toán thời lượng đọc mục tiêu và số từ tiếng Việt tương ứng
     // Tiếng Việt là ngôn ngữ đơn âm tiết (mỗi từ là 1 âm tiết ngắn).
-    // Tốc độ đọc của giọng ElevenLabs ~3.85 từ/giây ở speed 0.95, tỉ lệ thuận theo speed người dùng chọn.
+    // Tốc độ đọc phụ thuộc model ElevenLabs (v4 ~4.1 từ/giây ở speed 0.95), tỉ lệ thuận theo speed người dùng chọn.
     const targetDuration = Number(duration) > 0 ? Math.round(Number(duration)) : 60;
     const speechSpeed = Number(speed) > 0 ? Math.max(0.7, Math.min(1.2, Number(speed))) : BASE_SPEED;
-    const wps = wordsPerSecond(speechSpeed);
+    const wps = wordsPerSecond(speechSpeed, isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL);
+
+    // Phong cách kịch bản: "random" bốc ngẫu nhiên 1 phong cách cụ thể để mỗi lần sinh một kiểu khác nhau
+    const concreteStyles = (Object.keys(SCRIPT_STYLES) as ScriptStyle[]).filter(k => k !== 'random');
+    const requestedStyle: ScriptStyle = isScriptStyle(style) ? style : 'random';
+    const appliedStyle = requestedStyle === 'random'
+      ? concreteStyles[Math.floor(Math.random() * concreteStyles.length)]
+      : requestedStyle;
+    const hookIdea = HOOK_IDEAS[Math.floor(Math.random() * HOOK_IDEAS.length)];
+    const extraNote = typeof note === 'string' ? note.trim().slice(0, 500) : '';
     // Chừa ~10% (tối đa 4s) cuối video cho câu kết / logo
     const tailSeconds = Math.min(4, Math.round(targetDuration * 0.1));
     const speechDuration = Math.max(3, targetDuration - tailSeconds);
@@ -63,13 +79,13 @@ YÊU CẦU BẮT BUỘC VỀ ĐỘ DÀI VÀ THỜI GIAN:
 - Thời lượng đọc mục tiêu: Khoảng ${speechDuration} giây (lời đọc liên tục từ đầu đến gần cuối video, chừa ${tailSeconds} giây cuối để kết video).
 - SỐ LƯỢNG TỪ BẮT BUỘC: Vì tiếng Việt là ngôn ngữ đơn âm tiết có tốc độ đọc khoảng ${wps.toFixed(1)} từ/giây, bạn PHẢI viết kịch bản có độ dài mục tiêu khoảng ${targetWords} từ (tối thiểu ${minWords} từ và tối đa ${maxWords} từ tiếng Việt). Ngắn hơn thì video bị khoảng lặng, dài hơn thì giọng đọc bị cắt ngang khi video kết thúc.
 - VIẾT TẤT CẢ CON SỐ BẰNG CHỮ tiếng Việt (VD: "hai phẩy năm tấn", "ba trăm năm mươi triệu đồng", "ba nghìn giờ"), không dùng chữ số. Riêng tên model xe giữ nguyên ký hiệu.
-- CÁCH TRIỂN KHAI NỘI DUNG (lược bớt ý nếu video ngắn):
-  + Mở đầu ấn tượng, nêu tên thương hiệu Xe Nâng MCK Japan và model xe ${forklift.maker} ${forklift.model}.
-  + Đi sâu phân tích kỹ thuật: khung nâng, tải trọng, độ vững vàng khi nâng hạ, tầm nhìn thoáng cho tài xế.
-  + Nhấn mạnh động cơ / bình điện bền bỉ, khả năng cơ động trong lối đi hẹp kho bãi, tiết kiệm chi phí nhiên liệu/điện năng.
-  + Khẳng định xe bãi Nhật chính hãng, tình trạng kiểm định nghiêm ngặt, chính sách bảo hành chu đáo.
-  + Kêu gọi hành động mạnh mẽ: báo giá ưu đãi, mời đến kho lái thử và liên hệ hotline tư vấn.
 
+PHONG CÁCH KỊCH BẢN: ${SCRIPT_STYLES[appliedStyle].label}
+${SCRIPT_STYLES[appliedStyle].structure}
+- Luôn nhắc tên thương hiệu Xe Nâng MCK Japan và model xe ${forklift.maker} ${forklift.model} (lược bớt ý nếu video ngắn).
+- Gợi ý câu mở đầu lần này: ${hookIdea}. Tránh lối mở đầu sáo rỗng kiểu "Chào mừng quý khách đến với...".
+${extraNote ? `- THÔNG TIN BỔ SUNG TỪ NGƯỜI BÁN (bắt buộc lồng vào kịch bản): ${extraNote}
+` : ''}
 YÊU CẦU ĐỊNH DẠNG:
 - CHỈ trả về một đoạn văn thuần lời thoại đọc (Plain text) của phát thanh viên.
 - TUYỆT ĐỐI KHÔNG có tiêu đề, KHÔNG có bảng biểu, KHÔNG có hướng dẫn [Cảnh quay...] hay [Nhạc nền...], KHÔNG có số thứ tự phân đoạn hay ghi chú gì thêm. Văn bản này sẽ được đưa thẳng vào hệ thống Text-To-Speech để đọc.
@@ -93,7 +109,8 @@ Thông số xe:
 
     for (const modelName of candidateModels) {
       try {
-        const model = genAI.getGenerativeModel({ model: modelName });
+        // Nhiệt độ cao để mỗi lần sinh ra lời thoại khác nhau
+        const model = genAI.getGenerativeModel({ model: modelName, generationConfig: { temperature: 1.1 } });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         text = cleanGeminiText(response.text());
@@ -108,13 +125,13 @@ Thông số xe:
 
           const adjustPrompt = tooShort
             ? `Kịch bản hiện tại chỉ có ${currentWords} từ, quá ngắn so với video ${durationDesc} (cần khoảng ${targetWords} từ, trong khoảng ${minWords}-${maxWords} từ).
-Hãy bổ sung lời thoại chi tiết hơn: hiệu suất vận hành thực tế, độ bền phụ tùng Nhật Bản, sự thoải mái và an toàn của người điều khiển, cam kết hỗ trợ kỹ thuật và bảo hành từ Xe Nâng MCK Japan.`
+Hãy bổ sung lời thoại chi tiết hơn (VD: hiệu suất vận hành thực tế, độ bền phụ tùng Nhật Bản, sự an toàn của người điều khiển, cam kết bảo hành từ Xe Nâng MCK Japan).`
             : `Kịch bản hiện tại có ${currentWords} từ, quá dài so với video ${durationDesc} (cần khoảng ${targetWords} từ, trong khoảng ${minWords}-${maxWords} từ).
 Hãy rút gọn, bỏ bớt ý phụ nhưng giữ phần mở đầu thương hiệu và lời kêu gọi liên hệ ở cuối.`;
 
           try {
             const adjustResult = await model.generateContent(`${adjustPrompt}
-Viết tất cả con số bằng chữ tiếng Việt. CHỈ trả về toàn bộ đoạn văn lời thoại hoàn chỉnh (Plain text), không thêm tiêu đề hay chú thích.
+Giữ nguyên phong cách "${SCRIPT_STYLES[appliedStyle].label}". Viết tất cả con số bằng chữ tiếng Việt. CHỈ trả về toàn bộ đoạn văn lời thoại hoàn chỉnh (Plain text), không thêm tiêu đề hay chú thích.
 
 Kịch bản cần chỉnh:
 ${text}`);
@@ -148,7 +165,8 @@ ${text}`);
       script: text,
       wordCount: countSpokenWords(text),
       targetWords,
-      estimatedSeconds: Math.round(countSpokenWords(text) / wps)
+      estimatedSeconds: Math.round(countSpokenWords(text) / wps),
+      style: appliedStyle
     });
 
   } catch (error: any) {

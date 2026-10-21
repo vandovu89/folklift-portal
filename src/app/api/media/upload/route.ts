@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -9,6 +10,8 @@ cloudinary.config({
 });
 
 export async function POST(request: Request) {
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const contentType = request.headers.get('content-type') || '';
 

@@ -1,12 +1,23 @@
 // Tiện ích chuẩn hóa văn bản tiếng Việt cho Text-To-Speech (ElevenLabs)
 
-// Tốc độ đọc đã hiệu chỉnh của giọng ElevenLabs ở speed 0.95 (~3.85 từ/giây)
-export const BASE_WORDS_PER_SEC = 3.85;
+// Model ElevenLabs hỗ trợ tiếng Việt và tốc độ đọc đo thực tế ở speed 0.95 với giọng "Xe Nâng MCK Japan"
+// (đo ngày 2026-10-20 bằng đoạn 69 từ: v4 ~4.1 từ/giây, turbo v2.5 ~2.8 từ/giây)
+export const TTS_MODELS = {
+  eleven_v4: { label: 'Eleven v4 (Khuyên dùng - phát âm tiếng Việt chuẩn nhất)', wordsPerSec: 4.1 },
+  eleven_v4_turbo: { label: 'Eleven v4 Turbo (Nhanh hơn)', wordsPerSec: 4.1 },
+  eleven_turbo_v2_5: { label: 'Eleven Turbo v2.5 (Bản cũ - dễ bị ngọng tiếng Việt)', wordsPerSec: 2.8 },
+} as const;
+export type TtsModelId = keyof typeof TTS_MODELS;
+export const DEFAULT_TTS_MODEL: TtsModelId = 'eleven_v4';
 export const BASE_SPEED = 0.95;
 
-export function wordsPerSecond(speed: number): number {
+export function isTtsModel(value: unknown): value is TtsModelId {
+  return typeof value === 'string' && value in TTS_MODELS;
+}
+
+export function wordsPerSecond(speed: number, model: TtsModelId = DEFAULT_TTS_MODEL): number {
   const s = speed > 0 ? speed : BASE_SPEED;
-  return BASE_WORDS_PER_SEC * (s / BASE_SPEED);
+  return TTS_MODELS[model].wordsPerSec * (s / BASE_SPEED);
 }
 
 export function countWords(text: string): number {

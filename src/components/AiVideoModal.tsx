@@ -1,15 +1,34 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot } from 'react-icons/fa';
+import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot, FaArrowUp, FaArrowDown, FaTrash } from 'react-icons/fa';
 import { uploadMediaDirectly } from '@/lib/upload';
-import { countSpokenWords, wordsPerSecond } from '@/lib/vietnamese-tts';
+import { countSpokenWords, wordsPerSecond, TTS_MODELS, DEFAULT_TTS_MODEL, type TtsModelId } from '@/lib/vietnamese-tts';
+import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, type ScriptStyle, type VideoFormat } from '@/lib/ai-video';
 
 interface AiVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   forkliftId: string;
 }
+
+// Một đoạn video gốc trong danh sách ghép (id = bản ghi Media RAW_VIDEO, có thể thiếu với dữ liệu cũ)
+interface Clip {
+  id?: string;
+  url: string;
+  duration: number;
+}
+
+interface MediaRecord {
+  id: string;
+  url: string;
+  category: string | null;
+  fileType: string;
+  order: number;
+  createdAt: string;
+}
+
+type VideoStatus = 'idle' | 'processing' | 'ready' | 'timeout';
 
 function formatDuration(sec: number): string {
   if (!sec || isNaN(sec)) return '0s';
@@ -19,91 +38,187 @@ function formatDuration(sec: number): string {
   return `${s}s`;
 }
 
+const ACCEPT_VIDEO = 'video/*,video/mp4,video/quicktime,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp';
+const selectStyle = {
+  width: '100%', padding: '0.45rem', borderRadius: '6px',
+  border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
+};
+const labelStyle = { fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' } as const;
+
+function readLocalDuration(file: File): Promise<number> {
+  return new Promise(resolve => {
+    const el = document.createElement('video');
+    el.preload = 'metadata';
+    el.src = URL.createObjectURL(file);
+    el.onloadedmetadata = () => {
+      URL.revokeObjectURL(el.src);
+      resolve(Math.round(el.duration) || 0);
+    };
+    el.onerror = () => resolve(0);
+  });
+}
+
 export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoModalProps) {
   const [loadingScript, setLoadingScript] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
-  const [uploadingRaw, setUploadingRaw] = useState(false);
-  
+  const [uploadingRaw, setUploadingRaw] = useState('');
+
   const [script, setScript] = useState('');
-  const [rawVideoUrl, setRawVideoUrl] = useState('');
+  const [clips, setClips] = useState<Clip[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const [aiVideoUrl, setAiVideoUrl] = useState('');
+  const [videoStatus, setVideoStatus] = useState<VideoStatus>('idle');
   const [aiAudioUrl, setAiAudioUrl] = useState('');
   const [selectedVoice, setSelectedVoice] = useState('7o71dj6r5wK2rRwMRJhN');
+  const [ttsModel, setTtsModel] = useState<TtsModelId>(DEFAULT_TTS_MODEL);
   const [audioMode, setAudioMode] = useState('replace');
   const [speed, setSpeed] = useState('0.95');
-  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [videoFormat, setVideoFormat] = useState<VideoFormat>(DEFAULT_VIDEO_FORMAT);
+  const [scriptStyle, setScriptStyle] = useState<ScriptStyle>('random');
+  const [scriptNote, setScriptNote] = useState('');
+  const [appliedStyle, setAppliedStyle] = useState<ScriptStyle | null>(null);
   const [targetDurationOption, setTargetDurationOption] = useState<string>('auto');
   const [renderInfo, setRenderInfo] = useState<{ audioDuration?: number; appliedSpeed?: number; warning?: string } | null>(null);
 
-  // Fetch current data
+  // Tổng thời lượng các clip sẽ ghép = thời lượng video thành phẩm
+  const videoDuration = clips.reduce((sum, c) => sum + (c.duration || 0), 0);
+
+  // Tải dữ liệu hiện có: kịch bản, danh sách clip gốc (Media RAW_VIDEO), video AI & giọng đọc gần nhất
   useEffect(() => {
-    if (isOpen && forkliftId) {
-      fetch(`/api/forklifts/${forkliftId}`)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then(data => {
-          if (data && !data.error) {
-            setScript(data.aiVideoScript || '');
-            setRawVideoUrl(data.rawVideoUrl || '');
-            setAiVideoUrl(data.aiVideoUrl || '');
-            const voiceoverMedia = data.media?.find((m: any) => m.category === 'AI_VOICEOVER');
-            if (voiceoverMedia?.url) {
-              setAiAudioUrl(voiceoverMedia.url);
-            }
-          }
-        })
-        .catch(console.error);
-    }
+    if (!isOpen || !forkliftId) return;
+    fetch(`/api/forklifts/${forkliftId}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (!data || data.error) return;
+        const media: MediaRecord[] = data.media || [];
+        setScript(data.aiVideoScript || '');
+        setAiVideoUrl(data.aiVideoUrl || '');
+        setVideoStatus(data.aiVideoUrl ? 'ready' : 'idle');
+
+        const rawClips = media
+          .filter(m => m.category === 'RAW_VIDEO' && m.fileType === 'VIDEO')
+          .sort((a, b) => a.order - b.order || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          .map(m => ({ id: m.id, url: m.url, duration: 0 }));
+        setClips(rawClips.length > 0 ? rawClips : data.rawVideoUrl ? [{ url: data.rawVideoUrl, duration: 0 }] : []);
+        setPreviewIndex(0);
+
+        const latestVoiceover = media
+          .filter(m => m.category === 'AI_VOICEOVER')
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        if (latestVoiceover?.url) setAiAudioUrl(latestVoiceover.url);
+      })
+      .catch(console.error);
   }, [isOpen, forkliftId]);
 
-  // Chủ động dò tìm thời lượng video chuẩn xác khi có rawVideoUrl
+  // Đo thời lượng các clip chưa biết duration từ metadata video
   useEffect(() => {
-    if (!rawVideoUrl) {
-      setVideoDuration(0);
+    const pending = clips.filter(c => !c.duration);
+    const elements = pending.map(clip => {
+      const el = document.createElement('video');
+      el.preload = 'metadata';
+      el.src = clip.url;
+      el.onloadedmetadata = () => {
+        const dur = Math.round(el.duration);
+        if (dur > 0) setClips(prev => prev.map(c => (c.url === clip.url && !c.duration ? { ...c, duration: dur } : c)));
+      };
+      return el;
+    });
+    return () => elements.forEach(el => { el.onloadedmetadata = null; el.src = ''; });
+  }, [clips]);
+
+  // Lưu thứ tự clip (Media.order) và giữ rawVideoUrl = clip đầu tiên để tương thích dữ liệu cũ
+  const persistClips = async (next: Clip[]) => {
+    const withId = next.filter((c): c is Clip & { id: string } => Boolean(c.id));
+    try {
+      if (withId.length > 0) {
+        await fetch('/api/media/reorder', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: withId.map((c, i) => ({ id: c.id, order: i })) })
+        });
+      }
+      await fetch(`/api/forklifts/${forkliftId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawVideoUrl: next[0]?.url || null })
+      });
+    } catch (err) {
+      console.error('Persist clips error:', err);
+    }
+  };
+
+  const handleUploadClips = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+    if (clips.length + files.length > MAX_CLIPS) {
+      alert(`Chỉ ghép tối đa ${MAX_CLIPS} clip cho một video.`);
       return;
     }
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'metadata';
-    tempVideo.src = rawVideoUrl;
-    tempVideo.onloadedmetadata = () => {
-      const dur = Math.round(tempVideo.duration);
-      if (dur > 0 && !isNaN(dur)) {
-        setVideoDuration(dur);
+
+    let next = [...clips];
+    try {
+      for (let i = 0; i < files.length; i++) {
+        setUploadingRaw(`Đang tải clip ${i + 1}/${files.length}...`);
+        const localDuration = await readLocalDuration(files[i]);
+        // Tải trực tiếp lên Cloudinary CDN để không bị giới hạn 4.5MB của serverless (Vercel)
+        const result = await uploadMediaDirectly(files[i], { forkliftId, category: 'RAW_VIDEO', isPublic: false });
+        if (result.success && result.url) {
+          next = [...next, { id: result.media?.id, url: result.url, duration: result.duration || localDuration }];
+          setClips(next);
+        }
       }
-    };
-    tempVideo.onerror = (err) => {
-      console.warn('Cannot probe video duration:', err);
-    };
-  }, [rawVideoUrl]);
+    } catch (error) {
+      console.error('Upload video error:', error);
+      alert('Lỗi tải video: ' + (error instanceof Error ? error.message : 'Lỗi hệ thống khi tải video lên'));
+    } finally {
+      setUploadingRaw('');
+      await persistClips(next);
+    }
+  };
+
+  const moveClip = (index: number, delta: number) => {
+    const target = index + delta;
+    if (target < 0 || target >= clips.length) return;
+    const next = [...clips];
+    [next[index], next[target]] = [next[target], next[index]];
+    setClips(next);
+    setPreviewIndex(target);
+    persistClips(next);
+  };
+
+  const removeClip = async (index: number) => {
+    const clip = clips[index];
+    if (!confirm(`Xóa clip #${index + 1} khỏi danh sách ghép? File video gốc sẽ bị xóa khỏi thư viện.`)) return;
+    if (clip.id) {
+      const res = await fetch(`/api/media/${clip.id}`, { method: 'DELETE' });
+      if (!res.ok) return alert('Không xóa được clip.');
+    }
+    const next = clips.filter((_, i) => i !== index);
+    setClips(next);
+    setPreviewIndex(0);
+    persistClips(next);
+  };
 
   const handleGenerateScript = async () => {
     setLoadingScript(true);
     try {
-      // Đảm bảo lấy duration chính xác nhất từ state hoặc từ video element
-      let currentDuration = videoDuration;
-      if (!currentDuration && typeof document !== 'undefined') {
-        const videoEl = document.querySelector('video') as HTMLVideoElement | null;
-        if (videoEl && videoEl.duration && !isNaN(videoEl.duration) && videoEl.duration > 0) {
-          currentDuration = Math.round(videoEl.duration);
-          setVideoDuration(currentDuration);
-        }
-      }
-
       const effectiveDuration = targetDurationOption === 'auto'
-        ? (currentDuration > 0 ? currentDuration : 60)
-        : (parseInt(targetDurationOption) || currentDuration || 60);
+        ? (videoDuration > 0 ? videoDuration : 60)
+        : (parseInt(targetDurationOption) || videoDuration || 60);
 
       const res = await fetch('/api/ai/video-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forkliftId, duration: effectiveDuration, speed })
+        body: JSON.stringify({ forkliftId, duration: effectiveDuration, speed, ttsModel, style: scriptStyle, note: scriptNote })
       });
       const data = await res.json();
       if (data.success) {
         setScript(data.script);
-        // Save to DB
+        setAppliedStyle(data.style || null);
         await fetch(`/api/forklifts/${forkliftId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -112,62 +227,38 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       } else {
         alert('Lỗi: ' + data.error);
       }
-    } catch (error) {
+    } catch {
       alert('Lỗi hệ thống');
     }
     setLoadingScript(false);
   };
 
-  const handleUploadRawVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    
-    // Đo trước thời lượng video từ file local
-    try {
-      const tempVideo = document.createElement('video');
-      tempVideo.preload = 'metadata';
-      tempVideo.src = URL.createObjectURL(file);
-      tempVideo.onloadedmetadata = () => {
-        const dur = Math.round(tempVideo.duration);
-        if (dur > 0 && !isNaN(dur)) setVideoDuration(dur);
-        URL.revokeObjectURL(tempVideo.src);
-      };
-    } catch (err) {
-      console.warn('Cannot read video duration:', err);
-    }
+  // Video ghép được Cloudinary dựng lần đầu (có thể mất 1-3 phút, trong lúc đó URL trả lỗi 423):
+  // thăm dò bằng thẻ <video> ẩn (không vướng CORS) đến khi đọc được metadata rồi mới hiển thị trình phát
+  const probeVideo = (url: string) => new Promise<boolean>(resolve => {
+    const el = document.createElement('video');
+    el.preload = 'metadata';
+    const done = (ok: boolean) => { el.onloadedmetadata = null; el.onerror = null; el.src = ''; resolve(ok); };
+    el.onloadedmetadata = () => done(true);
+    el.onerror = () => done(false);
+    el.src = url;
+  });
 
-    setUploadingRaw(true);
-
-    try {
-      // Tải trực tiếp lên Cloudinary CDN để không bị giới hạn 4.5MB của serverless (Vercel)
-      const result = await uploadMediaDirectly(file, {
-        forkliftId,
-        category: 'RAW_VIDEO',
-        isPublic: false
-      });
-
-      if (result.success && result.url) {
-        setRawVideoUrl(result.url);
-        if (result.duration && result.duration > 0) {
-          setVideoDuration(result.duration);
-        }
-        await fetch(`/api/forklifts/${forkliftId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rawVideoUrl: result.url })
-        });
+  const waitForVideo = async (url: string) => {
+    setVideoStatus('processing');
+    // Thử tối đa ~45 lần x 8 giây (~6 phút)
+    for (let attempt = 0; attempt < 45; attempt++) {
+      if (await probeVideo(url)) {
+        setVideoStatus('ready');
+        return;
       }
-    } catch (error: any) {
-      console.error('Upload video error:', error);
-      alert('Lỗi tải video: ' + (error.message || 'Lỗi hệ thống khi tải video lên'));
-    } finally {
-      setUploadingRaw(false);
-      e.target.value = '';
+      await new Promise(r => setTimeout(r, 8000));
     }
+    setVideoStatus('timeout');
   };
 
   const handleCreateVideo = async () => {
-    if (!rawVideoUrl) return alert('Vui lòng upload video gốc trước.');
+    if (clips.length === 0) return alert('Vui lòng upload video gốc trước.');
     if (!script) return alert('Vui lòng sinh kịch bản trước.');
 
     setLoadingVideo(true);
@@ -179,31 +270,35 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
         body: JSON.stringify({
           forkliftId,
           script,
-          rawVideoUrl,
+          clips: clips.map(c => c.url),
           voiceId: selectedVoice,
+          ttsModel,
           audioMode,
           speed,
+          videoFormat,
           videoDuration
         })
       });
       const data = await res.json();
       if (data.success) {
         setAiVideoUrl(data.videoUrl);
-        if (data.audioUrl) {
-          setAiAudioUrl(data.audioUrl);
-        }
+        if (data.audioUrl) setAiAudioUrl(data.audioUrl);
         setRenderInfo({ audioDuration: data.audioDuration, appliedSpeed: data.appliedSpeed, warning: data.warning });
-      } else {
-        alert('Lỗi tạo video: ' + data.error);
+        setLoadingVideo(false);
+        await waitForVideo(data.videoUrl);
+        return;
       }
-    } catch (error: any) {
-      alert('Lỗi hệ thống: ' + (error.message || 'Lỗi không xác định'));
+      alert('Lỗi tạo video: ' + data.error);
+    } catch (error) {
+      alert('Lỗi hệ thống: ' + (error instanceof Error ? error.message : 'Lỗi không xác định'));
     }
     setLoadingVideo(false);
   };
 
   const spokenWords = script ? countSpokenWords(script) : 0;
-  const estimatedSeconds = Math.round(spokenWords / wordsPerSecond(parseFloat(speed)));
+  const estimatedSeconds = Math.round(spokenWords / wordsPerSecond(parseFloat(speed), ttsModel));
+  const previewClip = clips[Math.min(previewIndex, clips.length - 1)];
+  const isVertical = videoFormat !== 'horizontal';
 
   if (!isOpen) return null;
 
@@ -215,12 +310,12 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       padding: '1rem'
     }}>
       <div className="glass-panel" style={{
-        background: '#fff', width: '100%', maxWidth: '900px',
+        background: '#fff', width: '100%', maxWidth: '960px',
         borderRadius: '12px', display: 'flex', flexDirection: 'column',
-        maxHeight: '90vh', overflow: 'hidden'
+        maxHeight: '92vh', overflow: 'hidden'
       }}>
-        <div style={{ 
-          padding: '1.2rem', borderBottom: '1px solid #eee', 
+        <div style={{
+          padding: '1.2rem', borderBottom: '1px solid #eee',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           backgroundColor: '#f8fafc'
         }}>
@@ -233,60 +328,68 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
         </div>
 
         <div style={{ padding: 'clamp(1rem, 3vw, 1.5rem)', overflowY: 'auto', flex: 1, color: '#333' }}>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1.5rem' }}>
             {/* Cột trái: Input */}
             <div>
-              {/* Bước 1: Video gốc */}
+              {/* Bước 1: Các clip gốc */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#475569' }}>Bước 1: Video quay xe thực tế</h4>
-                {rawVideoUrl ? (
-                  <div style={{ position: 'relative' }}>
-                    <video 
-                      src={rawVideoUrl} 
-                      controls 
-                      preload="metadata"
-                      onLoadedMetadata={(e) => {
-                        const dur = Math.round(e.currentTarget.duration);
-                        if (dur > 0 && !isNaN(dur)) setVideoDuration(dur);
-                      }}
-                      style={{ width: '100%', borderRadius: '8px', background: '#000' }} 
-                    />
-                    {videoDuration > 0 && (
-                      <div style={{
-                        marginTop: '0.4rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.35rem 0.6rem',
-                        background: '#ede9fe',
-                        borderRadius: '6px',
-                        fontSize: '0.8rem',
-                        color: '#6d28d9',
-                        fontWeight: 600
-                      }}>
-                        <span>⏱️ Thời lượng video: {formatDuration(videoDuration)} ({videoDuration} giây)</span>
-                        <span style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 500 }}>Sẽ tự khớp kịch bản</span>
+                <h4 style={{ margin: '0 0 0.3rem 0', color: '#475569' }}>Bước 1: Các clip quay xe thực tế</h4>
+                <p style={{ margin: '0 0 0.6rem', fontSize: '0.8rem', color: '#64748b' }}>
+                  Tải lên nhiều clip ngắn ở các góc khác nhau, hệ thống sẽ ghép theo thứ tự bên dưới (tối đa {MAX_CLIPS} clip).
+                </p>
+
+                {previewClip && (
+                  <video
+                    key={previewClip.url}
+                    src={previewClip.url}
+                    controls
+                    preload="metadata"
+                    style={{ width: '100%', maxHeight: '260px', borderRadius: '8px', background: '#000', objectFit: 'contain' }}
+                  />
+                )}
+
+                {clips.length > 0 && (
+                  <div style={{ display: 'grid', gap: '0.35rem', marginTop: '0.5rem' }}>
+                    {clips.map((clip, i) => (
+                      <div
+                        key={clip.id || clip.url}
+                        onClick={() => setPreviewIndex(i)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem',
+                          borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem',
+                          border: `1px solid ${i === previewIndex ? '#8b5cf6' : '#e2e8f0'}`,
+                          background: i === previewIndex ? '#f5f3ff' : '#fff'
+                        }}
+                      >
+                        <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#8b5cf6', color: '#fff', fontWeight: 700, fontSize: '0.72rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                        <span style={{ flex: 1, color: '#334155' }}>Clip {i + 1}</span>
+                        <span style={{ color: '#64748b' }}>{clip.duration ? formatDuration(clip.duration) : '...'}</span>
+                        <button type="button" title="Lên trước" disabled={i === 0} onClick={e => { e.stopPropagation(); moveClip(i, -1); }} style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? '#cbd5e1' : '#475569' }}><FaArrowUp /></button>
+                        <button type="button" title="Xuống sau" disabled={i === clips.length - 1} onClick={e => { e.stopPropagation(); moveClip(i, 1); }} style={{ background: 'none', border: 'none', cursor: i === clips.length - 1 ? 'default' : 'pointer', color: i === clips.length - 1 ? '#cbd5e1' : '#475569' }}><FaArrowDown /></button>
+                        <button type="button" title="Xóa clip" onClick={e => { e.stopPropagation(); removeClip(i); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><FaTrash /></button>
                       </div>
-                    )}
-                    <label className="btn-secondary" style={{ display: 'block', textAlign: 'center', marginTop: '0.5rem', cursor: 'pointer' }}>
-                      {uploadingRaw ? 'Đang tải lên...' : 'Thay đổi video gốc'}
-                      <input type="file" accept="video/*,video/mp4,video/quicktime,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
-                    </label>
-                  </div>
-                ) : (
-                  <div style={{ 
-                    border: '2px dashed #cbd5e1', padding: '2rem', textAlign: 'center', 
-                    borderRadius: '8px', background: '#f8fafc' 
-                  }}>
-                    <FaUpload size={24} color="#94a3b8" style={{ marginBottom: '0.5rem' }} />
-                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>Tải lên video thô bạn vừa quay bằng điện thoại (MP4, MOV, AVI, WebM...)</p>
-                    <label className="btn-secondary" style={{ cursor: 'pointer' }}>
-                      {uploadingRaw ? 'Đang tải lên...' : 'Chọn Video'}
-                      <input type="file" accept="video/*,video/mp4,video/quicktime,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp" hidden onChange={handleUploadRawVideo} disabled={uploadingRaw} />
-                    </label>
+                    ))}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.35rem 0.6rem',
+                      background: '#ede9fe', borderRadius: '6px', fontSize: '0.8rem', color: '#6d28d9', fontWeight: 600
+                    }}>
+                      <span>⏱️ Tổng thời lượng sau ghép: {formatDuration(videoDuration)} ({videoDuration} giây)</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 500 }}>Sẽ tự khớp kịch bản</span>
+                    </div>
                   </div>
                 )}
+
+                <label
+                  className="btn-secondary"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.5rem', cursor: 'pointer',
+                    ...(clips.length === 0 ? { border: '2px dashed #cbd5e1', padding: '1.5rem', background: '#f8fafc' } : {})
+                  }}
+                >
+                  <FaUpload /> {uploadingRaw || (clips.length === 0 ? 'Chọn video (có thể chọn nhiều clip cùng lúc)' : '+ Thêm clip')}
+                  <input type="file" accept={ACCEPT_VIDEO} multiple hidden onChange={handleUploadClips} disabled={Boolean(uploadingRaw)} />
+                </label>
               </div>
 
               {/* Bước 2: Kịch bản & Giọng đọc */}
@@ -294,55 +397,51 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <h4 style={{ margin: 0, color: '#475569' }}>Bước 2: Lên kịch bản & Chọn giọng đọc</h4>
                   <button onClick={handleGenerateScript} disabled={loadingScript} style={{ background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
-                    <FaMagic /> {loadingScript ? 'Đang viết...' : 'AI Viết Kịch Bản'}
+                    <FaMagic /> {loadingScript ? 'Đang viết...' : script ? 'Viết kiểu khác' : 'AI Viết Kịch Bản'}
                   </button>
                 </div>
 
-                {/* Tùy chọn khớp độ dài video */}
-                <div style={{
-                  marginBottom: '0.5rem',
-                  padding: '0.45rem 0.65rem',
-                  background: '#f8fafc',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap'
-                }}>
-                  <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
-                    🎯 Độ dài kịch bản mong muốn:
-                  </span>
-                  <select
-                    value={targetDurationOption}
-                    onChange={e => setTargetDurationOption(e.target.value)}
-                    style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.8rem',
-                      background: '#fff',
-                      color: '#1e293b',
-                      fontWeight: 500
-                    }}
-                  >
-                    <option value="auto">
-                      {videoDuration > 0 ? `Khớp tự động theo video (${formatDuration(videoDuration)})` : 'Khớp tự động theo video'}
-                    </option>
-                    <option value="30">30 giây (Ngắn gọn / Reels)</option>
-                    <option value="60">60 giây (1 phút tiêu chuẩn)</option>
-                    <option value="90">90 giây (1 phút 30s - Chi tiết)</option>
-                    <option value="120">120 giây (2 phút - Đầy đủ)</option>
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem', marginBottom: '0.5rem' }}>
+                  <div>
+                    <label style={labelStyle}>🎨 Phong cách lời thoại:</label>
+                    <select value={scriptStyle} onChange={e => setScriptStyle(e.target.value as ScriptStyle)} style={selectStyle}>
+                      {(Object.keys(SCRIPT_STYLES) as ScriptStyle[]).map(key => (
+                        <option key={key} value={key}>{SCRIPT_STYLES[key].label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>🎯 Độ dài kịch bản:</label>
+                    <select value={targetDurationOption} onChange={e => setTargetDurationOption(e.target.value)} style={selectStyle}>
+                      <option value="auto">
+                        {videoDuration > 0 ? `Khớp tự động theo video (${formatDuration(videoDuration)})` : 'Khớp tự động theo video'}
+                      </option>
+                      <option value="30">30 giây (Ngắn gọn / Reels)</option>
+                      <option value="60">60 giây (1 phút tiêu chuẩn)</option>
+                      <option value="90">90 giây (1 phút 30s - Chi tiết)</option>
+                      <option value="120">120 giây (2 phút - Đầy đủ)</option>
+                    </select>
+                  </div>
                 </div>
+                <input
+                  value={scriptNote}
+                  onChange={e => setScriptNote(e.target.value)}
+                  maxLength={500}
+                  placeholder="Ý chính muốn AI nhắc thêm (không bắt buộc): VD giảm 10 triệu tháng này, tặng máy lọc nước..."
+                  style={{ width: '100%', padding: '0.5rem 0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', marginBottom: '0.5rem' }}
+                />
+                {appliedStyle && (
+                  <div style={{ fontSize: '0.75rem', color: '#7c3aed', marginBottom: '0.35rem' }}>
+                    Kịch bản vừa viết theo phong cách: <strong>{SCRIPT_STYLES[appliedStyle]?.label}</strong>
+                  </div>
+                )}
 
-                <textarea 
+                <textarea
                   value={script}
                   onChange={e => setScript(e.target.value)}
                   placeholder="Kịch bản lời thoại sẽ được AI tự động sinh ra khớp chính xác với độ dài video..."
-                  style={{ 
-                    width: '100%', height: '130px', padding: '0.8rem', 
+                  style={{
+                    width: '100%', height: '130px', padding: '0.8rem',
                     borderRadius: '8px', border: '1px solid #cbd5e1',
                     resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem'
                   }}
@@ -355,19 +454,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   </span>
                 </div>
 
-                <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.6rem' }}>
+                <div style={{ marginTop: '0.8rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.6rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                      🎙️ Giọng đọc AI:
-                    </label>
-                    <select
-                      value={selectedVoice}
-                      onChange={e => setSelectedVoice(e.target.value)}
-                      style={{
-                        width: '100%', padding: '0.45rem', borderRadius: '6px',
-                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
-                      }}
-                    >
+                    <label style={labelStyle}>🎙️ Giọng đọc AI:</label>
+                    <select value={selectedVoice} onChange={e => setSelectedVoice(e.target.value)} style={selectStyle}>
                       <option value="7o71dj6r5wK2rRwMRJhN">⭐ Xe Nâng MCK (Nam - Hà Nội)</option>
                       <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Nữ - Giọng Quốc tế)</option>
                       <option value="IKne3meq5aSn9XLyUdCD">Charlie (Nam - Giọng Quốc tế)</option>
@@ -375,17 +465,17 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                      ⚡ Tốc độ đọc:
-                    </label>
-                    <select
-                      value={speed}
-                      onChange={e => setSpeed(e.target.value)}
-                      style={{
-                        width: '100%', padding: '0.45rem', borderRadius: '6px',
-                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
-                      }}
-                    >
+                    <label style={labelStyle}>🧠 Model giọng đọc:</label>
+                    <select value={ttsModel} onChange={e => setTtsModel(e.target.value as TtsModelId)} style={selectStyle}>
+                      {(Object.keys(TTS_MODELS) as TtsModelId[]).map(key => (
+                        <option key={key} value={key}>{TTS_MODELS[key].label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>⚡ Tốc độ đọc:</label>
+                    <select value={speed} onChange={e => setSpeed(e.target.value)} style={selectStyle}>
                       <option value="0.95">Rõ chữ (0.95x - Chuẩn)</option>
                       <option value="1.0">Bình thường (1.0x)</option>
                       <option value="0.90">Chậm rãi (0.90x)</option>
@@ -394,19 +484,19 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                      🔊 Âm thanh xe:
-                    </label>
-                    <select
-                      value={audioMode}
-                      onChange={e => setAudioMode(e.target.value)}
-                      style={{
-                        width: '100%', padding: '0.45rem', borderRadius: '6px',
-                        border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#fff'
-                      }}
-                    >
+                    <label style={labelStyle}>🔊 Âm thanh xe:</label>
+                    <select value={audioMode} onChange={e => setAudioMode(e.target.value)} style={selectStyle}>
                       <option value="replace">Tắt tiếng ồn gốc (Khuyên dùng)</option>
                       <option value="mix">Hòa âm (-30% máy xe)</option>
+                    </select>
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={labelStyle}>🖼️ Khung hình video:</label>
+                    <select value={videoFormat} onChange={e => setVideoFormat(e.target.value as VideoFormat)} style={selectStyle}>
+                      {(Object.keys(VIDEO_FORMATS) as VideoFormat[]).map(key => (
+                        <option key={key} value={key}>{VIDEO_FORMATS[key].label}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -416,23 +506,23 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
             {/* Cột phải: Output */}
             <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
               <h4 style={{ margin: '0 0 1rem 0', color: '#475569' }}>Bước 3: Thành phẩm Video AI</h4>
-              
+
               {!aiVideoUrl ? (
                 <div style={{ textAlign: 'center', padding: '2.5rem 1rem', margin: 'auto 0' }}>
-                  <div style={{ 
-                    width: '60px', height: '60px', borderRadius: '50%', background: '#ede9fe', 
+                  <div style={{
+                    width: '60px', height: '60px', borderRadius: '50%', background: '#ede9fe',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto'
                   }}>
                     <FaRobot size={30} color="#8b5cf6" />
                   </div>
                   <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    {loadingVideo 
-                      ? 'Đang gọi ElevenLabs tạo giọng đọc chuẩn tiếng Việt & lồng ghép âm thanh vào video qua Cloudinary...' 
-                      : 'AI sẽ tự động đọc kịch bản bằng giọng nói truyền cảm (Voice Cloning) và lồng ghép âm thanh chuẩn vào video xe của bạn.'}
+                    {loadingVideo
+                      ? 'Đang gọi ElevenLabs tạo giọng đọc tiếng Việt, ghép clip & lồng tiếng video qua Cloudinary...'
+                      : `AI sẽ đọc kịch bản, ghép ${clips.length > 1 ? `${clips.length} clip` : 'video'} theo thứ tự và xuất ${isVertical ? 'video dọc 9:16 sẵn sàng đăng Reels / TikTok / Shorts' : 'video ngang 16:9'}.`}
                   </p>
-                  <button 
+                  <button
                     onClick={handleCreateVideo}
-                    disabled={loadingVideo || !rawVideoUrl || !script}
+                    disabled={loadingVideo || clips.length === 0 || !script || Boolean(uploadingRaw)}
                     className="btn-primary"
                     style={{ background: '#8b5cf6', borderColor: '#8b5cf6', padding: '0.8rem 2rem', fontSize: '0.95rem', width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
                   >
@@ -441,7 +531,24 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 </div>
               ) : (
                 <div>
-                  <video src={aiVideoUrl} controls autoPlay style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '0.8rem', maxHeight: '240px' }} />
+                  {videoStatus === 'processing' ? (
+                    <div style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: '8px', padding: '2.5rem 1rem', textAlign: 'center', marginBottom: '0.8rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                      ⏳ Cloudinary đang ghép clip & dựng video...<br />
+                      <span style={{ color: '#94a3b8' }}>Video dài có thể mất 1-3 phút, vui lòng không đóng cửa sổ.</span>
+                    </div>
+                  ) : videoStatus === 'timeout' ? (
+                    <div style={{ background: '#fef3c7', color: '#92400e', borderRadius: '8px', padding: '1rem', marginBottom: '0.8rem', fontSize: '0.85rem' }}>
+                      Video vẫn đang được xử lý lâu hơn dự kiến. <button type="button" onClick={() => waitForVideo(aiVideoUrl)} style={{ background: 'none', border: 'none', color: '#b45309', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}>Kiểm tra lại</button>
+                    </div>
+                  ) : (
+                    <video
+                      key={aiVideoUrl}
+                      src={aiVideoUrl}
+                      controls
+                      autoPlay
+                      style={{ width: '100%', borderRadius: '8px', background: '#000', marginBottom: '0.8rem', maxHeight: '420px', objectFit: 'contain' }}
+                    />
+                  )}
 
                   {renderInfo?.audioDuration && (
                     <div style={{
@@ -454,7 +561,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       {renderInfo.warning && <div style={{ marginTop: '0.25rem' }}>⚠️ {renderInfo.warning}</div>}
                     </div>
                   )}
-                  
+
                   {aiAudioUrl && (
                     <div style={{ background: '#f1f5f9', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.8rem', border: '1px solid #e2e8f0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
@@ -470,16 +577,16 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '0.8rem' }}>
-                    <button 
+                    <button
                       onClick={handleCreateVideo}
-                      disabled={loadingVideo}
+                      disabled={loadingVideo || videoStatus === 'processing'}
                       className="btn-secondary"
                       style={{ width: '100%', fontSize: '0.85rem' }}
                     >
                       {loadingVideo ? 'Đang xử lý...' : 'Tạo lại Video'}
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="btn-primary"
                       style={{ background: '#1877f2', borderColor: '#1877f2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
                       onClick={() => alert('Chức năng đang được tích hợp Facebook API')}
@@ -502,10 +609,11 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                         } else {
                           alert('Lỗi cập nhật');
                         }
-                      } catch (e) {
+                      } catch {
                         alert('Lỗi kết nối');
                       }
                     }}
+                    disabled={videoStatus !== 'ready'}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -514,7 +622,8 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       border: 'none',
                       borderRadius: '8px',
                       fontWeight: 700,
-                      cursor: 'pointer',
+                      cursor: videoStatus === 'ready' ? 'pointer' : 'not-allowed',
+                      opacity: videoStatus === 'ready' ? 1 : 0.6,
                       fontSize: '0.85rem',
                       display: 'flex',
                       alignItems: 'center',

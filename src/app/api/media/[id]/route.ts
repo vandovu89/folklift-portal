@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -9,6 +10,8 @@ cloudinary.config({
 });
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const resolvedParams = await params;
     const mediaId = resolvedParams.id;
@@ -18,7 +21,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     // Xóa file trên Cloudinary
     if (media.publicId) {
-      await cloudinary.uploader.destroy(media.publicId);
+      // Video / âm thanh phải xóa với resource_type 'video', nếu không file vẫn nằm lại trên Cloudinary
+      const resourceType = ['VIDEO', 'AUDIO'].includes(media.fileType) ? 'video' : 'image';
+      await cloudinary.uploader.destroy(media.publicId, { resource_type: resourceType });
     }
 
     await prisma.media.delete({ where: { id: mediaId } });
@@ -31,6 +36,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const resolvedParams = await params;
     const mediaId = resolvedParams.id;

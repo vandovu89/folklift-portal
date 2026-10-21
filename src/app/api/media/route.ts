@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
+  // Chỉ nhân viên đã đăng nhập mới được xem thư viện media (gồm cả file nội bộ)
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { searchParams } = new URL(request.url);
   const forkliftId = searchParams.get('forkliftId');
 

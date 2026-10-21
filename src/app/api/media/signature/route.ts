@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getStaffUser } from '@/lib/auth';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
@@ -8,6 +9,8 @@ cloudinary.config({
 });
 
 export async function POST(request: Request) {
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await request.json().catch(() => ({}));
     const folder = body.folder || 'vietnhat_forklifts';

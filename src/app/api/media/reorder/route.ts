@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function PUT(request: Request) {
+  const { role } = await getStaffUser(request);
+  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const { items } = await request.json();
 
