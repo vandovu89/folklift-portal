@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
@@ -14,10 +14,13 @@ import {
   FaQrcode,
   FaThLarge,
   FaFileAlt,
-  FaTag
+  FaTag,
+  FaReceipt,
+  FaShareAlt
 } from 'react-icons/fa';
 import JSZip from 'jszip';
 import { formatCapacity } from '@/lib/utils';
+import { THERMAL_SIZES, renderThermalLabel, dataUrlToFile, type ThermalSize } from './thermal-label';
 
 export interface ForkliftPrintData {
   id: string;
@@ -45,7 +48,20 @@ interface PrintQrClientProps {
   isAllSample?: boolean;
 }
 
-type PrintMode = 'decal' | 'showcase' | 'grid4';
+type PrintMode = 'decal' | 'showcase' | 'grid4' | ThermalSize;
+
+const isThermalMode = (mode: PrintMode): mode is ThermalSize => mode in THERMAL_SIZES;
+
+// Trình duyệt nhúng trong Zalo / Facebook / Messenger / Instagram không hỗ trợ lệnh in (window.print)
+const IN_APP_BROWSER_RE = /Zalo|FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\//i;
+const subscribeNoop = () => () => {};
+const getDeviceInfo = () => {
+  const ua = navigator.userAgent;
+  const probe = typeof File !== 'undefined' ? [new File([''], 'x.png', { type: 'image/png' })] : [];
+  const canShare = typeof navigator.canShare === 'function' && navigator.canShare({ files: probe });
+  return `${IN_APP_BROWSER_RE.test(ua) ? 1 : 0}${/Android|iPhone|iPad|iPod|Mobile/i.test(ua) ? 1 : 0}${canShare ? 1 : 0}`;
+};
+const getServerDeviceInfo = () => '000';
 
 export default function PrintQrClient({
   initialForklifts,
@@ -53,7 +69,7 @@ export default function PrintQrClient({
   lang,
   isAllSample = false
 }: PrintQrClientProps) {
-  const [printMode, setPrintMode] = useState<PrintMode>('decal');
+  const [printMode, setPrintMode] = useState<PrintMode>('a6');
   const [selectedIds, setSelectedIds] = useState<string[]>(
     initialForklifts.map(f => f.id)
   );
@@ -70,6 +86,60 @@ export default function PrintQrClient({
 
   const activeForklifts = initialForklifts.filter(f => selectedIds.includes(f.id));
 
+  // Thiết bị: [trình duyệt nhúng][điện thoại][chia sẻ được file]
+  const deviceInfo = useSyncExternalStore(subscribeNoop, getDeviceInfo, getServerDeviceInfo);
+  const isInAppBrowser = deviceInfo[0] === '1';
+  const isMobile = deviceInfo[1] === '1';
+  const canShareFiles = deviceInfo[2] === '1';
+
+  // Ảnh tem nhiệt A6/A7 (vẽ từ canvas) theo id xe, dùng cho xem trước / in / tải / chia sẻ
+  const [thermalImages, setThermalImages] = useState<Record<string, string>>({});
+  const [thermalKey, setThermalKey] = useState('');
+  const activeIdsKey = activeForklifts.map(f => f.id).join(',');
+  const currentThermalKey = isThermalMode(printMode) ? `${printMode}|${showCompany}|${showSpecs}|${showPrice}|${activeIdsKey}` : '';
+  const thermalReady = isThermalMode(printMode) && thermalKey === currentThermalKey;
+
+  useEffect(() => {
+    if (!isThermalMode(printMode)) return;
+    let cancelled = false;
+    const run = async () => {
+      // Effect chạy sau khi các mã QR ẩn đã có trong DOM (không dùng requestAnimationFrame vì bị dừng khi tab ẩn)
+      const ids = activeIdsKey.split(',');
+      const images: Record<string, string> = {};
+      for (const fl of initialForklifts.filter(f => ids.includes(f.id))) {
+        const svg = document.getElementById(`thermal-qr-${fl.id}`) as SVGSVGElement | null;
+        if (!svg) continue;
+        try {
+          images[fl.id] = await renderThermalLabel(fl, printMode, svg, { showCompany, showSpecs, showPrice, baseUrl });
+        } catch (err) {
+          console.error('Render thermal label error:', err);
+        }
+        if (cancelled) return;
+      }
+      if (!cancelled) {
+        setThermalImages(images);
+        setThermalKey(`${printMode}|${showCompany}|${showSpecs}|${showPrice}|${activeIdsKey}`);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [printMode, showCompany, showSpecs, showPrice, activeIdsKey, initialForklifts, baseUrl]);
+
+  const thermalFileName = (fl: ForkliftPrintData) =>
+    `Tem_${printMode.toUpperCase()}_${(fl.internalCode || fl.model).replace(/[^\w-]+/g, '_')}_${fl.id.slice(0, 6)}.png`;
+
+  // Điện thoại: gửi ảnh tem đúng khổ sang app máy in nhiệt (qua menu Chia sẻ của hệ điều hành)
+  const handleShareThermal = async () => {
+    if (!thermalReady || !isThermalMode(printMode)) return;
+    const files = activeForklifts.filter(fl => thermalImages[fl.id]).map(fl => dataUrlToFile(thermalImages[fl.id], thermalFileName(fl)));
+    if (files.length === 0) return;
+    try {
+      await navigator.share({ files, title: `Tem QR ${THERMAL_SIZES[printMode].label}` });
+    } catch (err) {
+      if ((err as Error)?.name !== 'AbortError') alert('Không chia sẻ được ảnh tem. Hãy dùng nút "Tải File PNG" rồi mở bằng app máy in.');
+    }
+  };
+
   const toggleSelectForklift = (id: string) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -80,6 +150,12 @@ export default function PrintQrClient({
   const deselectAll = () => setSelectedIds([]);
 
   const handlePrint = () => {
+    if (isInAppBrowser) {
+      alert(isThermalMode(printMode)
+        ? 'Trình duyệt trong Zalo/Facebook không hỗ trợ in. Hãy bấm "Gửi sang app máy in" hoặc "Tải File PNG", hoặc mở trang này bằng Chrome/Safari.'
+        : 'Trình duyệt trong Zalo/Facebook không hỗ trợ in. Hãy bấm menu ⋮ / ⋯ → "Mở bằng trình duyệt" (Chrome/Safari) rồi in lại.');
+      return;
+    }
     window.print();
   };
 
@@ -95,7 +171,32 @@ export default function PrintQrClient({
     setIsDownloading(true);
 
     try {
-      if (activeForklifts.length === 1) {
+      if (isThermalMode(printMode)) {
+        if (!thermalReady) {
+          alert('Ảnh tem đang được tạo, vui lòng thử lại sau giây lát.');
+          return;
+        }
+        const ready = activeForklifts.filter(fl => thermalImages[fl.id]);
+        if (ready.length === 1) {
+          const a = document.createElement('a');
+          a.href = thermalImages[ready[0].id];
+          a.download = thermalFileName(ready[0]);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          const zip = new JSZip();
+          for (const fl of ready) zip.file(thermalFileName(fl), thermalImages[fl.id].split(',')[1], { base64: true });
+          const content = await zip.generateAsync({ type: 'blob' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(content);
+          a.download = `Tem_${printMode.toUpperCase()}_${ready.length}_xe.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(a.href);
+        }
+      } else if (activeForklifts.length === 1) {
         // Single download
         const fl = activeForklifts[0];
         const dataUrl = await generateQrPng(fl);
@@ -264,6 +365,7 @@ export default function PrintQrClient({
           {/* Center: Mode Switcher */}
           <div style={{
             display: 'flex',
+            flexWrap: 'wrap',
             background: 'rgba(255,255,255,0.1)',
             padding: '3px',
             borderRadius: '8px',
@@ -305,6 +407,27 @@ export default function PrintQrClient({
             >
               <FaThLarge /> Lưới 4 Tem / A4
             </button>
+            {(Object.keys(THERMAL_SIZES) as ThermalSize[]).map(size => (
+              <button
+                key={size}
+                onClick={() => setPrintMode(size)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: '6px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: printMode === size ? '#0f172a' : '#cbd5e1',
+                  background: printMode === size ? '#38bdf8' : 'transparent',
+                  transition: 'all 0.15s ease'
+                }}
+                title={`Tem giấy in nhiệt khổ ${THERMAL_SIZES[size].label} mm, đen trắng`}
+              >
+                <FaReceipt /> Tem Nhiệt {THERMAL_SIZES[size].label}
+              </button>
+            ))}
             <button
               onClick={() => setPrintMode('showcase')}
               style={{
@@ -326,7 +449,29 @@ export default function PrintQrClient({
           </div>
 
           {/* Right: Actions */}
-          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {isThermalMode(printMode) && canShareFiles && (
+              <button
+                onClick={handleShareThermal}
+                disabled={!thermalReady || activeForklifts.length === 0}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  background: '#16a34a',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+                title="Gửi ảnh tem đúng khổ sang app máy in nhiệt (Bluetooth) trên điện thoại"
+              >
+                <FaShareAlt /> {thermalReady ? 'Gửi sang app máy in' : 'Đang tạo tem...'}
+              </button>
+            )}
             <button
               onClick={handleDownloadQrPng}
               disabled={isDownloading || activeForklifts.length === 0}
@@ -503,6 +648,49 @@ export default function PrintQrClient({
         </div>
       )}
 
+      {/* Hướng dẫn in trên điện thoại (No-print) */}
+      {(isMobile || isInAppBrowser) && (
+        <div className="no-print" style={{
+          maxWidth: '1400px',
+          margin: '1rem auto 0 auto',
+          padding: '0.8rem 1rem',
+          background: isInAppBrowser ? '#fef3c7' : '#eff6ff',
+          border: `1px solid ${isInAppBrowser ? '#fcd34d' : '#bfdbfe'}`,
+          borderRadius: '8px',
+          fontSize: '0.85rem',
+          color: '#1e293b',
+          lineHeight: 1.5
+        }}>
+          {isInAppBrowser && (
+            <div style={{ fontWeight: 700, color: '#92400e', marginBottom: '0.3rem' }}>
+              ⚠️ Bạn đang mở trang trong Zalo / Facebook: trình duyệt này không hỗ trợ nút In.
+            </div>
+          )}
+          <strong>In bằng máy in nhiệt Bluetooth trên điện thoại:</strong> chọn khổ <strong>Tem Nhiệt A6</strong> hoặc <strong>A7</strong>,
+          rồi bấm {canShareFiles ? <strong>&quot;Gửi sang app máy in&quot;</strong> : <strong>&quot;Tải File PNG&quot;</strong>} và chọn app của máy in
+          (trong app đặt khổ giấy đúng {THERMAL_SIZES.a6.label} hoặc {THERMAL_SIZES.a7.label} mm, tỉ lệ 100%).
+          {isInAppBrowser && <> Hoặc bấm menu <strong>⋮ / ⋯ → Mở bằng trình duyệt</strong> để dùng nút In.</>}
+        </div>
+      )}
+
+      {/* Mã QR ẩn để vẽ tem nhiệt lên canvas */}
+      {isThermalMode(printMode) && (
+        <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', top: 0 }}>
+          {activeForklifts.map(fl => (
+            <QRCodeSVG
+              key={fl.id}
+              id={`thermal-qr-${fl.id}`}
+              value={`${baseUrl}/${lang}/machine/${fl.id}`}
+              size={600}
+              level="H"
+              marginSize={0}
+              bgColor="#ffffff"
+              fgColor="#000000"
+            />
+          ))}
+        </div>
+      )}
+
       {/* 3. Main Printable Area */}
       <main style={{ padding: '2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
         
@@ -535,6 +723,22 @@ export default function PrintQrClient({
             >
               Chọn tất cả các xe
             </button>
+          </div>
+        ) : isThermalMode(printMode) ? (
+          <div className="print-wrapper print-mode-thermal">
+            {!thermalReady && (
+              <div className="no-print" style={{ color: '#64748b', padding: '2rem' }}>Đang tạo tem {THERMAL_SIZES[printMode].label}...</div>
+            )}
+            {thermalReady && activeForklifts.map(fl => thermalImages[fl.id] && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={fl.id}
+                src={thermalImages[fl.id]}
+                alt={`Tem ${fl.internalCode || fl.model}`}
+                className="thermal-label-img"
+                style={{ width: `${THERMAL_SIZES[printMode].widthMm}mm`, height: `${THERMAL_SIZES[printMode].heightMm}mm` }}
+              />
+            ))}
           </div>
         ) : (
           <div className={`print-wrapper print-mode-${printMode}`}>
@@ -930,19 +1134,19 @@ export default function PrintQrClient({
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
         }
 
         .decal-layout {
           height: 100%;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
         }
 
         .label-brand-header {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: center;
           border-bottom: 2px solid #b91c1c;
           padding-bottom: 4px;
@@ -988,7 +1192,7 @@ export default function PrintQrClient({
           display: flex;
           flex-direction: column;
           align-items: center;
-          justifyContent: center;
+          justify-content: center;
           width: 125px;
           flex-shrink: 0;
         }
@@ -1013,12 +1217,12 @@ export default function PrintQrClient({
           flex: 1;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
         }
 
         .decal-code-row {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: center;
           margin-bottom: 3px;
         }
@@ -1075,7 +1279,7 @@ export default function PrintQrClient({
 
         .spec-row {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           line-height: 1.25;
         }
 
@@ -1100,7 +1304,7 @@ export default function PrintQrClient({
 
         .decal-price-row {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: baseline;
           margin-top: 4px;
           border-top: 1px dashed #cbd5e1;
@@ -1126,7 +1330,7 @@ export default function PrintQrClient({
           font-size: 8px;
           color: #64748b;
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: center;
         }
 
@@ -1160,12 +1364,12 @@ export default function PrintQrClient({
           height: 100%;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
         }
 
         .grid4-header {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: center;
           border-bottom: 2px solid #0f172a;
           padding-bottom: 6px;
@@ -1233,7 +1437,7 @@ export default function PrintQrClient({
 
         .grid4-spec-item {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           border-bottom: 1px dotted #e2e8f0;
           padding-bottom: 2px;
         }
@@ -1300,7 +1504,7 @@ export default function PrintQrClient({
 
         .showcase-header {
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           align-items: center;
           border-bottom: 2px solid #0f172a;
           padding-bottom: 14px;
@@ -1340,7 +1544,7 @@ export default function PrintQrClient({
           height: 100%;
           display: flex;
           align-items: center;
-          justifyContent: center;
+          justify-content: center;
           color: #94a3b8;
           font-size: 12px;
           font-style: italic;
@@ -1448,7 +1652,7 @@ export default function PrintQrClient({
           border-top: 1.5px solid #e2e8f0;
           padding-top: 10px;
           display: flex;
-          justifyContent: space-between;
+          justify-content: space-between;
           font-size: 11.5px;
           color: #475569;
         }
@@ -1518,10 +1722,28 @@ export default function PrintQrClient({
             border: 2px solid #0f172a !important;
           }
 
-          @page {
-            size: auto;
-            margin: 8mm;
+          /* Tem nhiệt A6 / A7: mỗi tem 1 trang đúng khổ giấy */
+          .thermal-label-img {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            break-after: page;
+            page-break-after: always;
           }
+
+          @page {
+            size: ${isThermalMode(printMode) ? `${THERMAL_SIZES[printMode].widthMm}mm ${THERMAL_SIZES[printMode].heightMm}mm` : 'auto'};
+            margin: ${isThermalMode(printMode) ? '0' : '8mm'};
+          }
+        }
+
+        .thermal-label-img {
+          display: block;
+          max-width: 100%;
+          object-fit: contain;
+          background: white;
+          border: 1px solid #cbd5e1;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
       `}} />
 
