@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
+import { getStaffUser } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
+    const { role } = await getStaffUser(request);
+    if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được nhập Excel' }, { status: 403 });
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     

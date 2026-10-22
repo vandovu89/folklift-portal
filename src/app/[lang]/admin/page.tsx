@@ -2,18 +2,20 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { FaTractor, FaBoxOpen, FaEye, FaUsers, FaMoneyBillWave } from 'react-icons/fa';
 import styles from './admin.module.css';
+import { getServerStaffRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
+  const role = await getServerStaffRole();
   const total = await prisma.forklift.count();
   const published = await prisma.forklift.count({ where: { status: 'Available' } });
   
-  // Tổng giá trị tồn kho (CostPrice của các xe chưa bán)
-  const forkliftsInStock = await prisma.forklift.findMany({
+  // Tổng giá trị tồn kho (CostPrice của các xe chưa bán) - chỉ ADMIN được xem
+  const forkliftsInStock = role === 'ADMIN' ? await prisma.forklift.findMany({
     where: { status: { notIn: ['Sold', 'Delivered'] } },
     select: { costPrice: true }
-  });
+  }) : [];
   const totalValue = forkliftsInStock.reduce((acc, curr) => acc + (curr.costPrice || 0), 0);
   
   // Total Inquiries
@@ -61,15 +63,17 @@ export default async function AdminDashboard() {
           </div>
         </div>
         
-        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '0.85rem', borderRadius: '50%', color: '#ef4444', flexShrink: 0 }}>
-            <FaMoneyBillWave size={26} />
+        {role === 'ADMIN' && (
+          <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '0.85rem', borderRadius: '50%', color: '#ef4444', flexShrink: 0 }}>
+              <FaMoneyBillWave size={26} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Giá trị Tồn kho</div>
+              <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, overflowWrap: 'break-word', lineHeight: '1.2' }}>{totalValue.toLocaleString()} ¥</div>
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Giá trị Tồn kho</div>
-            <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, overflowWrap: 'break-word', lineHeight: '1.2' }}>{totalValue.toLocaleString()} ¥</div>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className={styles.dashboardMainGrid}>

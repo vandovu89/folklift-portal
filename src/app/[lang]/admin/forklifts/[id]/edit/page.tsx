@@ -21,6 +21,9 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('SALES');
+  // ADMIN sửa toàn bộ; SALES chỉ đổi trạng thái (kèm thông tin chốt đơn khi "Đã bán"); VIEWER chỉ xem
+  const isAdminUser = userRole === 'ADMIN';
+  const canChangeStatus = userRole === 'ADMIN' || userRole === 'SALES';
   const [activities, setActivities] = useState<any[]>([]);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -155,13 +158,17 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       const res = await fetch(`/api/forklifts/${resolvedParams.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(isAdminUser ? formData : {
+          status: formData.status,
+          ...(formData.status === 'Sold' ? { soldPrice: formData.soldPrice, soldDate: formData.soldDate, contractUrl: formData.contractUrl } : {})
+        }),
       });
       if (res.ok) {
         router.push('/admin/forklifts');
         router.refresh();
       } else {
-        alert('Có lỗi xảy ra');
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Có lỗi xảy ra');
       }
     } catch (error) {
       alert('Có lỗi xảy ra');
@@ -191,7 +198,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
   return (
     <div className="glass-panel" style={{ padding: 'clamp(1rem, 3vw, 2rem)', maxWidth: '1000px', margin: '0 auto' }}>
       <div className={styles.pageHeader}>
-        <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)' }}>Chỉnh sửa Thông tin Xe Nâng</h2>
+        <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.6rem)' }}>{isAdminUser ? 'Chỉnh sửa Thông tin Xe Nâng' : 'Thông tin Xe Nâng'}</h2>
         <div className={styles.headerActions}>
           <Link 
             href={`/vi/print-qr?ids=${resolvedParams.id}`} 
@@ -210,12 +217,16 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           >
             <FaQrcode /> In QR Dán Xe
           </Link>
-          <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
-            <FaVideo /> AI Video Studio
-          </button>
-          <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
-            <FaMagic /> Trợ lý AI Marketing
-          </button>
+          {canChangeStatus && (
+            <>
+              <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
+                <FaVideo /> AI Video Studio
+              </button>
+              <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
+                <FaMagic /> Trợ lý AI Marketing
+              </button>
+            </>
+          )}
           {userRole === 'ADMIN' && (
             <button type="button" onClick={handleDelete} className="btn-danger">Xóa Xe Này</button>
           )}
@@ -223,8 +234,16 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
       </div>
 
       <form onSubmit={handleSubmit}>
+        {!isAdminUser && (
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e3a8a', borderRadius: '8px', padding: '0.7rem 1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
+            🔒 {canChangeStatus
+              ? 'Tài khoản Sales chỉ xem thông tin xe và được cập nhật Trạng thái (kèm thông tin chốt đơn khi chuyển sang "Đã bán"). Cần sửa thông tin khác, vui lòng liên hệ Admin.'
+              : 'Tài khoản chỉ có quyền xem.'}
+          </div>
+        )}
         <div className={styles.formSection}>
           <h3>1. Thông tin Chung & Nhận diện</h3>
+          <fieldset disabled={!isAdminUser} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
           <div className={styles.formGrid}>
             <div className="form-group">
               <label className="form-label">Mã nội bộ</label>
@@ -254,14 +273,18 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               <label className="form-label">Địa Điểm</label>
               <input name="location" value={formData.location} onChange={handleChange} className="form-control" />
             </div>
-            <div className="form-group">
-              <label className="form-label">Nguồn nhập</label>
-              <input name="purchaseSource" value={formData.purchaseSource} onChange={handleChange} className="form-control" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Nguồn tham khảo (URL)</label>
-              <input name="sourceUrl" value={formData.sourceUrl} onChange={handleChange} className="form-control" />
-            </div>
+            {isAdminUser && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">Nguồn nhập</label>
+                  <input name="purchaseSource" value={formData.purchaseSource} onChange={handleChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nguồn tham khảo (URL)</label>
+                  <input name="sourceUrl" value={formData.sourceUrl} onChange={handleChange} className="form-control" />
+                </div>
+              </>
+            )}
             <div className="form-group">
               <label className="form-label">🎥 Video Review (YouTube / TikTok URL)</label>
               <input name="videoUrl" value={formData.videoUrl} onChange={handleChange} className="form-control" placeholder="https://www.youtube.com/watch?v=... hoặc TikTok" />
@@ -271,10 +294,12 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               <input value={formData.id} readOnly className="form-control" style={{ opacity: 0.6 }} />
             </div>
           </div>
+          </fieldset>
         </div>
 
         <div className={styles.formSection}>
           <h3>2. Thông số Kỹ thuật & Tình trạng</h3>
+          <fieldset disabled={!isAdminUser} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
           <div className={styles.formGrid}>
             <div className="form-group">
               <label className="form-label">Tình trạng xe (Bình ắc quy)</label>
@@ -305,6 +330,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
               <input name="weight" value={formData.weight} onChange={handleChange} className="form-control" placeholder="1,500kg..." />
             </div>
           </div>
+          </fieldset>
         </div>
 
         <div className={styles.formSection}>
@@ -312,7 +338,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           <div className={styles.formGrid}>
             <div className="form-group">
               <label className="form-label">Trạng thái hiện tại</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="form-control">
+              <select name="status" value={formData.status} onChange={handleChange} className="form-control" disabled={!canChangeStatus}>
                 <option value="Draft">Draft (Lưu kho / Bản nháp)</option>
                 <option value="Incoming">Incoming (Sắp về kho)</option>
                 <option value="Available">Available (Đang bán / Sẵn sàng)</option>
@@ -324,7 +350,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
             </div>
             <div className="form-group">
               <label className="form-label">Giá Bán Đề Xuất (VNĐ)</label>
-              <input type="number" name="price" value={formData.price} onChange={handleChange} className="form-control" />
+              <input type="number" name="price" value={formData.price} onChange={handleChange} className="form-control" disabled={!isAdminUser} />
             </div>
           </div>
         </div>
@@ -332,6 +358,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
         {formData.status === 'Sold' && (
           <div className={styles.formSection} style={{ background: 'rgba(74, 222, 128, 0.05)', borderColor: 'rgba(74, 222, 128, 0.2)' }}>
             <h3 style={{ color: '#4ade80' }}>Thông tin Chốt Đơn (Khi Đã Bán)</h3>
+            <fieldset disabled={!canChangeStatus} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
             <div className={styles.formGrid}>
               <div className="form-group">
                 <label className="form-label">Giá Bán Thực Tế (VNĐ) *</label>
@@ -346,6 +373,7 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
                 <input name="contractUrl" value={formData.contractUrl} onChange={handleChange} className="form-control" placeholder="https://drive.google.com/..." />
               </div>
             </div>
+            </fieldset>
           </div>
         )}
 
@@ -403,16 +431,18 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
         )}
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={() => router.back()} className="btn-secondary">Hủy</button>
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Đang lưu...' : 'Lập Tức Cập Nhật'}
-          </button>
+          <button type="button" onClick={() => router.back()} className="btn-secondary">{canChangeStatus ? 'Hủy' : 'Quay lại'}</button>
+          {canChangeStatus && (
+            <button type="submit" disabled={loading} className="btn-primary">
+              {loading ? 'Đang lưu...' : isAdminUser ? 'Lập Tức Cập Nhật' : 'Cập Nhật Trạng Thái'}
+            </button>
+          )}
         </div>
       </form>
 
-      <MediaManager forkliftId={resolvedParams.id} />
+      <MediaManager forkliftId={resolvedParams.id} canEdit={isAdminUser} />
 
-      {userRole !== 'VIEWER' && <ConditionMap forkliftId={resolvedParams.id} mode="edit" />}
+      {isAdminUser && <ConditionMap forkliftId={resolvedParams.id} mode="edit" />}
       
       <div className={styles.formSection} style={{ marginTop: '2rem' }}>
         <h3>Lịch sử hoạt động (Timeline)</h3>

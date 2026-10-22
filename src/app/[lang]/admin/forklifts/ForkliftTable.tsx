@@ -97,9 +97,10 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
             Đã chọn {selectedIds.length} xe nâng
           </span>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <ExportButton 
-              selectedIds={selectedIds} 
+            <ExportButton
+              selectedIds={selectedIds}
               buttonText="Xuất Excel"
+              userRole={role}
             />
             <Link
               href={`/vi/print-qr?ids=${selectedIds.join(',')}`}
@@ -148,7 +149,7 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
             </th>
             <th>Mã nội bộ</th>
             <th>Ảnh</th>
-            <th>Nguồn nhập</th>
+            {role === 'ADMIN' && <th>Nguồn nhập</th>}
             <th>Hãng</th>
             <th>Model</th>
             <th>Năm SX</th>
@@ -184,7 +185,7 @@ export default function ForkliftTable({ forklifts, userRole }: { forklifts: any[
                     <div style={{ width: '60px', height: '40px', background: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#999' }}>No IMG</div>
                   )}
                 </td>
-                <td>{fl.purchaseSource || '-'}</td>
+                {role === 'ADMIN' && <td>{fl.purchaseSource || '-'}</td>}
                 <td>{fl.maker}</td>
                 <td>{fl.model}</td>
                 <td>{fl.year || '-'}</td>

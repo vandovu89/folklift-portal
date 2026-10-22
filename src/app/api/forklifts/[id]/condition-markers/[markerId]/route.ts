@@ -9,7 +9,7 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     const { id, markerId } = await params;
     const { role } = await getStaffUser(request);
-    if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được chỉnh bản đồ tình trạng xe' }, { status: 403 });
 
     const body = await request.json();
     const data: Record<string, unknown> = {};
@@ -35,7 +35,7 @@ export async function PUT(request: Request, { params }: Params) {
 export async function DELETE(request: Request, { params }: Params) {
   const { id, markerId } = await params;
   const { role } = await getStaffUser(request);
-  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được chỉnh bản đồ tình trạng xe' }, { status: 403 });
 
   const result = await prisma.conditionMarker.deleteMany({ where: { id: markerId, forkliftId: id } });
   if (result.count === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });

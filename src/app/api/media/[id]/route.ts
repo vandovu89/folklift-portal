@@ -18,6 +18,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const media = await prisma.media.findUnique({ where: { id: mediaId } });
     if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    // Tránh xoá nhầm ảnh/tài liệu xe: Sales chỉ được xoá clip gốc do mình tải lên trong AI Video Studio
+    if (role !== 'ADMIN' && media.category !== 'RAW_VIDEO') {
+      return NextResponse.json({ error: 'Chỉ Admin được xoá ảnh / tài liệu của xe' }, { status: 403 });
+    }
 
     // Xóa file trên Cloudinary
     if (media.publicId) {
@@ -37,7 +41,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { role } = await getStaffUser(request);
-  if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được chỉnh ảnh của xe' }, { status: 403 });
   try {
     const resolvedParams = await params;
     const mediaId = resolvedParams.id;

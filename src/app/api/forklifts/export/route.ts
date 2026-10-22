@@ -3,11 +3,18 @@ import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
 import { getBaseUrl } from '@/lib/url';
 import { parseCapacityKg, parseLiftHeightMm } from '@/lib/utils';
+import { getStaffUser } from '@/lib/auth';
+import { isAdmin, ADMIN_ONLY_EXPORT_COLUMNS } from '@/lib/permissions';
 
 export async function POST(request: Request) {
   try {
+    const { role } = await getStaffUser(request);
+    if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
-    const { scope, ids, filters, columns } = body;
+    const { scope, ids, filters } = body;
+    const columns: string[] = (Array.isArray(body.columns) ? body.columns : [])
+      .filter((col: string) => isAdmin(role) || !ADMIN_ONLY_EXPORT_COLUMNS.includes(col));
 
     const whereClause: any = {};
     
@@ -41,7 +48,7 @@ export async function POST(request: Request) {
     let forklifts = await prisma.forklift.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
-      include: { expenses: { orderBy: { createdAt: 'asc' } } }
+      include: { expenses: isAdmin(role) ? { orderBy: { createdAt: 'asc' } } : false }
     });
 
     if (scope === 'filtered' && filters) {

@@ -13,6 +13,12 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
+    // Sales chỉ được sắp xếp thứ tự clip gốc của AI Video Studio
+    if (role !== 'ADMIN') {
+      const nonClip = await prisma.media.count({ where: { id: { in: items.map((item: { id: string }) => item.id) }, category: { not: 'RAW_VIDEO' } } });
+      if (nonClip > 0) return NextResponse.json({ error: 'Chỉ Admin được sắp xếp ảnh của xe' }, { status: 403 });
+    }
+
     // Execute updates in a transaction
     await prisma.$transaction(
       items.map((item) =>

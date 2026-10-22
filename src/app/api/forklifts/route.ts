@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
+import { isAdmin, stripInternalFields } from '@/lib/permissions';
 
 import { logActivity } from '@/lib/activity-logger';
 
@@ -19,12 +20,8 @@ export async function GET(request: Request) {
       }
     });
 
-    const sanitizedForklifts = role === 'ADMIN' 
-      ? forklifts 
-      : forklifts.map(f => {
-          const { costPrice, ...rest } = f;
-          return rest;
-        });
+    // SALES/VIEWER không được xem giá vốn, chi phí & nguồn nhập
+    const sanitizedForklifts = forklifts.map(f => stripInternalFields(f, role));
 
     return NextResponse.json(sanitizedForklifts);
   } catch (error) {
@@ -36,6 +33,7 @@ export async function POST(request: Request) {
   try {
     const { role, id: userId } = await getStaffUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!isAdmin(role)) return NextResponse.json({ error: 'Chỉ Admin được thêm xe mới' }, { status: 403 });
 
     const body = await request.json();
     let internalCode = null;

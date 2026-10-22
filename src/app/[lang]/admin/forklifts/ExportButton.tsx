@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ADMIN_ONLY_EXPORT_COLUMNS } from '@/lib/permissions';
 
 interface ExportButtonProps {
   selectedIds?: string[];
@@ -8,6 +9,7 @@ interface ExportButtonProps {
   buttonText?: string;
   buttonStyle?: React.CSSProperties;
   className?: string;
+  userRole?: string;
 }
 
 const ALL_COLUMNS = [
@@ -39,14 +41,17 @@ export default function ExportButton({
   currentFilters = {},
   buttonText = '📤 Export Excel',
   buttonStyle = { backgroundColor: '#107c41', color: 'white', borderColor: '#107c41' },
-  className = 'btn-secondary'
+  className = 'btn-secondary',
+  userRole
 }: ExportButtonProps) {
+  // Sales không được xuất giá vốn, chi phí, nguồn nhập (server cũng tự loại bỏ các cột này)
+  const columns = userRole === 'ADMIN' ? ALL_COLUMNS : ALL_COLUMNS.filter(c => !ADMIN_ONLY_EXPORT_COLUMNS.includes(c.id));
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
   // State for selected columns
   const [selectedCols, setSelectedCols] = useState<string[]>(
-    ALL_COLUMNS.filter(c => c.default).map(c => c.id)
+    columns.filter(c => c.default).map(c => c.id)
   );
 
   const toggleColumn = (id: string) => {
@@ -56,7 +61,7 @@ export default function ExportButton({
   };
 
   const handleSelectAll = () => {
-    setSelectedCols(ALL_COLUMNS.map(c => c.id));
+    setSelectedCols(columns.map(c => c.id));
   };
 
   const handleDeselectAll = () => {
@@ -139,7 +144,7 @@ export default function ExportButton({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '2rem' }}>
-              {ALL_COLUMNS.map(col => (
+              {columns.map(col => (
                 <label key={col.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                   <input 
                     type="checkbox" 

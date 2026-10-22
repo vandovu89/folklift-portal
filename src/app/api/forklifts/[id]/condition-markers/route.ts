@@ -21,7 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
     const { role, id: userId } = await getStaffUser(request);
-    if (role === 'GUEST' || role === 'VIEWER') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được chỉnh bản đồ tình trạng xe' }, { status: 403 });
 
     const body = await request.json();
     if (!body.title?.trim()) return NextResponse.json({ error: 'Thiếu tiêu đề' }, { status: 400 });

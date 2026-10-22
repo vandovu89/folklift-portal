@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
 
 export async function GET(request: Request) {
   // Chỉ nhân viên đã đăng nhập mới được xem thư viện media (gồm cả file nội bộ)
@@ -15,7 +16,10 @@ export async function GET(request: Request) {
 
   try {
     const mediaList = await prisma.media.findMany({
-      where: { forkliftId },
+      where: {
+        forkliftId,
+        ...(role === 'ADMIN' ? {} : { OR: [{ category: null }, { category: { notIn: ADMIN_ONLY_MEDIA_CATEGORIES } }] })
+      },
       orderBy: [
         { order: 'asc' },
         { createdAt: 'desc' }

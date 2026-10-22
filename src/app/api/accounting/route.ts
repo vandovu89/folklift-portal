@@ -17,7 +17,7 @@ async function getUser(request: Request) {
 export async function GET(request: Request) {
   try {
     const { role } = await getUser(request);
-    if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được xem sổ sách kế toán' }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
     const locked = searchParams.get('locked') === 'true';

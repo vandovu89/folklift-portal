@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { ADMIN_ONLY_PAGES } from '@/lib/permissions';
 
 const locales = ['en', 'vi'];
 const defaultLocale = 'vi';
@@ -43,14 +44,8 @@ export async function proxy(request: NextRequest) {
       
       const role = payload.role as string;
       
-      // Role-Based Access Control
-      if (pathname.includes('/admin/users') && role !== 'ADMIN') {
-        return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
-      }
-      if (pathname.includes('/admin/purchase-sources') && role !== 'ADMIN') {
-        return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
-      }
-      if (pathname.includes('/admin/settings') && role !== 'ADMIN') {
+      // Role-Based Access Control: trang quản trị chỉ ADMIN (người dùng, nguồn nhập, cài đặt, kế toán, nhập Excel, thêm xe)
+      if (role !== 'ADMIN' && ADMIN_ONLY_PAGES.some(page => pathname.includes(page))) {
         return NextResponse.redirect(new URL(`/${currentLocale}/admin`, request.url));
       }
 

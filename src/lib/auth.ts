@@ -32,6 +32,19 @@ export async function getStaffUser(request: Request): Promise<{ role: string; id
   }
 }
 
+// Dùng trong Server Component: đọc quyền nhân viên từ cookie của request hiện tại
+export async function getServerStaffRole(): Promise<string> {
+  const { cookies } = await import('next/headers');
+  const token = (await cookies()).get(STAFF_COOKIE)?.value;
+  if (!token) return 'GUEST';
+  try {
+    const { payload } = await jwtVerify(token, secretKey());
+    return (payload.role as string) || 'GUEST';
+  } catch {
+    return 'GUEST';
+  }
+}
+
 export async function signCustomerToken(customerId: string): Promise<string> {
   return new SignJWT({ kind: 'CUSTOMER', customerId })
     .setProtectedHeader({ alg: 'HS256' })

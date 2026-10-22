@@ -159,13 +159,15 @@ export default function AdminLayout({
           >
             <FaFacebook /> Fanpage & Bot
           </Link>
-          <Link 
-            href="/admin/accounting" 
-            onClick={closeSidebar}
-            className={`${styles.navItem} ${isActive('/admin/accounting') ? styles.active : ''}`}
-          >
-            <FaFileExcel /> Kế toán
-          </Link>
+          {user?.role === 'ADMIN' && (
+            <Link
+              href="/admin/accounting"
+              onClick={closeSidebar}
+              className={`${styles.navItem} ${isActive('/admin/accounting') ? styles.active : ''}`}
+            >
+              <FaFileExcel /> Kế toán
+            </Link>
+          )}
           <Link 
             href="/admin/testimonials" 
             onClick={closeSidebar}

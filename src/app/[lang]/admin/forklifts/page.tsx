@@ -5,6 +5,7 @@ import styles from './forklifts.module.css';
 import ForkliftFilter from './ForkliftFilter';
 import ForkliftTable from './ForkliftTable';
 import ExportButton from './ExportButton';
+import { stripInternalFields } from '@/lib/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -113,21 +114,27 @@ export default async function ForkliftsPage({ searchParams }: { searchParams: Pr
       <div className={styles.pageHeader}>
         <h1 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)' }}>Quản lý Xe Nâng ({forklifts.length})</h1>
         <div className={styles.headerActions}>
-          <ExportButton 
+          <ExportButton
             currentFilters={{ q, status, category, capacity, height, price }}
+            userRole={userRole}
           />
-          <Link href="/admin/forklifts/import" className="btn-secondary" style={{ backgroundColor: '#217346', color: 'white', borderColor: '#217346' }}>
-            📥 Import Excel
-          </Link>
-          <Link href="/admin/forklifts/add" className="btn-primary">
-            + Thêm Xe Nâng
-          </Link>
+          {userRole === 'ADMIN' && (
+            <>
+              <Link href="/admin/forklifts/import" className="btn-secondary" style={{ backgroundColor: '#217346', color: 'white', borderColor: '#217346' }}>
+                📥 Import Excel
+              </Link>
+              <Link href="/admin/forklifts/add" className="btn-primary">
+                + Thêm Xe Nâng
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
       <ForkliftFilter />
 
-      <ForkliftTable forklifts={forklifts} userRole={userRole} />
+      {/* Không gửi giá vốn / nguồn nhập xuống trình duyệt của Sales */}
+      <ForkliftTable forklifts={forklifts.map(f => stripInternalFields(f, userRole))} userRole={userRole} />
     </div>
   );
 }

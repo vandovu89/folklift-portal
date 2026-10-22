@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaEye, FaEyeSlash, FaFileUpload, FaStar, FaRegStar } from 'react-icons/fa';
 import { uploadMediaDirectly } from '@/lib/upload';
 
-export default function MediaManager({ forkliftId }: { forkliftId: string }) {
+export default function MediaManager({ forkliftId, canEdit = true }: { forkliftId: string; canEdit?: boolean }) {
   const [mediaList, setMediaList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -168,6 +168,7 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
         Quản lý Hình ảnh & Tài liệu
       </h3>
       
+      {canEdit && (
       <form onSubmit={handleUpload} className="glass-panel" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div style={{ flex: '2 1 220px', minWidth: '180px' }}>
           <label className="form-label">Chọn File (Ảnh/PDF/Doc) - Có thể chọn nhiều file</label>
@@ -192,6 +193,7 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
           <FaFileUpload /> {loading ? `Đang tải... ${uploadProgress.current}/${uploadProgress.total}` : 'Tải lên'}
         </button>
       </form>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))', gap: '1rem' }}>
         {mediaList.map((m) => (
@@ -201,24 +203,26 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
             style={{ 
               overflow: 'hidden', 
               position: 'relative',
-              cursor: 'grab',
+              cursor: canEdit ? 'grab' : 'default',
               opacity: draggedItemId === m.id ? 0.5 : 1,
               border: draggedItemId === m.id ? '2px dashed var(--primary)' : '1px solid var(--glass-border)'
             }}
-            draggable
-            onDragStart={(e) => handleDragStart(e, m.id)}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, m.id)}
+            draggable={canEdit}
+            onDragStart={canEdit ? (e) => handleDragStart(e, m.id) : undefined}
+            onDragOver={canEdit ? handleDragOver : undefined}
+            onDrop={canEdit ? (e) => handleDrop(e, m.id) : undefined}
           >
-            <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
-              ≡ Kéo thả
-            </div>
+            {canEdit && (
+              <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                ≡ Kéo thả
+              </div>
+            )}
             <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10, display: 'flex', gap: '0.3rem' }}>
               <span className={`badge ${m.isPublic ? 'badge-success' : 'badge-warning'}`} title={m.isPublic ? 'Public (Khách hàng thấy)' : 'Internal (Chỉ Admin thấy)'}>
                 {m.isPublic ? <FaEye /> : <FaEyeSlash />}
               </span>
-              {m.fileType === 'IMAGE' && (
-                <button 
+              {canEdit && m.fileType === 'IMAGE' && (
+                <button
                   onClick={() => handleSetThumbnail(m.id)} 
                   style={{ background: m.isThumbnail ? '#f59e0b' : 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}
                   title={m.isThumbnail ? 'Đang là ảnh đại diện (Thumbnail)' : 'Đặt làm ảnh đại diện'}
@@ -226,9 +230,11 @@ export default function MediaManager({ forkliftId }: { forkliftId: string }) {
                   {m.isThumbnail ? <FaStar /> : <FaRegStar />}
                 </button>
               )}
-              <button onClick={() => handleDelete(m.id)} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}>
-                <FaTrash />
-              </button>
+              {canEdit && (
+                <button onClick={() => handleDelete(m.id)} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}>
+                  <FaTrash />
+                </button>
+              )}
             </div>
 
             {m.fileType === 'IMAGE' ? (

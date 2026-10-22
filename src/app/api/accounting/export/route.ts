@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const { role, id: userId } = await getUser(request);
     // Tính năng này thường dành cho Kế toán / Admin
-    if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (role !== 'ADMIN') return NextResponse.json({ error: 'Chỉ Admin được xem sổ sách kế toán' }, { status: 403 });
 
     const body = await request.json();
     const { forkliftIds } = body;

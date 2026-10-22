@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
+import { isAdmin, stripInternalFields, SALES_EDITABLE_FIELDS, SALES_CLOSING_FIELDS, ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
 
 import { logActivity } from '@/lib/activity-logger';
 
@@ -62,7 +63,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const forklift = await prisma.forklift.findUnique({
       where: { id: resolvedParams.id },
       include: {
-        media: true,
+        media: isAdmin(role) ? true : { where: { OR: [{ category: null }, { category: { notIn: ADMIN_ONLY_MEDIA_CATEGORIES } }] } },
         expenses: role === 'ADMIN' ? { orderBy: { createdAt: 'asc' } } : false
       }
     });
@@ -71,13 +72,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Forklift not found' }, { status: 404 });
     }
 
-    // SALES/VIEWER không được xem giá vốn & chi phí
-    if (role !== 'ADMIN') {
-      const { costPrice, ...rest } = forklift;
-      return NextResponse.json(rest);
-    }
-
-    return NextResponse.json(forklift);
+    // SALES/VIEWER không được xem giá vốn, chi phí & nguồn nhập
+    return NextResponse.json(stripInternalFields(forklift, role));
   } catch (error) {
     console.error('Fetch forklift error:', error);
     return NextResponse.json({ error: 'Failed to fetch forklift' }, { status: 500 });
@@ -90,7 +86,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const body = await request.json();
     const { role, id: userId } = await getStaffUser(request);
     if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
+    if (role === 'VIEWER') return NextResponse.json({ error: 'Tài khoản chỉ có quyền xem' }, { status: 403 });
+
     const forklift = await prisma.forklift.findUnique({ where: { id: resolvedParams.id } });
     if (!forklift) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     
@@ -99,10 +96,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Forklift is locked for accounting and cannot be modified' }, { status: 403 });
     }
 
-    // Nếu không phải ADMIN, cấm sửa giá vốn & chi phí
-    if (role !== 'ADMIN') {
-      delete body.costPrice;
-      delete body.expenses;
+    // SALES chỉ được đổi trạng thái xe, ghi thông tin chốt đơn khi chuyển sang "Đã bán"
+    // và lưu kết quả AI Video Studio; mọi trường khác bị bỏ qua
+    if (!isAdmin(role)) {
+      const allowed: readonly string[] = body.status === 'Sold'
+        ? [...SALES_EDITABLE_FIELDS, ...SALES_CLOSING_FIELDS]
+        : SALES_EDITABLE_FIELDS;
+      for (const key of Object.keys(body)) {
+        if (!allowed.includes(key)) delete body[key];
+      }
+      if (Object.keys(body).length === 0) {
+        return NextResponse.json({ error: 'Tài khoản Sales chỉ được cập nhật trạng thái xe' }, { status: 403 });
+      }
+      // Chuyển sang "Đã bán" mà chưa có ngày bán thì ghi nhận ngày hôm nay (giá bán thực tế do Admin nhập)
+      if (body.status === 'Sold' && !forklift.soldDate) body.soldDate = new Date().toISOString();
     }
 
     // Extract expenses if present to handle it via relations
