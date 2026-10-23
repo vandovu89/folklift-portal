@@ -37,6 +37,16 @@ export async function POST(request: Request) {
       sourceMap.set(s.name.toLowerCase().trim(), s);
     });
 
+    // Chuẩn hóa tên cột (bỏ khoảng trắng thừa, chuẩn hóa dấu ngoặc)
+    const normalizeHeader = (s: string) => {
+      return String(s || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ')
+        .replace(/\s*\(\s*/g, '(')
+        .replace(/\s*\)\s*/g, ')');
+    };
+
     // Scan for header row dynamically
     let headerRowIdx = -1;
     let colMap = new Map<string, number>();
@@ -50,20 +60,32 @@ export async function POST(request: Request) {
         row.forEach((h: any, idx: number) => {
           if (h && typeof h === 'string') {
             colMap.set(h.trim().toLowerCase(), idx);
+            colMap.set(normalizeHeader(h), idx);
           }
         });
         break;
       }
     }
 
-    const isDynamic = headerRowIdx !== -1 && (colMap.has('mã nội bộ') || colMap.has('maker') || colMap.has('model') || colMap.has('hãng (maker)') || colMap.has('nguồn nhập'));
+    const isDynamic = headerRowIdx !== -1 && (
+      colMap.has('mã nội bộ') || 
+      colMap.has('maker') || 
+      colMap.has('model') || 
+      colMap.has('hãng (maker)') || 
+      colMap.has('hãng(maker)') || 
+      colMap.has('nguồn nhập')
+    );
     const startIdx = isDynamic ? headerRowIdx + 1 : 5;
 
     const getVal = (row: any[], possibleNames: string[]) => {
       if (isDynamic) {
         for (const name of possibleNames) {
-          const idx = colMap.get(name.toLowerCase());
-          if (idx !== undefined && row[idx] !== undefined) {
+          const norm = normalizeHeader(name);
+          let idx = colMap.get(norm);
+          if (idx === undefined) {
+            idx = colMap.get(name.toLowerCase().trim());
+          }
+          if (idx !== undefined && row[idx] !== undefined && row[idx] !== '') {
             return row[idx];
           }
         }
@@ -84,26 +106,35 @@ export async function POST(request: Request) {
       let serialNo, year, hour, condition, powerType, category, forkLength, attachment, liftHeight, loadCapacity, weight, location, priceRaw, costPriceRaw, expensesRaw;
 
       if (isDynamic) {
-        purchaseSourceAbbr = String(getVal(row, ['nguồn nhập', 'purchase source']) || '').trim();
-        statusRaw = String(getVal(row, ['trạng thái', 'status']) || '').trim();
-        maker = getVal(row, ['hãng (maker)', 'maker', 'hãng']);
-        model = getVal(row, ['model']);
-        internalCodeInput = String(getVal(row, ['mã nội bộ', 'internal code']) || '').trim();
-        serialNo = getVal(row, ['số khung (serial)', 'serial no.', 'số khung', 'serial']);
-        year = getVal(row, ['năm sx', 'năm sản xuất', 'year']);
-        hour = getVal(row, ['giờ hoạt động', 'hour']);
-        condition = getVal(row, ['tình trạng', 'tình trạng xe (bình ắc quy)', 'condition']);
-        powerType = getVal(row, ['nhiên liệu', 'loại nhiên liệu', 'power type']);
-        category = getVal(row, ['chủng loại', 'chủng loại xe', 'category']);
-        forkLength = getVal(row, ['chiều dài càng', 'chiều dài càng nâng', 'fork length']);
-        attachment = getVal(row, ['phụ kiện', 'attachment']);
-        liftHeight = getVal(row, ['chiều cao nâng', 'chiều cao nâng tối đa', 'lift height']);
-        loadCapacity = getVal(row, ['tải trọng', 'tải trọng nâng tối đa', 'load capacity']);
-        weight = getVal(row, ['trọng lượng xe', 'trọng lượng', 'weight']);
-        location = getVal(row, ['địa điểm', 'location']);
-        priceRaw = getVal(row, ['giá bán', 'price']);
-        costPriceRaw = getVal(row, ['giá vốn', 'giá nhập', 'cost price']);
-        expensesRaw = getVal(row, ['chi phí phát sinh', 'expenses']);
+        purchaseSourceAbbr = String(getVal(row, ['nguồn nhập', 'purchase source', 'nguồn', 'nguon nhap']) || '').trim();
+        statusRaw = String(getVal(row, ['trạng thái', 'status', 'tình trạng kho']) || '').trim();
+        maker = getVal(row, ['hãng (maker)', 'maker', 'hãng', 'nhà sản xuất', 'brand']);
+        model = getVal(row, ['model', 'mã model', 'model xe']);
+        internalCodeInput = String(getVal(row, ['mã nội bộ', 'internal code', 'mã xe', 'code']) || '').trim();
+        serialNo = getVal(row, [
+          'seri no.', 'seri no', 'seri', 'số seri', 'số serie', 'serie no.', 'serie no', 'serie',
+          'số khung (serial)', 'số khung (seri)', 'số khung / seri', 'số khung/seri', 'số khung',
+          'serial no.', 'serial no', 'serial number', 'serial',
+          'chassis no.', 'chassis no', 'chassis', 'vin'
+        ]);
+        // Fallback: Nếu không tìm thấy theo tên cột, thử lấy theo index vị trí truyền thống (cột 4 nếu file không chèn cột mã nội bộ)
+        if (!serialNo && !colMap.has('mã nội bộ') && row[4]) {
+          serialNo = row[4];
+        }
+        year = getVal(row, ['năm sx', 'năm sản xuất', 'year', 'năm']);
+        hour = getVal(row, ['giờ hoạt động', 'hour', 'hours', 'số giờ', 'giờ']);
+        condition = getVal(row, ['tình trạng', 'tình trạng xe (bình ắc quy)', 'tình trạng xe', 'tình trạng ắc quy', 'tình trạng ac quy', 'condition']);
+        powerType = getVal(row, ['nhiên liệu', 'loại nhiên liệu', 'power type', 'động cơ']);
+        category = getVal(row, ['chủng loại', 'chủng loại xe', 'category', 'kiểu xe', 'loại xe']);
+        forkLength = getVal(row, ['chiều dài càng', 'chiều dài càng nâng', 'fork length', 'càng nâng']);
+        attachment = getVal(row, ['phụ kiện', 'attachment', 'option', 'bộ công tác']);
+        liftHeight = getVal(row, ['chiều cao nâng', 'chiều cao nâng tối đa', 'lift height', 'chiều cao']);
+        loadCapacity = getVal(row, ['tải trọng', 'tải trọng nâng tối đa', 'load capacity', 'tải trọng nâng']);
+        weight = getVal(row, ['trọng lượng xe', 'trọng lượng', 'weight', 'khối lượng']);
+        location = getVal(row, ['địa điểm', 'location', 'kho', 'vị trí']);
+        priceRaw = getVal(row, ['giá bán', 'price', 'giá']);
+        costPriceRaw = getVal(row, ['giá vốn', 'giá nhập', 'cost price', 'giá mua']);
+        expensesRaw = getVal(row, ['chi phí phát sinh', 'expenses', 'chi phí']);
       } else {
         // Tương thích ngược với file mẫu cũ không có header rõ ràng
         purchaseSourceAbbr = row[0] ? String(row[0]).trim() : '';
@@ -163,6 +194,16 @@ export async function POST(request: Request) {
         });
       }
 
+      // Nếu không có mã nội bộ nhưng có số seri (serialNo), kiểm tra theo số seri để tránh tạo xe trùng lặp
+      if (!existingForklift && serialNo) {
+        const cleanSerial = String(serialNo).trim();
+        if (cleanSerial) {
+          existingForklift = await prisma.forklift.findFirst({
+            where: { serialNo: cleanSerial }
+          });
+        }
+      }
+
       // Fallback 1: Trích xuất nguồn nhập từ tiền tố của Mã nội bộ (VD: TU-11 -> TU, MCK-3 -> MCK)
       if (!source && internalCodeInput && internalCodeInput.includes('-')) {
         const prefix = internalCodeInput.split('-')[0].trim().toLowerCase();
@@ -208,11 +249,11 @@ export async function POST(request: Request) {
       }
 
       const dataObj = {
-        serialNo:     serialNo  ? String(serialNo)                                    : null,
+        serialNo:     serialNo  ? String(serialNo).trim()                             : null,
         maker:        String(maker),
         model:        String(model),
         year:         year  ? parseInt(String(year).replace(/[^0-9]/g, ''))   : null,
-        hour:         hour  ? parseInt(String(hour).replace(/[^0-9]/g, ''))   : null,
+        hour:         hour !== undefined && hour !== null && hour !== '' ? parseInt(String(hour).replace(/[^0-9]/g, ''))   : null,
         condition:    condition  ? String(condition)                                    : null,
         powerType:    powerType  ? String(powerType)                                    : null,
         category:     category  ? String(category)                                    : null,
@@ -228,16 +269,32 @@ export async function POST(request: Request) {
       };
 
       if (existingForklift) {
-        // UPDATE (Ghi đè)
+        // UPDATE (Ghi đè - bảo toàn các trường nếu file để trống)
         await prisma.forklift.update({
           where: { id: existingForklift.id },
           data: {
-            ...dataObj,
+            maker: String(maker),
+            model: String(model),
+            serialNo: serialNo ? String(serialNo).trim() : existingForklift.serialNo,
+            year: year ? parseInt(String(year).replace(/[^0-9]/g, '')) : existingForklift.year,
+            hour: hour !== undefined && hour !== null && hour !== '' ? parseInt(String(hour).replace(/[^0-9]/g, '')) : existingForklift.hour,
+            condition: condition ? String(condition) : existingForklift.condition,
+            powerType: powerType ? String(powerType) : existingForklift.powerType,
+            category: category ? String(category) : existingForklift.category,
+            forkLength: forkLength ? String(forkLength) : existingForklift.forkLength,
+            attachment: attachment ? String(attachment) : existingForklift.attachment,
+            liftHeight: liftHeight ? String(liftHeight) : existingForklift.liftHeight,
+            loadCapacity: loadCapacity ? String(loadCapacity) : existingForklift.loadCapacity,
+            weight: weight ? String(weight) : existingForklift.weight,
+            location: location ? String(location) : existingForklift.location,
+            price: priceRaw ? parseFloat(String(priceRaw).replace(/[^0-9-]/g, '')) : existingForklift.price,
+            status: finalStatus,
+            costPrice: costPrice !== null && !isNaN(costPrice) ? costPrice : existingForklift.costPrice,
             purchaseSource: source ? source.name : existingForklift.purchaseSource,
-            expenses: {
+            expenses: parsedExpenses.length > 0 ? {
               deleteMany: {}, // Xóa chi phí cũ
-              create: parsedExpenses.length > 0 ? parsedExpenses : undefined // Tạo mới
-            }
+              create: parsedExpenses // Tạo mới
+            } : undefined
           }
         });
         imported++;
