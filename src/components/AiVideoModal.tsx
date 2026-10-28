@@ -196,6 +196,14 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       return;
     }
 
+    const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+    const oversized = files.find(f => f.size > MAX_VIDEO_BYTES);
+    if (oversized) {
+      const sizeMb = (oversized.size / (1024 * 1024)).toFixed(1);
+      alert(`File "${oversized.name}" (${sizeMb}MB) vượt quá dung lượng tối đa cho phép (100MB).\n\nVui lòng nén video hoặc quay ở định dạng 1080p 30fps (clip 15-30s) trước khi tải lên.`);
+      return;
+    }
+
     let next = [...clips];
     try {
       for (let i = 0; i < files.length; i++) {
@@ -427,6 +435,9 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   <FaUpload /> {uploadingRaw || (clips.length === 0 ? 'Chọn video (có thể chọn nhiều clip cùng lúc)' : '+ Thêm clip')}
                   <input type="file" accept={ACCEPT_VIDEO} multiple hidden onChange={handleUploadClips} disabled={Boolean(uploadingRaw)} />
                 </label>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.4rem', textAlign: 'center' }}>
+                  Hỗ trợ tối đa 10 clip, mỗi clip &lt; 100MB (khuyến nghị quay 1080p 30fps, 15–30s/clip)
+                </div>
               </div>
 
               {/* Bước 2: Kịch bản & Giọng đọc */}

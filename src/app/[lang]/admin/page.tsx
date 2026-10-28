@@ -8,25 +8,27 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   const role = await getServerStaffRole();
-  const total = await prisma.forklift.count();
-  const published = await prisma.forklift.count({ where: { status: 'Available' } });
   
-  // Tổng giá trị tồn kho (CostPrice của các xe chưa bán) - chỉ ADMIN được xem
-  const forkliftsInStock = role === 'ADMIN' ? await prisma.forklift.findMany({
-    where: { status: { notIn: ['Sold', 'Delivered'] } },
-    select: { costPrice: true }
-  }) : [];
-  const totalValue = forkliftsInStock.reduce((acc, curr) => acc + (curr.costPrice || 0), 0);
-  
-  // Total Inquiries
-  const totalInquiries = await prisma.inquiry.count({ where: { status: 'New' } });
+  // Tối ưu chạy song song tất cả các câu truy vấn thống kê Dashboard qua Promise.all
+  // và dùng aggregate trực tiếp trong DB thay vì nạp toàn bộ danh sách xe vào bộ nhớ
+  const [total, published, totalInquiries, inStockAggregate, recentActivities] = await Promise.all([
+    prisma.forklift.count(),
+    prisma.forklift.count({ where: { status: 'Available' } }),
+    prisma.inquiry.count({ where: { status: 'New' } }),
+    role === 'ADMIN'
+      ? prisma.forklift.aggregate({
+          _sum: { costPrice: true },
+          where: { status: { notIn: ['Sold', 'Delivered'] } }
+        })
+      : Promise.resolve({ _sum: { costPrice: 0 } }),
+    prisma.activityLog.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { name: true } } }
+    })
+  ]);
 
-  // Recent Activities
-  const recentActivities = await prisma.activityLog.findMany({
-    take: 10,
-    orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true } } }
-  });
+  const totalValue = inStockAggregate._sum.costPrice || 0;
 
   return (
     <div>

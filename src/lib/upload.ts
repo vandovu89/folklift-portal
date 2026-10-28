@@ -36,6 +36,13 @@ export async function uploadMediaDirectly(
   const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v|3gp|ts)$/i.test(file.name);
   const resourceType = isVideo ? 'video' : 'auto';
 
+  // Giới hạn 100MB của Cloudinary (Free & Standard REST API)
+  const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+  if (isVideo && file.size > MAX_VIDEO_BYTES) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    throw new Error(`Video "${file.name}" (${sizeMb}MB) vượt quá giới hạn 100MB của Cloudinary. Vui lòng nén video hoặc quay ở định dạng 1080p 30fps (clip 15-30s) trước khi tải lên.`);
+  }
+
   // Step 2: Upload file directly from browser to Cloudinary CDN endpoint
   const cloudinaryFormData = new FormData();
   cloudinaryFormData.append('file', file);
@@ -54,7 +61,14 @@ export async function uploadMediaDirectly(
 
   if (!cloudUploadRes.ok) {
     const errorData = await cloudUploadRes.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || 'Lỗi khi tải file lên máy chủ lưu trữ');
+    const rawMsg = errorData.error?.message || '';
+    let errorMsg = 'Lỗi khi tải file lên máy chủ lưu trữ';
+    if (rawMsg.includes('File size too large') || rawMsg.includes('Maximum is')) {
+      errorMsg = `Dung lượng video vượt quá giới hạn tối đa 100MB của Cloudinary. Vui lòng nén file trước khi tải lên. (${rawMsg})`;
+    } else if (rawMsg) {
+      errorMsg = rawMsg;
+    }
+    throw new Error(errorMsg);
   }
 
   const cloudData = await cloudUploadRes.json();

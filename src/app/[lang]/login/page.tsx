@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { FaUserShield } from 'react-icons/fa';
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useParams();
+  const lang = (params?.lang as string) || 'vi';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,8 +25,7 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
-        router.push('/admin');
-        router.refresh(); 
+        router.push(`/${lang}/admin`);
       } else {
         const data = await res.json();
         setError(data.error || 'Đăng nhập thất bại');
