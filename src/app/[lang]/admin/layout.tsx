@@ -57,6 +57,10 @@ export default function AdminLayout({
 
   // Remove language prefix (e.g. /vi) to correctly match routes
   const pathWithoutLang = pathname.replace(/^\/[^\/]+/, '') || '/';
+  const lang = pathname.split('/')[1] === 'en' ? 'en' : 'vi';
+  const en = lang === 'en';
+  const href = (path: string) => `/${lang}${path}`;
+  const switchLangHref = `/${en ? 'vi' : 'en'}${pathWithoutLang}`;
   
   const isActive = (path: string) => {
     if (path === '/admin') return pathWithoutLang === '/admin';
@@ -64,24 +68,24 @@ export default function AdminLayout({
   };
 
   const getPageTitle = () => {
-    if (pathWithoutLang === '/admin') return 'Bảng điều khiển';
-    if (pathWithoutLang.startsWith('/admin/forklifts')) return 'Quản lý Xe Nâng';
-    if (pathWithoutLang.startsWith('/admin/purchase-sources')) return 'Nguồn Nhập';
-    if (pathWithoutLang.startsWith('/admin/inquiries')) return 'Quản lý Khách hàng';
-    if (pathWithoutLang.startsWith('/admin/customers')) return 'Hậu mãi & Bảo dưỡng';
-    if (pathWithoutLang.startsWith('/admin/facebook-pages')) return 'Fanpage & Bot AI';
-    if (pathWithoutLang.startsWith('/admin/accounting')) return 'Sổ Sách Kế Toán';
-    if (pathWithoutLang.startsWith('/admin/testimonials')) return 'Góc Khách Hàng';
-    if (pathWithoutLang.startsWith('/admin/media-videos')) return 'Thư Viện Video';
-    if (pathWithoutLang.startsWith('/admin/users')) return 'Phân Quyền & Nhân Sự';
-    if (pathWithoutLang.startsWith('/admin/settings')) return 'Cài Đặt Hệ Thống';
+    if (pathWithoutLang === '/admin') return en ? 'Dashboard' : 'Bảng điều khiển';
+    if (pathWithoutLang.startsWith('/admin/forklifts')) return en ? 'Forklifts' : 'Quản lý Xe Nâng';
+    if (pathWithoutLang.startsWith('/admin/purchase-sources')) return en ? 'Purchase Sources' : 'Nguồn Nhập';
+    if (pathWithoutLang.startsWith('/admin/inquiries')) return en ? 'Customers' : 'Quản lý Khách hàng';
+    if (pathWithoutLang.startsWith('/admin/customers')) return en ? 'After-sales & Maintenance' : 'Hậu mãi & Bảo dưỡng';
+    if (pathWithoutLang.startsWith('/admin/facebook-pages')) return en ? 'Facebook Pages & Messenger' : 'Fanpage & Bot AI';
+    if (pathWithoutLang.startsWith('/admin/accounting')) return en ? 'Accounting' : 'Sổ Sách Kế Toán';
+    if (pathWithoutLang.startsWith('/admin/testimonials')) return en ? 'Testimonials' : 'Góc Khách Hàng';
+    if (pathWithoutLang.startsWith('/admin/media-videos')) return en ? 'Video Library' : 'Thư Viện Video';
+    if (pathWithoutLang.startsWith('/admin/users')) return en ? 'Users & Roles' : 'Phân Quyền & Nhân Sự';
+    if (pathWithoutLang.startsWith('/admin/settings')) return en ? 'Settings' : 'Cài Đặt Hệ Thống';
     return 'Admin Dashboard';
   };
 
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+      router.push(`/${lang}/login`);
     } catch(e) {
       console.error(e);
     }
@@ -116,87 +120,87 @@ export default function AdminLayout({
         
         <nav className={styles.nav}>
           <Link 
-            href="/admin" 
+            href={href('/admin')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin') ? styles.active : ''}`}
           >
             <FaChartPie /> Dashboard
           </Link>
           <Link 
-            href="/admin/forklifts" 
+            href={href('/admin/forklifts')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/forklifts') ? styles.active : ''}`}
           >
-            <FaTractor /> Quản lý Xe nâng
+            <FaTractor /> {en ? 'Forklifts' : 'Quản lý Xe nâng'}
           </Link>
           {user?.role === 'ADMIN' && (
             <Link 
-              href="/admin/purchase-sources" 
+              href={href('/admin/purchase-sources')} 
               onClick={closeSidebar}
               className={`${styles.navItem} ${isActive('/admin/purchase-sources') ? styles.active : ''}`}
             >
-              <FaChartPie /> Nguồn nhập
+              <FaChartPie /> {en ? 'Purchase Sources' : 'Nguồn nhập'}
             </Link>
           )}
           <Link 
-            href="/admin/inquiries" 
+            href={href('/admin/inquiries')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/inquiries') ? styles.active : ''}`}
           >
-            <FaUsers /> Khách hàng
+            <FaUsers /> {en ? 'Customers' : 'Khách hàng'}
           </Link>
           <Link 
-            href="/admin/customers" 
+            href={href('/admin/customers')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/customers') ? styles.active : ''}`}
           >
-            <FaUserTie /> Hậu mãi & Bảo dưỡng
+            <FaUserTie /> {en ? 'After-sales' : 'Hậu mãi & Bảo dưỡng'}
           </Link>
           <Link 
-            href="/admin/facebook-pages" 
+            href={href('/admin/facebook-pages')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/facebook-pages') ? styles.active : ''}`}
           >
-            <FaFacebook /> Fanpage & Bot
+            <FaFacebook /> {en ? 'Facebook Pages' : 'Fanpage & Bot'}
           </Link>
           {user?.role === 'ADMIN' && (
             <Link
-              href="/admin/accounting"
+              href={href('/admin/accounting')}
               onClick={closeSidebar}
               className={`${styles.navItem} ${isActive('/admin/accounting') ? styles.active : ''}`}
             >
-              <FaFileExcel /> Kế toán
+              <FaFileExcel /> {en ? 'Accounting' : 'Kế toán'}
             </Link>
           )}
           <Link 
-            href="/admin/testimonials" 
+            href={href('/admin/testimonials')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/testimonials') ? styles.active : ''}`}
           >
-            <FaStar /> Góc Khách Hàng
+            <FaStar /> {en ? 'Testimonials' : 'Góc Khách Hàng'}
           </Link>
           <Link 
-            href="/admin/media-videos" 
+            href={href('/admin/media-videos')} 
             onClick={closeSidebar}
             className={`${styles.navItem} ${isActive('/admin/media-videos') ? styles.active : ''}`}
           >
-            <FaVideo /> Thư viện Video
+            <FaVideo /> {en ? 'Video Library' : 'Thư viện Video'}
           </Link>
           {user?.role === 'ADMIN' && (
             <>
               <Link 
-                href="/admin/users" 
+                href={href('/admin/users')} 
                 onClick={closeSidebar}
                 className={`${styles.navItem} ${isActive('/admin/users') ? styles.active : ''}`}
               >
-                <FaUserShield /> Phân quyền
+                <FaUserShield /> {en ? 'Users & Roles' : 'Phân quyền'}
               </Link>
               <Link 
-                href="/admin/settings" 
+                href={href('/admin/settings')} 
                 onClick={closeSidebar}
                 className={`${styles.navItem} ${isActive('/admin/settings') ? styles.active : ''}`}
               >
-                <FaCog /> Cài đặt
+                <FaCog /> {en ? 'Settings' : 'Cài đặt'}
               </Link>
             </>
           )}
@@ -206,12 +210,12 @@ export default function AdminLayout({
           <div className={styles.userProfile}>
             <FaUserCircle className={styles.userAvatar} />
             <div className={styles.userInfo}>
-              <span className={styles.userName}>{user?.name || user?.username || 'Đang tải...'}</span>
+              <span className={styles.userName}>{user?.name || user?.username || (en ? 'Loading...' : 'Đang tải...')}</span>
               <span className={styles.userRole}>{user?.role || 'Guest'}</span>
             </div>
           </div>
           <button onClick={handleLogout} className={styles.logoutBtn}>
-            <FaSignOutAlt /> Đăng xuất
+            <FaSignOutAlt /> {en ? 'Log out' : 'Đăng xuất'}
           </button>
         </div>
       </aside>
@@ -230,6 +234,9 @@ export default function AdminLayout({
             <h2 className={styles.headerTitle}>{getPageTitle()}</h2>
           </div>
           <div className={styles.headerRight}>
+            <Link href={switchLangHref} className="btn btn-outline" style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }} title={en ? 'Chuyển sang Tiếng Việt' : 'Switch to English'}>
+              {en ? 'VI' : 'EN'}
+            </Link>
             <span className={`badge ${user?.role === 'ADMIN' ? 'badge-primary' : 'badge-success'}`}>
               {user?.role || '...'}
             </span>
