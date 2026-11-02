@@ -20,8 +20,10 @@ export const FB_STATE_COOKIE = 'fb_oauth_state';
 export const FB_USER_COOKIE = 'fb_user_session';
 
 export function getFacebookAppConfig() {
-  const appId = process.env.FACEBOOK_APP_ID || process.env.META_APP_ID;
-  const appSecret = process.env.FACEBOOK_APP_SECRET || process.env.META_APP_SECRET;
+  // trim: giá trị dán vào Vercel hay dính khoảng trắng / xuống dòng / dấu nháy, làm Meta báo sai App Secret
+  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, '') || undefined;
+  const appId = clean(process.env.FACEBOOK_APP_ID || process.env.META_APP_ID);
+  const appSecret = clean(process.env.FACEBOOK_APP_SECRET || process.env.META_APP_SECRET);
   return { appId, appSecret, configured: Boolean(appId && appSecret) };
 }
 

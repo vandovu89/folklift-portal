@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStaffUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
+import { isR2Url, r2KeyFromUrl, deleteObject } from '@/lib/storage';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -23,8 +24,21 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       return NextResponse.json({ error: 'Chỉ Admin được xoá ảnh / tài liệu của xe' }, { status: 403 });
     }
 
-    // Xóa file trên Cloudinary
-    if (media.publicId) {
+    if (isR2Url(media.url)) {
+      // File trên Cloudflare R2: publicId lưu object key
+      const key = media.publicId || r2KeyFromUrl(media.url);
+      if (key) await deleteObject(key);
+    } else if (media.publicId) {
+      // Video AI cũ trên Cloudinary được dựng trực tiếp từ clip gốc (derived asset):
+      // xoá clip gốc thì video thành phẩm sẽ hỏng => chặn lại
+      const forklift = await prisma.forklift.findUnique({ where: { id: media.forkliftId }, select: { aiVideoUrl: true, videoUrl: true } });
+      const layerId = media.publicId.replace(/\//g, ':');
+      const inUse = [forklift?.aiVideoUrl, forklift?.videoUrl].some(url =>
+        url && url.includes('res.cloudinary.com') && (url.includes(`/${media.publicId}.`) || url.includes(`l_video:${layerId}`))
+      );
+      if (inUse) {
+        return NextResponse.json({ error: 'Clip này đang được dùng để dựng video AI hiện tại của xe (Cloudinary). Hãy tạo lại video AI trước khi xoá clip.' }, { status: 409 });
+      }
       // Video / âm thanh phải xóa với resource_type 'video', nếu không file vẫn nằm lại trên Cloudinary
       const resourceType = ['VIDEO', 'AUDIO'].includes(media.fileType) ? 'video' : 'image';
       await cloudinary.uploader.destroy(media.publicId, { resource_type: resourceType });

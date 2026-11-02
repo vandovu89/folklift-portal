@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 import { spellOutNumbers, wordsPerSecond, DEFAULT_TTS_MODEL, isTtsModel, type TtsModelId } from '@/lib/vietnamese-tts';
 import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID } from '@/lib/ai-video';
 import { getStaffUser } from '@/lib/auth';
+import { isR2Configured, isR2Url, putObject, buildObjectKey } from '@/lib/storage';
+import { isRenderWorkerConfigured, dispatchRenderJob } from '@/lib/render-worker';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -57,7 +60,7 @@ async function synthesizeSpeech(apiKey: string, voiceId: string, text: string, s
 
 export async function POST(request: Request) {
   try {
-    const { role } = await getStaffUser(request);
+    const { role, id: userId } = await getStaffUser(request);
     if (role === 'GUEST' || role === 'VIEWER') {
       return NextResponse.json({ success: false, error: 'Bạn không có quyền tạo video AI' }, { status: 401 });
     }
@@ -75,12 +78,22 @@ export async function POST(request: Request) {
     if (clipUrls.length > MAX_CLIPS) {
       return NextResponse.json({ success: false, error: `Chỉ ghép tối đa ${MAX_CLIPS} clip mỗi video` }, { status: 400 });
     }
+    const useWorker = isRenderWorkerConfigured();
     const clipPublicIds = clipUrls.map(cloudinaryPublicIdFromUrl);
     const cloudBase = cloudinaryCloudBase(clipUrls[0]);
-    if (clipPublicIds.some(id => !id) || !cloudBase) {
-      return NextResponse.json({ success: false, error: 'Video gốc phải được tải lên Cloudinary của hệ thống' }, { status: 400 });
+    if (useWorker) {
+      if (clipUrls.some(url => !isR2Url(url) && !url.includes('res.cloudinary.com'))) {
+        return NextResponse.json({ success: false, error: 'Video gốc phải nằm trong kho lưu trữ của hệ thống (R2 hoặc Cloudinary)' }, { status: 400 });
+      }
+    } else if (clipPublicIds.some(id => !id) || !cloudBase) {
+      return NextResponse.json({
+        success: false,
+        error: isR2Configured()
+          ? 'Clip đã lưu trên Cloudflare R2 nhưng worker render chưa được cấu hình (RENDER_WORKER_URL / RENDER_WORKER_SECRET).'
+          : 'Video gốc phải được tải lên Cloudinary của hệ thống'
+      }, { status: 400 });
     }
-    const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
+const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
     const format = isVideoFormat(videoFormat) ? videoFormat : DEFAULT_VIDEO_FORMAT;
 
     const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
@@ -142,9 +155,57 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Upload file âm thanh (MP3) lên Cloudinary
+    // 3a. Worker FFmpeg (Cloud Run): lưu giọng đọc lên R2, tạo job render và trả về ngay;
+    // trình duyệt hỏi trạng thái job đến khi worker báo xong (MP4 độc lập trên R2, không tốn credit Cloudinary)
+    if (useWorker) {
+      const audioKey = buildObjectKey(`forklifts/${String(forkliftId).replace(/[^\w-]/g, '')}/voiceover`, `voiceover-${selectedVoiceId}.mp3`);
+      const r2AudioUrl = await putObject(audioKey, audioBuffer, 'audio/mpeg');
+      await prisma.media.create({
+        data: {
+          url: r2AudioUrl, publicId: audioKey, fileName: `voiceover_${selectedVoiceId}_${Date.now()}.mp3`,
+          fileType: 'AUDIO', category: 'AI_VOICEOVER', isPublic: false, forkliftId
+        }
+      });
+
+      const mode = audioMode === 'mix' ? 'mix' : 'replace';
+      const jobId = randomUUID();
+      const outputKey = `renders/${String(forkliftId).replace(/[^\w-]/g, '')}/${jobId}.mp4`;
+      const job = await prisma.videoRenderJob.create({
+        data: {
+          id: jobId,
+          outputKey,
+          forkliftId,
+          script,
+          createdById: userId,
+          input: { clips: clipUrls, audioUrl: r2AudioUrl, format, audioMode: mode, ttsModel: model, voiceId: selectedVoiceId }
+        }
+      });
+      try {
+        await dispatchRenderJob({ jobId: job.id, clips: clipUrls, audioUrl: r2AudioUrl, format, audioMode: mode, outputKey });
+      } catch (dispatchErr) {
+        const message = dispatchErr instanceof Error ? dispatchErr.message : 'Không gửi được job sang worker render';
+        await prisma.videoRenderJob.update({ where: { id: job.id }, data: { status: 'failed', error: message, finishedAt: new Date() } });
+        console.error('[AI Video Render] Dispatch failed:', message);
+        return NextResponse.json({ success: false, error: `Không kết nối được máy chủ render video: ${message}` }, { status: 502 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        jobId: job.id,
+        audioUrl: r2AudioUrl,
+        clipCount: clipUrls.length,
+        videoFormat: format,
+        ttsModel: model,
+        audioDuration,
+        videoDuration: videoSeconds || undefined,
+        appliedSpeed,
+        warning
+      });
+    }
+
+    // 3b. Dự phòng: Cloudinary (khi chưa cấu hình R2 + worker) - upload MP3 lên Cloudinary
     // Cloudinary xử lý file âm thanh dưới dạng resource_type: 'video'
-    const audioUploadResult = await new Promise<any>((resolve, reject) => {
+    const audioUploadResult= await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'vietnhat_audio',

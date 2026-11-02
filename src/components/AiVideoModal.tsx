@@ -28,7 +28,7 @@ interface MediaRecord {
   createdAt: string;
 }
 
-type VideoStatus = 'idle' | 'processing' | 'ready' | 'timeout';
+type VideoStatus = 'idle' | 'processing' | 'ready' | 'timeout' | 'failed';
 
 function formatDuration(sec: number): string {
   if (!sec || isNaN(sec)) return '0s';
@@ -62,6 +62,18 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
   const [loadingScript, setLoadingScript] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [uploadingRaw, setUploadingRaw] = useState('');
+  // Giới hạn dung lượng mỗi clip: 2GB khi lưu trên Cloudflare R2, 100MB khi còn dùng Cloudinary Free
+  const [uploadLimit, setUploadLimit] = useState<{ provider: string; maxBytes: number }>({ provider: 'cloudinary', maxBytes: 100 * 1024 * 1024 });
+  const [renderError, setRenderError] = useState('');
+  const [lastJobId, setLastJobId] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/media/upload-url')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d?.maxBytes) setUploadLimit({ provider: d.provider, maxBytes: d.maxBytes }); })
+      .catch(() => {});
+  }, [isOpen]);
 
   const [script, setScript] = useState('');
   const [clips, setClips] = useState<Clip[]>([]);
@@ -196,11 +208,11 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       return;
     }
 
-    const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
-    const oversized = files.find(f => f.size > MAX_VIDEO_BYTES);
+    const maxMb = Math.round(uploadLimit.maxBytes / (1024 * 1024));
+    const oversized = files.find(f => f.size > uploadLimit.maxBytes);
     if (oversized) {
       const sizeMb = (oversized.size / (1024 * 1024)).toFixed(1);
-      alert(`File "${oversized.name}" (${sizeMb}MB) vượt quá dung lượng tối đa cho phép (100MB).\n\nVui lòng nén video hoặc quay ở định dạng 1080p 30fps (clip 15-30s) trước khi tải lên.`);
+      alert(`File "${oversized.name}" (${sizeMb}MB) vượt quá dung lượng tối đa cho phép (${maxMb}MB).\n\nVui lòng nén video hoặc quay ở định dạng 1080p 30fps trước khi tải lên.`);
       return;
     }
 
@@ -209,8 +221,11 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       for (let i = 0; i < files.length; i++) {
         setUploadingRaw(`Đang tải clip ${i + 1}/${files.length}...`);
         const localDuration = await readLocalDuration(files[i]);
-        // Tải trực tiếp lên Cloudinary CDN để không bị giới hạn 4.5MB của serverless (Vercel)
-        const result = await uploadMediaDirectly(files[i], { forkliftId, category: 'RAW_VIDEO', isPublic: false });
+        // Tải thẳng từ trình duyệt lên kho lưu trữ (R2 / Cloudinary), không qua serverless của Vercel
+        const result = await uploadMediaDirectly(files[i], {
+          forkliftId, category: 'RAW_VIDEO', isPublic: false,
+          onProgress: percent => setUploadingRaw(`Đang tải clip ${i + 1}/${files.length}... ${percent}%`)
+        });
         if (result.success && result.url) {
           next = [...next, { id: result.media?.id, url: result.url, duration: result.duration || localDuration }];
           setClips(next);
@@ -302,6 +317,34 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     setVideoStatus('timeout');
   };
 
+  // Worker FFmpeg (Cloud Run): hỏi trạng thái job mỗi 5 giây đến khi xong / lỗi (tối đa ~20 phút)
+  const waitForRenderJob = async (jobId: string) => {
+    setLastJobId(jobId);
+    setVideoStatus('processing');
+    setRenderError('');
+    for (let attempt = 0; attempt < 240; attempt++) {
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const res = await fetch(`/api/ai/render-jobs/${jobId}`, { cache: 'no-store' });
+        if (!res.ok) continue;
+        const job = await res.json();
+        if (job.status === 'done' && job.outputUrl) {
+          setAiVideoUrl(job.outputUrl);
+          setVideoStatus('ready');
+          return;
+        }
+        if (job.status === 'failed') {
+          setRenderError(job.error || 'Render video thất bại');
+          setVideoStatus('failed');
+          return;
+        }
+      } catch {
+        // Lỗi mạng tạm thời: thử lại
+      }
+    }
+    setVideoStatus('timeout');
+  };
+
   const handleCreateVideo = async () => {
     if (clips.length === 0) return alert('Vui lòng upload video gốc trước.');
     if (!script) return alert('Vui lòng sinh kịch bản trước.');
@@ -326,11 +369,15 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       });
       const data = await res.json();
       if (data.success) {
-        setAiVideoUrl(data.videoUrl);
         if (data.audioUrl) setAiAudioUrl(data.audioUrl);
         setRenderInfo({ audioDuration: data.audioDuration, appliedSpeed: data.appliedSpeed, warning: data.warning });
         setLoadingVideo(false);
-        await waitForVideo(data.videoUrl);
+        if (data.jobId) {
+          await waitForRenderJob(data.jobId);
+        } else {
+          setAiVideoUrl(data.videoUrl);
+          await waitForVideo(data.videoUrl);
+        }
         return;
       }
       alert('Lỗi tạo video: ' + data.error);
@@ -436,7 +483,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   <input type="file" accept={ACCEPT_VIDEO} multiple hidden onChange={handleUploadClips} disabled={Boolean(uploadingRaw)} />
                 </label>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.4rem', textAlign: 'center' }}>
-                  Hỗ trợ tối đa 10 clip, mỗi clip &lt; 100MB (khuyến nghị quay 1080p 30fps, 15–30s/clip)
+                  Hỗ trợ tối đa 10 clip, mỗi clip &lt; {uploadLimit.maxBytes >= 1024 * 1024 * 1024 ? `${Math.round(uploadLimit.maxBytes / 1024 / 1024 / 1024)}GB` : `${Math.round(uploadLimit.maxBytes / 1024 / 1024)}MB`} (khuyến nghị quay 1080p 30fps, 15–30s/clip)
                 </div>
               </div>
 
@@ -584,7 +631,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
             <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
               <h4 style={{ margin: '0 0 1rem 0', color: '#475569' }}>Bước 3: Thành phẩm Video AI</h4>
 
-              {!aiVideoUrl ? (
+              {!aiVideoUrl && !['processing', 'timeout', 'failed'].includes(videoStatus) ? (
                 <div style={{ textAlign: 'center', padding: '2.5rem 1rem', margin: 'auto 0' }}>
                   <div style={{
                     width: '60px', height: '60px', borderRadius: '50%', background: '#ede9fe',
@@ -594,7 +641,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                   </div>
                   <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
                     {loadingVideo
-                      ? 'Đang gọi ElevenLabs tạo giọng đọc tiếng Việt, ghép clip & lồng tiếng video qua Cloudinary...'
+                      ? 'Đang gọi ElevenLabs tạo giọng đọc tiếng Việt, ghép clip & lồng tiếng video...'
                       : `AI sẽ đọc kịch bản, ghép ${clips.length > 1 ? `${clips.length} clip` : 'video'} theo thứ tự và xuất ${isVertical ? 'video dọc 9:16 sẵn sàng đăng Reels / TikTok / Shorts' : 'video ngang 16:9'}.`}
                   </p>
                   <button
@@ -610,14 +657,19 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                 <div>
                   {videoStatus === 'processing' ? (
                     <div style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: '8px', padding: '2.5rem 1rem', textAlign: 'center', marginBottom: '0.8rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                      ⏳ Cloudinary đang ghép clip & dựng video...<br />
+                      ⏳ Đang ghép clip & dựng video...<br />
                       <span style={{ color: '#94a3b8' }}>Video dài có thể mất 1-3 phút, vui lòng không đóng cửa sổ.</span>
                     </div>
                   ) : videoStatus === 'timeout' ? (
                     <div style={{ background: '#fef3c7', color: '#92400e', borderRadius: '8px', padding: '1rem', marginBottom: '0.8rem', fontSize: '0.85rem' }}>
-                      Video vẫn đang được xử lý lâu hơn dự kiến. <button type="button" onClick={() => waitForVideo(aiVideoUrl)} style={{ background: 'none', border: 'none', color: '#b45309', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}>Kiểm tra lại</button>
+                      Video vẫn đang được xử lý lâu hơn dự kiến. <button type="button" onClick={() => (lastJobId ? waitForRenderJob(lastJobId) : waitForVideo(aiVideoUrl))} style={{ background: 'none', border: 'none', color: '#b45309', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}>Kiểm tra lại</button>
                     </div>
-                  ) : (
+                  ) : videoStatus === 'failed' ? (
+                    <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: '8px', padding: '1rem', marginBottom: '0.8rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                      ❌ Dựng video thất bại: {renderError}<br />
+                      <span style={{ color: '#7f1d1d' }}>Bấm &quot;Tạo lại Video&quot; để thử lại.</span>
+                    </div>
+                  ) : !aiVideoUrl ? null : (
                     <video
                       key={aiVideoUrl}
                       src={aiVideoUrl}

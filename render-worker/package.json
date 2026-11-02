@@ -1,0 +1,17 @@
+{
+  "name": "mck-render-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FFmpeg render worker for MCK AI Video Studio (Cloud Run)",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0"
+  }
+}

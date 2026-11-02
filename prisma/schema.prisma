@@ -80,6 +80,7 @@ model Forklift {
   conditionMarkers ConditionMarker[]
   maintenanceLogs  MaintenanceLog[]
   serviceRequests  ServiceRequest[]
+  renderJobs       VideoRenderJob[]
   
   // AI Video Sales Assistant & Video Review
   videoUrl        String?   // Link YouTube/TikTok Review thực tế
@@ -333,4 +334,26 @@ model ServiceRequest {
   updatedAt     DateTime  @updatedAt
 
   @@index([customerId])
+}
+
+// Hàng đợi render video AI bằng worker FFmpeg (Cloud Run) - thay cho transformation URL của Cloudinary
+model VideoRenderJob {
+  id          String    @id @default(uuid())
+  forkliftId  String
+  forklift    Forklift  @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  status      String    @default("queued") // queued | processing | done | failed
+  input       Json      // { clips, audioUrl, format, audioMode }
+  script      String?   @db.Text
+  outputKey   String?
+  outputUrl   String?
+  error       String?   @db.Text
+  durationSec Float?
+  sizeBytes   Int?
+  createdById String?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([forkliftId])
 }
