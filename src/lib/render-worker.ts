@@ -1,6 +1,7 @@
 // Gửi job render video AI sang worker FFmpeg (Cloud Run). Chỉ dùng phía server.
 import { getBaseUrl } from '@/lib/url';
 import { isR2Configured } from '@/lib/storage';
+import type { CaptionChunk } from '@/lib/video-studio';
 
 // Biến môi trường:
 // RENDER_WORKER_URL         URL của service Cloud Run, VD https://mck-render-worker-xxxx.a.run.app
@@ -31,10 +32,12 @@ export interface TimelineScene {
   visual:
     | { kind: 'image'; url: string; motion: string }
     | { kind: 'clip'; url: string; trimStart: number }
-    | { kind: 'card'; title: string; subtitle: string; bg: string; fg: string; accent: string };
+    | { kind: 'card'; title: string; subtitle: string; bg: string; fg: string; accent: string }
+    | { kind: 'brand'; subtitle: string }; // Logo thương hiệu trên nền trắng (cảnh mở đầu / kết thúc)
   audioUrl?: string;
   onScreenText?: string;
   minDuration: number;
+  captions?: CaptionChunk[];
 }
 
 export interface TimelineJobPayload {
@@ -42,6 +45,9 @@ export interface TimelineJobPayload {
   jobId: string;
   format: string;
   clipAudio: 'mute' | 'mix';
+  subtitles: 'karaoke' | 'plain' | 'off';
+  transition: 'fade' | 'slide' | 'mix' | 'none';
+  logo: boolean;
   scenes: TimelineScene[];
   outputKey: string;
 }

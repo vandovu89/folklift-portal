@@ -73,6 +73,11 @@ export type SceneVisual =
   | { kind: 'clip'; url: string; trimStart: number }
   | { kind: 'card'; title: string; subtitle: string; theme: CardTheme };
 
+// Phụ đề: một cụm vài từ hiện cùng lúc, mỗi từ có thời điểm riêng để tô màu theo giọng đọc (karaoke)
+// Thời gian tính bằng giây, tính từ đầu file giọng đọc của cảnh
+export interface CaptionWord { w: string; s: number; e: number }
+export interface CaptionChunk { s: number; e: number; words: CaptionWord[] }
+
 export interface Scene {
   id: string;
   visual: SceneVisual;
@@ -83,7 +88,28 @@ export interface Scene {
   audioUrl?: string;
   audioKey?: string;
   audioDuration?: number;
+  captions?: CaptionChunk[];
 }
+
+export const SUBTITLE_STYLES = {
+  karaoke: 'Tô màu theo giọng',
+  plain: 'Chữ trắng',
+  off: 'Tắt',
+} as const;
+export type SubtitleStyle = keyof typeof SUBTITLE_STYLES;
+
+export const TRANSITIONS = {
+  fade: 'Mờ dần',
+  slide: 'Trượt ngang',
+  mix: 'Đa dạng',
+  none: 'Cắt thẳng',
+} as const;
+export type Transition = keyof typeof TRANSITIONS;
+export const TRANSITION_SECONDS = 0.4;
+
+// Cảnh thương hiệu tự thêm vào đầu / cuối video (logo trên nền trắng)
+export const INTRO_SECONDS = 1.5;
+export const OUTRO_SECONDS = 3;
 
 export interface ProjectSettings {
   voiceId: string;
@@ -93,6 +119,11 @@ export interface ProjectSettings {
   targetDuration: number;
   clipAudio: 'mute' | 'mix';
   note: string;
+  subtitles: SubtitleStyle;
+  transition: Transition;
+  logo: boolean;
+  intro: boolean;
+  outro: boolean;
 }
 
 export const DEFAULT_SETTINGS: ProjectSettings = {
@@ -103,6 +134,11 @@ export const DEFAULT_SETTINGS: ProjectSettings = {
   targetDuration: 30,
   clipAudio: 'mute',
   note: '',
+  subtitles: 'karaoke',
+  transition: 'fade',
+  logo: true,
+  intro: false,
+  outro: true,
 };
 
 export const TARGET_DURATIONS = [15, 30, 45, 60, 90] as const;
@@ -154,10 +190,64 @@ export function sanitizeStoryboard(raw: unknown): Scene[] {
       scene.audioUrl = s.audioUrl;
       scene.audioKey = s.audioKey;
       scene.audioDuration = num(s.audioDuration, 0, 600, 0);
+      const captions = sanitizeCaptions(s.captions);
+      if (captions) scene.captions = captions;
     }
     return scene;
   });
 }
+
+function sanitizeCaptions(raw: unknown): CaptionChunk[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  return raw.slice(0, 80).map(c => {
+    const chunk = (c && typeof c === 'object' ? c : {}) as Record<string, unknown>;
+    const words = (Array.isArray(chunk.words) ? chunk.words : []).slice(0, 12).map(w => {
+      const word = (w && typeof w === 'object' ? w : {}) as Record<string, unknown>;
+      return { w: str(word.w, 40), s: num(word.s, 0, 600, 0), e: num(word.e, 0, 600, 0) };
+    }).filter(w => w.w);
+    return { s: num(chunk.s, 0, 600, 0), e: num(chunk.e, 0, 600, 0), words };
+  }).filter(c => c.words.length > 0);
+}
+
+const MAX_CAPTION_WORDS = 5;
+const MAX_CAPTION_CHARS = 26;
+
+// Ghép thời điểm từng ký tự (ElevenLabs /with-timestamps) thành các cụm phụ đề ngắn, ngắt ở dấu câu
+export function buildCaptions(characters: string[], starts: number[], ends: number[]): CaptionChunk[] {
+  const words: CaptionWord[] = [];
+  let current: CaptionWord | null = null;
+  characters.forEach((ch, i) => {
+    if (/\s/.test(ch)) {
+      if (current) words.push(current);
+      current = null;
+      return;
+    }
+    if (!current) current = { w: '', s: starts[i] ?? 0, e: ends[i] ?? 0 };
+    current.w += ch;
+    current.e = ends[i] ?? current.e;
+  });
+  if (current) words.push(current);
+
+  const chunks: CaptionChunk[] = [];
+  let chunk: CaptionWord[] = [];
+  const flush = () => {
+    if (chunk.length) chunks.push({ s: chunk[0].s, e: chunk[chunk.length - 1].e, words: chunk });
+    chunk = [];
+  };
+  for (const word of words) {
+    const length = chunk.reduce((n, w) => n + w.w.length + 1, 0) + word.w.length;
+    const endsClause = /[.,!?;:…]$/.test(word.w);
+    const full = chunk.length >= MAX_CAPTION_WORDS || (chunk.length > 0 && length > MAX_CAPTION_CHARS);
+    // Từ cuối mệnh đề được ghép vào cụm đang có (dài hơn một chút) để không còn lại một mình
+    if (full && !(endsClause && chunk.length <= MAX_CAPTION_WORDS && length <= MAX_CAPTION_CHARS + 8)) flush();
+    chunk.push(word);
+    if (endsClause) flush();
+  }
+  flush();
+  return chunks.map(c => ({ ...c, s: round2(c.s), e: round2(c.e), words: c.words.map(w => ({ ...w, s: round2(w.s), e: round2(w.e) })) }));
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export function sanitizeSettings(raw: unknown): ProjectSettings {
   const s = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
@@ -169,6 +259,12 @@ export function sanitizeSettings(raw: unknown): ProjectSettings {
     targetDuration: num(s.targetDuration, 10, 180, DEFAULT_SETTINGS.targetDuration),
     clipAudio: s.clipAudio === 'mix' ? 'mix' : 'mute',
     note: str(s.note, 500),
+    // Dự án tạo ở giai đoạn 1 chưa có các trường dưới đây: dùng mặc định
+    subtitles: typeof s.subtitles === 'string' && s.subtitles in SUBTITLE_STYLES ? (s.subtitles as SubtitleStyle) : DEFAULT_SETTINGS.subtitles,
+    transition: typeof s.transition === 'string' && s.transition in TRANSITIONS ? (s.transition as Transition) : DEFAULT_SETTINGS.transition,
+    logo: typeof s.logo === 'boolean' ? s.logo : DEFAULT_SETTINGS.logo,
+    intro: typeof s.intro === 'boolean' ? s.intro : DEFAULT_SETTINGS.intro,
+    outro: typeof s.outro === 'boolean' ? s.outro : DEFAULT_SETTINGS.outro,
   };
 }
 
@@ -188,6 +284,11 @@ export function sceneAudioKey(narration: string, settings: Pick<ProjectSettings,
 export function estimateSceneSeconds(scene: Scene, wordsPerSec: number, words: number): number {
   const speech = scene.audioDuration || (words > 0 ? words / wordsPerSec : 0);
   return Math.max(scene.minDuration, speech > 0 ? speech + 0.5 : 0);
+}
+
+// Tổng thời lượng ước tính: các cảnh + cảnh thương hiệu đầu/cuối (hiệu ứng chuyển cảnh không làm đổi tổng thời lượng)
+export function estimateTotalSeconds(sceneSeconds: number[], settings: Pick<ProjectSettings, 'intro' | 'outro'>): number {
+  return sceneSeconds.reduce((a, b) => a + b, 0) + (settings.intro ? INTRO_SECONDS : 0) + (settings.outro ? OUTRO_SECONDS : 0);
 }
 
 export const FORMAT_SHORT_LABELS: Record<string, string> = {

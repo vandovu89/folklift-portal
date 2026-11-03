@@ -124,6 +124,12 @@ Trang **Admin → AI Video Studio** (`/admin/studio`) dùng chung R2 + worker �
 2. **Deploy lại worker** (chạy lại lệnh `gcloud run deploy` ở Bước 2). Image mới cài thêm font `fonts-noto-core` để vẽ chữ tiếng Việt. Worker cũ không hiểu job timeline và sẽ trả lỗi `clips không hợp lệ`.
 3. (Tùy chọn) `FONT_FILE` trên worker: đường dẫn font khác thay cho `/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf`.
 
+**Giai đoạn 2 (phụ đề, logo, chuyển cảnh, cảnh mở đầu / kết thúc):**
+
+- Giọng đọc được tạo qua endpoint `/with-timestamps` của ElevenLabs để lấy thời điểm từng chữ làm phụ đề (cùng giá credit như cũ). Cảnh có giọng đọc tạo từ giai đoạn 1 chưa có phụ đề sẽ được tạo lại giọng **một lần** khi dựng nếu dự án bật phụ đề.
+- Logo đóng gói sẵn trong image worker (`render-worker/assets/`): `logo-mark.png` (huy hiệu tròn, nền trong suốt, đặt ở góc) và `logo-full.png` (logo đầy đủ cho cảnh mở đầu / kết thúc). Đổi logo: thay 2 file này rồi deploy lại worker.
+- Cần **deploy lại worker** sau khi cập nhật code (job có thêm `subtitles`, `transition`, `logo` và cảnh loại `brand`).
+
 ---
 
 ## Chi phí ước tính

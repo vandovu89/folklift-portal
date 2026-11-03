@@ -10,8 +10,9 @@ import { labelStyle, inputStyle } from '@/components/studio/styles';
 import { countSpokenWords, wordsPerSecond, TTS_MODELS, type TtsModelId } from '@/lib/vietnamese-tts';
 import { SCRIPT_STYLES, VIDEO_FORMATS, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
 import {
-  BRAND_NAME, BRAND_HOTLINE, TARGET_DURATIONS, VIDEO_TEMPLATES, MAX_SCENES, PROJECT_STATUS_LABELS,
-  estimateSceneSeconds, isVideoTemplate, newSceneId, type ProjectSettings, type Scene, type SceneVisual
+  BRAND_NAME, BRAND_HOTLINE, TARGET_DURATIONS, VIDEO_TEMPLATES, MAX_SCENES, PROJECT_STATUS_LABELS, SUBTITLE_STYLES, TRANSITIONS,
+  estimateSceneSeconds, estimateTotalSeconds, isVideoTemplate, newSceneId,
+  type ProjectSettings, type Scene, type SceneVisual, type SubtitleStyle, type Transition
 } from '@/lib/video-studio';
 
 interface ProjectData {
@@ -137,7 +138,7 @@ export default function StudioEditorPage() {
   const { settings, storyboard } = project;
   const wps = wordsPerSecond(settings.speed, settings.ttsModel);
   const sceneSeconds = storyboard.map(s => estimateSceneSeconds(s, wps, countSpokenWords(s.narration)));
-  const totalSeconds = sceneSeconds.reduce((a, b) => a + b, 0);
+  const totalSeconds = estimateTotalSeconds(sceneSeconds, settings);
   const vertical = project.format !== 'horizontal';
   const template = isVideoTemplate(project.type) ? VIDEO_TEMPLATES[project.type] : null;
   const rendering = job?.status === 'queued' || job?.status === 'processing';
@@ -364,6 +365,32 @@ export default function StudioEditorPage() {
                 <option value="mute">Tắt tiếng gốc (khuyên dùng)</option>
                 <option value="mix">Hòa âm 30% tiếng máy xe</option>
               </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div>
+                <label style={labelStyle}>Phụ đề</label>
+                <select value={settings.subtitles} disabled={readOnly} onChange={e => updateSettings({ subtitles: e.target.value as SubtitleStyle })} style={inputStyle}>
+                  {(Object.keys(SUBTITLE_STYLES) as SubtitleStyle[]).map(k => <option key={k} value={k}>{SUBTITLE_STYLES[k]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Chuyển cảnh</label>
+                <select value={settings.transition} disabled={readOnly} onChange={e => updateSettings({ transition: e.target.value as Transition })} style={inputStyle}>
+                  {(Object.keys(TRANSITIONS) as Transition[]).map(k => <option key={k} value={k}>{TRANSITIONS[k]}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gap: '0.3rem', fontSize: '0.82rem', color: '#334155' }}>
+              {([
+                ['logo', 'Logo MCK ở góc màn hình'],
+                ['intro', 'Mở đầu bằng logo (1.5 giây)'],
+                ['outro', 'Kết thúc bằng logo + hotline (3 giây)'],
+              ] as const).map(([key, label]) => (
+                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: readOnly ? 'default' : 'pointer' }}>
+                  <input type="checkbox" checked={settings[key]} disabled={readOnly} onChange={e => updateSettings({ [key]: e.target.checked })} />
+                  {label}
+                </label>
+              ))}
             </div>
             <details>
               <summary style={{ fontSize: '0.8rem', color: '#7c3aed', cursor: 'pointer' }}>Tùy chọn cho AI viết storyboard</summary>

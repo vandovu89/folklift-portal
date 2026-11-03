@@ -1,11 +1,11 @@
 // Tiện ích phía server của AI Video Studio: tải dự án, kho ảnh/clip của xe, giọng đọc từng cảnh, dựng job render
 import { prisma } from '@/lib/prisma';
 import { ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
-import { cleanScriptForTts, synthesizeSpeech } from '@/lib/elevenlabs';
+import { cleanScriptForTts, synthesizeSpeechWithTimestamps } from '@/lib/elevenlabs';
 import { buildObjectKey, putObject, deleteObject, r2KeyFromUrl } from '@/lib/storage';
 import type { TimelineJobPayload } from '@/lib/render-worker';
 import {
-  CARD_THEMES, sanitizeStoryboard, sanitizeSettings, sanitizeFormat, sceneAudioKey,
+  BRAND_HOTLINE, CARD_THEMES, INTRO_SECONDS, OUTRO_SECONDS, buildCaptions, sanitizeStoryboard, sanitizeSettings, sanitizeFormat, sceneAudioKey,
   type Scene, type ProjectSettings
 } from '@/lib/video-studio';
 
@@ -68,16 +68,21 @@ export async function loadProject(id: string) {
   };
 }
 
-// Tạo (hoặc dùng lại) file giọng đọc cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại.
+// Tạo (hoặc dùng lại) file giọng đọc + phụ đề cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại
+// (trừ giọng tạo từ giai đoạn 1 chưa có phụ đề mà dự án đang bật phụ đề).
 export async function ensureSceneAudio(projectId: string, scene: Scene, settings: ProjectSettings, apiKey: string): Promise<Scene> {
   const text = cleanScriptForTts(scene.narration);
   if (!text) {
     return { id: scene.id, visual: scene.visual, narration: scene.narration, onScreenText: scene.onScreenText, minDuration: scene.minDuration };
   }
   const key = sceneAudioKey(scene.narration, settings);
-  if (scene.audioKey === key && scene.audioUrl) return scene;
+  const needCaptions = settings.subtitles !== 'off' && !scene.captions;
+  if (scene.audioKey === key && scene.audioUrl && !needCaptions) return scene;
 
-  const tts = await synthesizeSpeech(apiKey, settings.voiceId, text, settings.speed, settings.ttsModel);
+  const tts = await synthesizeSpeechWithTimestamps(apiKey, settings.voiceId, text, settings.speed, settings.ttsModel);
+  const captions = tts.alignment
+    ? buildCaptions(tts.alignment.characters, tts.alignment.character_start_times_seconds, tts.alignment.character_end_times_seconds)
+    : undefined;
   const objectKey = buildObjectKey(`projects/${projectId.replace(/[^\w-]/g, '')}/voice`, `scene-${scene.id}.mp3`);
   const audioUrl = await putObject(objectKey, tts.buffer, 'audio/mpeg');
 
@@ -85,7 +90,7 @@ export async function ensureSceneAudio(projectId: string, scene: Scene, settings
   const oldKey = scene.audioUrl ? r2KeyFromUrl(scene.audioUrl) : null;
   if (oldKey?.startsWith('projects/')) deleteObject(oldKey).catch(() => {});
 
-  return { ...scene, audioUrl, audioKey: key, audioDuration: Math.round(tts.duration * 100) / 100 };
+  return { ...scene, audioUrl, audioKey: key, audioDuration: Math.round(tts.duration * 100) / 100, captions };
 }
 
 // Chạy tối đa `limit` tác vụ cùng lúc (tránh bị ElevenLabs chặn khi tạo giọng cho nhiều cảnh)
@@ -105,24 +110,33 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, in
 export function buildTimelinePayload(
   jobId: string, outputKey: string, format: string, settings: ProjectSettings, scenes: Scene[]
 ): TimelineJobPayload {
+  const body = scenes.map(scene => {
+    const v = scene.visual;
+    const visual = v.kind === 'card'
+      ? { kind: 'card' as const, title: v.title, subtitle: v.subtitle, ...pickColors(v.theme) }
+      : v;
+    return {
+      visual,
+      audioUrl: scene.audioUrl,
+      onScreenText: scene.onScreenText || undefined,
+      minDuration: scene.minDuration,
+      captions: settings.subtitles !== 'off' && scene.audioUrl ? scene.captions : undefined
+    };
+  });
   return {
     kind: 'timeline',
     jobId,
     outputKey,
     format,
     clipAudio: settings.clipAudio,
-    scenes: scenes.map(scene => {
-      const v = scene.visual;
-      const visual = v.kind === 'card'
-        ? { kind: 'card' as const, title: v.title, subtitle: v.subtitle, ...pickColors(v.theme) }
-        : v;
-      return {
-        visual,
-        audioUrl: scene.audioUrl,
-        onScreenText: scene.onScreenText || undefined,
-        minDuration: scene.minDuration
-      };
-    })
+    subtitles: settings.subtitles,
+    transition: settings.transition,
+    logo: settings.logo,
+    scenes: [
+      ...(settings.intro ? [{ visual: { kind: 'brand' as const, subtitle: '' }, minDuration: INTRO_SECONDS }] : []),
+      ...body,
+      ...(settings.outro ? [{ visual: { kind: 'brand' as const, subtitle: `Hotline / Zalo: ${BRAND_HOTLINE}` }, minDuration: OUTRO_SECONDS }] : [])
+    ]
   };
 }
 
