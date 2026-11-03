@@ -13,7 +13,7 @@ param(
   [string]$Region = 'asia-southeast1',
   [string]$Service = 'mck-render-worker',
   [string]$GitRef = 'HEAD',
-  [string]$CallbackPrefixes = 'https://vietnhat-forklift.vercel.app/',
+  [string]$CallbackPrefixes = 'https://www.xenangmck.jp/',
   [string]$Bucket = 'mck-media'
 )
 # Windows PowerShell 5.1 coi mọi dòng gcloud ghi ra stderr (kể cả thông báo tiến độ) là lỗi nếu đặt 'Stop',
