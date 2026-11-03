@@ -110,6 +110,22 @@ Rồi **Redeploy** bản production. Database đã có bảng `VideoRenderJob` (
 
 ---
 
+## AI Video Studio (dựng video nhiều cảnh)
+
+Trang **Admin → AI Video Studio** (`/admin/studio`) dùng chung R2 + worker ở trên, không cần thêm biến môi trường mới:
+
+- AI (Gemini) lên storyboard: chia cảnh, chọn ảnh/clip thật của xe, viết lời đọc và chữ trên màn hình.
+- Mỗi cảnh có giọng đọc ElevenLabs riêng (lưu ở `projects/<id>/voice/` trên R2). Lời đọc không đổi thì không gọi lại ElevenLabs.
+- Worker dựng timeline: ảnh có chuyển động zoom/lia, clip, thẻ chữ, chữ tiếng Việt trên màn hình. Video thành phẩm lưu ở `renders/projects/<id>/`.
+
+**Khi cập nhật code cần:**
+
+1. Đồng bộ DB: `npx prisma db push` (tạo bảng `VideoProject`, thêm `VideoRenderJob.projectId`, cho phép `VideoRenderJob.forkliftId` để trống).
+2. **Deploy lại worker** (chạy lại lệnh `gcloud run deploy` ở Bước 2). Image mới cài thêm font `fonts-noto-core` để vẽ chữ tiếng Việt. Worker cũ không hiểu job timeline và sẽ trả lỗi `clips không hợp lệ`.
+3. (Tùy chọn) `FONT_FILE` trên worker: đường dẫn font khác thay cho `/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf`.
+
+---
+
 ## Chi phí ước tính
 
 **Cloudflare R2** (lưu trữ $0.015/GB/tháng, 10GB đầu miễn phí, **không tính phí băng thông tải về**):

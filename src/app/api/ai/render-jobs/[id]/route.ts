@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   let job = await prisma.videoRenderJob.findUnique({
     where: { id },
-    select: { id: true, forkliftId: true, status: true, outputUrl: true, error: true, durationSec: true, sizeBytes: true, createdAt: true, startedAt: true, finishedAt: true }
+    select: { id: true, forkliftId: true, projectId: true, status: true, outputUrl: true, error: true, durationSec: true, sizeBytes: true, createdAt: true, startedAt: true, finishedAt: true }
   });
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -20,8 +20,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     job = await prisma.videoRenderJob.update({
       where: { id },
       data: { status: 'failed', error: 'Quá thời gian chờ máy chủ render (20 phút). Vui lòng tạo lại video.', finishedAt: new Date() },
-      select: { id: true, forkliftId: true, status: true, outputUrl: true, error: true, durationSec: true, sizeBytes: true, createdAt: true, startedAt: true, finishedAt: true }
+      select: { id: true, forkliftId: true, projectId: true, status: true, outputUrl: true, error: true, durationSec: true, sizeBytes: true, createdAt: true, startedAt: true, finishedAt: true }
     });
+    if (job.projectId) {
+      await prisma.videoProject.updateMany({ where: { id: job.projectId, status: 'rendering' }, data: { status: 'failed' } });
+    }
   }
 
   return NextResponse.json(job);

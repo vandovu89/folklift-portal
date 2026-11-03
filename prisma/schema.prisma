@@ -339,8 +339,11 @@ model ServiceRequest {
 // Hàng đợi render video AI bằng worker FFmpeg (Cloud Run) - thay cho transformation URL của Cloudinary
 model VideoRenderJob {
   id          String    @id @default(uuid())
-  forkliftId  String
-  forklift    Forklift  @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  // Job cũ (lồng tiếng clip của 1 xe) gắn forkliftId; job của AI Video Studio gắn projectId
+  forkliftId  String?
+  forklift    Forklift?     @relation(fields: [forkliftId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     VideoProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   status      String    @default("queued") // queued | processing | done | failed
   input       Json      // { clips, audioUrl, format, audioMode }
   script      String?   @db.Text
@@ -356,4 +359,24 @@ model VideoRenderJob {
   updatedAt   DateTime  @updatedAt
 
   @@index([forkliftId])
+  @@index([projectId])
+}
+
+// Dự án của AI Video Studio: loại video (mẫu) + nguồn dữ liệu + storyboard gồm nhiều cảnh
+model VideoProject {
+  id          String    @id @default(uuid())
+  title       String
+  type        String    @default("forklift_intro") // Mẫu video, xem VIDEO_TEMPLATES trong src/lib/video-studio.ts
+  format      String    @default("vertical_blur")  // Khung hình, xem VIDEO_FORMATS trong src/lib/ai-video.ts
+  sources     Json      // { forkliftIds: string[], note?: string }
+  storyboard  Json?     // Scene[]
+  settings    Json?     // { voiceId, ttsModel, speed, tone, targetDuration, clipAudio }
+  status      String    @default("draft") // draft | rendering | done | failed
+  outputUrl   String?
+  renderJobs  VideoRenderJob[]
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([createdAt])
 }

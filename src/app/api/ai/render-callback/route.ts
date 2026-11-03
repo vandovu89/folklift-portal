@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       where: { id: jobId },
       data: { status: 'failed', error: String(error || 'Render thất bại').slice(0, 2000), finishedAt: new Date() }
     });
+    if (job.projectId) await markProjectIfLatest(job.projectId, jobId, { status: 'failed' });
     return NextResponse.json({ ok: true });
   }
 
@@ -37,18 +38,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'outputKey không khớp' }, { status: 400 });
   }
   const outputUrl = r2PublicUrl(outputKey);
-  await prisma.$transaction([
-    prisma.videoRenderJob.update({
-      where: { id: jobId },
-      data: {
-        status: 'done', outputKey, outputUrl, finishedAt: new Date(),
-        durationSec: Number(durationSec) || null, sizeBytes: Number(sizeBytes) || null
-      }
-    }),
-    prisma.forklift.update({
+  await prisma.videoRenderJob.update({
+    where: { id: jobId },
+    data: {
+      status: 'done', outputKey, outputUrl, finishedAt: new Date(),
+      durationSec: Number(durationSec) || null, sizeBytes: Number(sizeBytes) || null
+    }
+  });
+  if (job.projectId) {
+    await markProjectIfLatest(job.projectId, jobId, { status: 'done', outputUrl });
+  } else if (job.forkliftId) {
+    await prisma.forklift.update({
       where: { id: job.forkliftId },
       data: { aiVideoUrl: outputUrl, ...(job.script ? { aiVideoScript: job.script } : {}) }
-    })
-  ]);
+    });
+  }
   return NextResponse.json({ ok: true });
+}
+
+// Chỉ job render mới nhất của dự án được quyết định trạng thái / video thành phẩm của dự án
+async function markProjectIfLatest(projectId: string, jobId: string, data: { status: string; outputUrl?: string }) {
+  const latest = await prisma.videoRenderJob.findFirst({ where: { projectId }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+  if (latest?.id === jobId) await prisma.videoProject.update({ where: { id: projectId }, data });
 }

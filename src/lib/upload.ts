@@ -150,3 +150,26 @@ async function uploadToCloudinary(
     duration: typeof cloudData.duration === 'number' ? Math.round(cloudData.duration) : undefined
   };
 }
+
+/**
+ * Tải ảnh / clip riêng của một dự án AI Video Studio lên R2 (không gắn vào thư viện ảnh của xe).
+ * Studio chỉ chạy với R2 + worker render nên không có nhánh Cloudinary.
+ */
+export async function uploadStudioAsset(
+  file: File,
+  projectId: string,
+  onProgress?: (percent: number) => void
+): Promise<{ url: string; kind: 'image' | 'clip' }> {
+  const contentType = guessContentType(file);
+  const urlRes = await fetch('/api/media/upload-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId, fileName: file.name, contentType, size: file.size })
+  });
+  const target = await urlRes.json().catch(() => ({}));
+  if (!urlRes.ok) throw new Error(target.error || 'Không thể tạo đường dẫn tải lên');
+  if (target.provider !== 'r2') throw new Error('AI Video Studio cần cấu hình Cloudflare R2 để tải file lên');
+
+  await putWithProgress(target.uploadUrl, file, target.contentType, onProgress);
+  return { url: target.url, kind: isVideoFile(file) ? 'clip' : 'image' };
+}

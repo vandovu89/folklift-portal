@@ -8,14 +8,14 @@ import dynamic from 'next/dynamic';
 import AiMarketingModal from '@/components/AiMarketingModal';
 import AiVideoModal from '@/components/AiVideoModal';
 import ConditionMap from '@/components/ConditionMap';
-import { FaMagic, FaVideo, FaQrcode } from 'react-icons/fa';
+import { FaMagic, FaVideo, FaFilm, FaQrcode } from 'react-icons/fa';
 
 const MediaManager = dynamic(() => import('@/components/MediaManager'), {
   ssr: false,
   loading: () => <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Đang tải quản lý thư viện ảnh...</div>
 });
 
-export default function EditForkliftPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditForkliftPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -219,8 +219,11 @@ export default function EditForkliftPage({ params }: { params: Promise<{ id: str
           </Link>
           {canChangeStatus && (
             <>
-              <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6' }}>
-                <FaVideo /> AI Video Studio
+              <Link href={`/${resolvedParams.lang}/admin/studio?forklift=${resolvedParams.id}`} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f5f3ff', borderColor: '#ddd6fe', color: '#5b21b6', textDecoration: 'none', fontWeight: 700 }}>
+                <FaFilm /> AI Video Studio
+              </Link>
+              <button type="button" onClick={() => setIsVideoModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FaVideo /> Lồng tiếng clip AI
               </button>
               <button type="button" onClick={() => setIsAiModalOpen(true)} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
                 <FaMagic /> Trợ lý AI Marketing

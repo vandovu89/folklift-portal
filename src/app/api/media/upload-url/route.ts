@@ -27,8 +27,10 @@ export async function POST(request: Request) {
   const limits = uploadLimits();
   if (limits.provider !== 'r2') return NextResponse.json(limits);
 
-  const { forkliftId, fileName, contentType, size, category } = await request.json().catch(() => ({}));
-  if (!forkliftId || typeof forkliftId !== 'string' || !fileName) {
+  const { forkliftId, projectId, fileName, contentType, size, category } = await request.json().catch(() => ({}));
+  // File của xe (forkliftId) hoặc file riêng của dự án AI Video Studio (projectId, không tạo bản ghi Media)
+  const ownerId = typeof forkliftId === 'string' && forkliftId ? forkliftId : typeof projectId === 'string' && projectId ? projectId : '';
+  if (!ownerId || !fileName) {
     return NextResponse.json({ error: 'Thiếu forkliftId hoặc tên file' }, { status: 400 });
   }
   if (Number(size) > limits.maxBytes) {
@@ -38,8 +40,8 @@ export async function POST(request: Request) {
   try {
     const type = typeof contentType === 'string' && contentType ? contentType : 'application/octet-stream';
     // Clip gốc của AI Video Studio để riêng thư mục raw-clips/ (có thể đặt quy tắc tự xoá trên R2 sau này)
-    const folder = category === 'RAW_VIDEO' ? 'raw-clips' : 'forklifts';
-    const key = buildObjectKey(`${folder}/${forkliftId.replace(/[^\w-]/g, '')}`, String(fileName));
+    const folder = ownerId === projectId ? 'projects' : category === 'RAW_VIDEO' ? 'raw-clips' : 'forklifts';
+    const key = buildObjectKey(`${folder}/${ownerId.replace(/[^\w-]/g, '')}`, String(fileName));
     return NextResponse.json({
       ...limits,
       key,

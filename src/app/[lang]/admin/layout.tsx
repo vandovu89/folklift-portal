@@ -14,6 +14,7 @@ import {
   FaFileExcel, 
   FaStar, 
   FaVideo,
+  FaFilm,
   FaUserTie,
   FaBars,
   FaTimes
@@ -77,6 +78,7 @@ export default function AdminLayout({
     if (pathWithoutLang.startsWith('/admin/accounting')) return en ? 'Accounting' : 'Sổ Sách Kế Toán';
     if (pathWithoutLang.startsWith('/admin/testimonials')) return en ? 'Testimonials' : 'Góc Khách Hàng';
     if (pathWithoutLang.startsWith('/admin/media-videos')) return en ? 'Video Library' : 'Thư Viện Video';
+    if (pathWithoutLang.startsWith('/admin/studio')) return 'AI Video Studio';
     if (pathWithoutLang.startsWith('/admin/users')) return en ? 'Users & Roles' : 'Phân Quyền & Nhân Sự';
     if (pathWithoutLang.startsWith('/admin/settings')) return en ? 'Settings' : 'Cài Đặt Hệ Thống';
     return 'Admin Dashboard';
@@ -185,6 +187,13 @@ export default function AdminLayout({
             className={`${styles.navItem} ${isActive('/admin/media-videos') ? styles.active : ''}`}
           >
             <FaVideo /> {en ? 'Video Library' : 'Thư viện Video'}
+          </Link>
+          <Link 
+            href={href('/admin/studio')} 
+            onClick={closeSidebar}
+            className={`${styles.navItem} ${isActive('/admin/studio') ? styles.active : ''}`}
+          >
+            <FaFilm /> AI Video Studio
           </Link>
           {user?.role === 'ADMIN' && (
             <>

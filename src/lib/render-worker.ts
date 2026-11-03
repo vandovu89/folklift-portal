@@ -26,7 +26,27 @@ export interface RenderJobPayload {
   outputKey: string;
 }
 
-export async function dispatchRenderJob(payload: RenderJobPayload): Promise<void> {
+// Job của AI Video Studio: dựng video từ danh sách cảnh (ảnh / clip / thẻ chữ + giọng đọc từng cảnh)
+export interface TimelineScene {
+  visual:
+    | { kind: 'image'; url: string; motion: string }
+    | { kind: 'clip'; url: string; trimStart: number }
+    | { kind: 'card'; title: string; subtitle: string; bg: string; fg: string; accent: string };
+  audioUrl?: string;
+  onScreenText?: string;
+  minDuration: number;
+}
+
+export interface TimelineJobPayload {
+  kind: 'timeline';
+  jobId: string;
+  format: string;
+  clipAudio: 'mute' | 'mix';
+  scenes: TimelineScene[];
+  outputKey: string;
+}
+
+export async function dispatchRenderJob(payload: RenderJobPayload | TimelineJobPayload): Promise<void> {
   const callbackBase = (env('RENDER_CALLBACK_BASE_URL') || getBaseUrl()).replace(/\/+$/, '');
   const res = await fetch(`${env('RENDER_WORKER_URL').replace(/\/+$/, '')}/render`, {
     method: 'POST',

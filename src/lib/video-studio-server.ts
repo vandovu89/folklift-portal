@@ -1,0 +1,132 @@
+// Tiện ích phía server của AI Video Studio: tải dự án, kho ảnh/clip của xe, giọng đọc từng cảnh, dựng job render
+import { prisma } from '@/lib/prisma';
+import { ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
+import { cleanScriptForTts, synthesizeSpeech } from '@/lib/elevenlabs';
+import { buildObjectKey, putObject, deleteObject, r2KeyFromUrl } from '@/lib/storage';
+import type { TimelineJobPayload } from '@/lib/render-worker';
+import {
+  CARD_THEMES, sanitizeStoryboard, sanitizeSettings, sanitizeFormat, sceneAudioKey,
+  type Scene, type ProjectSettings
+} from '@/lib/video-studio';
+
+export const canEditStudio = (role: string) => role !== 'GUEST' && role !== 'VIEWER';
+
+export interface StudioAsset {
+  id: string;
+  kind: 'image' | 'clip';
+  url: string;
+  category: string | null;
+  isPublic: boolean;
+  forkliftId: string;
+}
+
+// Ảnh trên Cloudinary: giới hạn kích thước & ép JPEG (worker FFmpeg không đọc được HEIC, ảnh 12MP tải rất chậm)
+function renderableImageUrl(url: string): string {
+  if (!url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
+  return url.replace('/image/upload/', '/image/upload/c_limit,w_2160,h_2160,f_jpg,q_90/');
+}
+
+// Ảnh & clip thật của các xe trong dự án (bỏ tài liệu nội bộ, hóa đơn, file giọng đọc)
+export async function loadForkliftAssets(forkliftIds: string[]): Promise<StudioAsset[]> {
+  if (forkliftIds.length === 0) return [];
+  const media = await prisma.media.findMany({
+    where: {
+      forkliftId: { in: forkliftIds },
+      fileType: { in: ['IMAGE', 'VIDEO'] },
+      // category NULL cũng phải giữ (SQL "NOT IN" loại luôn NULL)
+      OR: [{ category: null }, { category: { notIn: ADMIN_ONLY_MEDIA_CATEGORIES } }]
+    },
+    orderBy: [{ isThumbnail: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true, url: true, fileType: true, category: true, isPublic: true, forkliftId: true, fileName: true }
+  });
+  return media
+    .filter(m => m.fileType === 'VIDEO' || !/\.(heic|heif)$/i.test(m.fileName || m.url) || m.url.includes('res.cloudinary.com'))
+    .map(m => ({
+      id: m.id,
+      kind: m.fileType === 'VIDEO' ? 'clip' as const : 'image' as const,
+      url: m.fileType === 'VIDEO' ? m.url : renderableImageUrl(m.url),
+      category: m.category,
+      isPublic: m.isPublic,
+      forkliftId: m.forkliftId
+    }));
+}
+
+export function projectForkliftIds(sources: unknown): string[] {
+  const ids = (sources as { forkliftIds?: unknown } | null)?.forkliftIds;
+  return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string').slice(0, 8) : [];
+}
+
+export async function loadProject(id: string) {
+  const project = await prisma.videoProject.findUnique({ where: { id } });
+  if (!project) return null;
+  return {
+    ...project,
+    format: sanitizeFormat(project.format),
+    storyboard: sanitizeStoryboard(project.storyboard),
+    settings: sanitizeSettings(project.settings),
+    forkliftIds: projectForkliftIds(project.sources)
+  };
+}
+
+// Tạo (hoặc dùng lại) file giọng đọc cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại.
+export async function ensureSceneAudio(projectId: string, scene: Scene, settings: ProjectSettings, apiKey: string): Promise<Scene> {
+  const text = cleanScriptForTts(scene.narration);
+  if (!text) {
+    return { id: scene.id, visual: scene.visual, narration: scene.narration, onScreenText: scene.onScreenText, minDuration: scene.minDuration };
+  }
+  const key = sceneAudioKey(scene.narration, settings);
+  if (scene.audioKey === key && scene.audioUrl) return scene;
+
+  const tts = await synthesizeSpeech(apiKey, settings.voiceId, text, settings.speed, settings.ttsModel);
+  const objectKey = buildObjectKey(`projects/${projectId.replace(/[^\w-]/g, '')}/voice`, `scene-${scene.id}.mp3`);
+  const audioUrl = await putObject(objectKey, tts.buffer, 'audio/mpeg');
+
+  // Xóa file giọng cũ của cảnh (không chặn nếu lỗi)
+  const oldKey = scene.audioUrl ? r2KeyFromUrl(scene.audioUrl) : null;
+  if (oldKey?.startsWith('projects/')) deleteObject(oldKey).catch(() => {});
+
+  return { ...scene, audioUrl, audioKey: key, audioDuration: Math.round(tts.duration * 100) / 100 };
+}
+
+// Chạy tối đa `limit` tác vụ cùng lúc (tránh bị ElevenLabs chặn khi tạo giọng cho nhiều cảnh)
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+export function buildTimelinePayload(
+  jobId: string, outputKey: string, format: string, settings: ProjectSettings, scenes: Scene[]
+): TimelineJobPayload {
+  return {
+    kind: 'timeline',
+    jobId,
+    outputKey,
+    format,
+    clipAudio: settings.clipAudio,
+    scenes: scenes.map(scene => {
+      const v = scene.visual;
+      const visual = v.kind === 'card'
+        ? { kind: 'card' as const, title: v.title, subtitle: v.subtitle, ...pickColors(v.theme) }
+        : v;
+      return {
+        visual,
+        audioUrl: scene.audioUrl,
+        onScreenText: scene.onScreenText || undefined,
+        minDuration: scene.minDuration
+      };
+    })
+  };
+}
+
+function pickColors(theme: keyof typeof CARD_THEMES) {
+  const { bg, fg, accent } = CARD_THEMES[theme];
+  return { bg, fg, accent };
+}
