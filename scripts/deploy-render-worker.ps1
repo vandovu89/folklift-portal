@@ -69,14 +69,16 @@ Write-Host "==> Deploy render-worker (${GitRef} = $(git rev-parse --short $GitRe
 try {
   # --no-cpu-throttling: worker trả lời ngay rồi render ở nền, cần CPU luôn được cấp
   # --allow-unauthenticated: Vercel gọi trực tiếp; worker tự kiểm tra WORKER_SECRET
+  # --update-*: chỉ thêm / ghi đè các biến dưới đây, giữ nguyên khoá R2_* đã thêm trên Console
+  # (--set-env-vars / --set-secrets sẽ xoá hết biến cũ của service)
   Invoke-Gcloud run deploy $Service `
     --source $source `
     --region $Region --project $ProjectId `
     --cpu 2 --memory 2Gi --no-cpu-throttling `
     --concurrency 10 --min-instances 0 --max-instances 2 --timeout 300 `
     --allow-unauthenticated `
-    --set-env-vars "R2_BUCKET=$Bucket,CALLBACK_URL_PREFIXES=$CallbackPrefixes" `
-    --set-secrets "WORKER_SECRET=${secretName}:latest" `
+    --update-env-vars "R2_BUCKET=$Bucket,CALLBACK_URL_PREFIXES=$CallbackPrefixes" `
+    --update-secrets "WORKER_SECRET=${secretName}:latest" `
     --quiet
 } finally {
   Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
