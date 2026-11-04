@@ -3,7 +3,7 @@
 import { FaArrowUp, FaArrowDown, FaTrash, FaClone, FaExchangeAlt, FaVolumeUp, FaSpinner } from 'react-icons/fa';
 import { countSpokenWords } from '@/lib/vietnamese-tts';
 import {
-  CARD_THEMES, IMAGE_MOTIONS, MAX_NARRATION_CHARS, MAX_SCREEN_TEXT_CHARS, MAX_SCENE_SECONDS, sceneAudioKey,
+  CARD_THEMES, IMAGE_MOTIONS, MAX_CARD_TITLE_CHARS, MAX_NARRATION_CHARS, MAX_SCREEN_TEXT_CHARS, MAX_SCENE_SECONDS, sceneAudioKey,
   type CardTheme, type ImageMotion, type ProjectSettings, type Scene, type SceneVisual
 } from '@/lib/video-studio';
 import { inputStyle, iconButtonStyle } from '@/components/studio/styles';
@@ -82,7 +82,7 @@ export default function SceneCard(props: Props) {
 
         {visual.kind === 'card' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: '0.4rem' }}>
-            <input value={visual.title} disabled={readOnly} maxLength={60} onChange={e => updateVisual({ title: e.target.value })} placeholder="Tiêu đề thẻ" style={inputStyle} />
+            <input value={visual.title} disabled={readOnly} maxLength={MAX_CARD_TITLE_CHARS} onChange={e => updateVisual({ title: e.target.value })} placeholder="Tiêu đề thẻ" style={inputStyle} />
             <input value={visual.subtitle} disabled={readOnly} maxLength={120} onChange={e => updateVisual({ subtitle: e.target.value })} placeholder="Dòng phụ (hotline, giá...)" style={inputStyle} />
             <select value={visual.theme} disabled={readOnly} onChange={e => updateVisual({ theme: e.target.value as CardTheme })} style={inputStyle}>
               {(Object.keys(CARD_THEMES) as CardTheme[]).map(k => <option key={k} value={k}>{CARD_THEMES[k].label}</option>)}

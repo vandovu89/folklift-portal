@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
 import { deleteObject, r2KeyFromUrl } from '@/lib/storage';
-import { canEditStudio, loadProject, loadForkliftAssets } from '@/lib/video-studio-server';
+import { canEditStudio, loadProject, loadProjectAssets } from '@/lib/video-studio-server';
 import { sanitizeFormat, sanitizeSettings, sanitizeStoryboard } from '@/lib/video-studio';
 
 type Params = { params: Promise<{ id: string }> };
@@ -16,20 +16,25 @@ export async function GET(request: Request, { params }: Params) {
   const project = await loadProject(id);
   if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const [forklifts, assets, latestJob] = await Promise.all([
+  const [forklifts, assets, latestJob, testimonial] = await Promise.all([
     prisma.forklift.findMany({
       where: { id: { in: project.forkliftIds } },
       select: { id: true, maker: true, model: true, year: true, loadCapacity: true, powerType: true, internalCode: true }
     }),
-    loadForkliftAssets(project.forkliftIds),
+    loadProjectAssets(project.sources),
     prisma.videoRenderJob.findFirst({
       where: { projectId: id },
       orderBy: { createdAt: 'desc' },
       select: { id: true, status: true, outputUrl: true, error: true, durationSec: true, createdAt: true, finishedAt: true }
-    })
+    }),
+    project.sources.testimonialId
+      ? prisma.testimonial.findUnique({ where: { id: project.sources.testimonialId }, select: { id: true, customerName: true, companyName: true } })
+      : null
   ]);
 
-  return NextResponse.json({ project, forklifts, assets, latestJob, canEdit: canEditStudio(role) });
+  // Giữ thứ tự xe như lúc tạo dự án
+  const orderedForklifts = project.forkliftIds.map(fid => forklifts.find(f => f.id === fid)).filter(Boolean);
+  return NextResponse.json({ project, forklifts: orderedForklifts, assets, latestJob, testimonial, canEdit: canEditStudio(role) });
 }
 
 // Lưu tiêu đề / khung hình / cài đặt giọng đọc / storyboard (trình duyệt gửi bản đầy đủ)

@@ -2,10 +2,10 @@
 import { prisma } from '@/lib/prisma';
 import { ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
 import { cleanScriptForTts, synthesizeSpeechWithTimestamps } from '@/lib/elevenlabs';
-import { buildObjectKey, putObject, deleteObject, r2KeyFromUrl } from '@/lib/storage';
+import { buildObjectKey, putObject, deleteObject, r2KeyFromUrl, isR2Url } from '@/lib/storage';
 import type { TimelineJobPayload } from '@/lib/render-worker';
 import {
-  BRAND_HOTLINE, CARD_THEMES, INTRO_SECONDS, OUTRO_SECONDS, buildCaptions, sanitizeStoryboard, sanitizeSettings, sanitizeFormat, sceneAudioKey,
+  BRAND_HOTLINE, CARD_THEMES, INTRO_SECONDS, OUTRO_SECONDS, buildCaptions, sanitizeStoryboard, sanitizeSettings, sanitizeFormat, sanitizeSources, sceneAudioKey,
   type Scene, type ProjectSettings
 } from '@/lib/video-studio';
 
@@ -17,7 +17,7 @@ export interface StudioAsset {
   url: string;
   category: string | null;
   isPublic: boolean;
-  forkliftId: string;
+  forkliftId: string | null;
 }
 
 // Ảnh trên Cloudinary: giới hạn kích thước & ép JPEG (worker FFmpeg không đọc được HEIC, ảnh 12MP tải rất chậm)
@@ -51,21 +51,38 @@ export async function loadForkliftAssets(forkliftIds: string[]): Promise<StudioA
     }));
 }
 
-export function projectForkliftIds(sources: unknown): string[] {
-  const ids = (sources as { forkliftIds?: unknown } | null)?.forkliftIds;
-  return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string').slice(0, 8) : [];
+// Worker chỉ tải được file trong kho của hệ thống (R2 / Cloudinary)
+export const isRenderableUrl = (url: string | null | undefined): url is string =>
+  Boolean(url && (isR2Url(url) || url.startsWith('https://res.cloudinary.com/')));
+
+// Ảnh của đánh giá khách hàng (Góc Khách Hàng) dùng được làm hình cho cảnh
+export function testimonialAsset(t: { id: string; imageUrl: string | null }): StudioAsset | null {
+  if (!isRenderableUrl(t.imageUrl) || !/\/image\/|\.(jpe?g|png|webp)(\?|$)/i.test(t.imageUrl)) return null;
+  return { id: `testimonial-${t.id}`, kind: 'image', url: renderableImageUrl(t.imageUrl), category: 'Ảnh khách hàng', isPublic: true, forkliftId: null };
 }
 
 export async function loadProject(id: string) {
   const project = await prisma.videoProject.findUnique({ where: { id } });
   if (!project) return null;
+  const sources = sanitizeSources(project.sources);
   return {
     ...project,
     format: sanitizeFormat(project.format),
     storyboard: sanitizeStoryboard(project.storyboard),
     settings: sanitizeSettings(project.settings),
-    forkliftIds: projectForkliftIds(project.sources)
+    sources,
+    forkliftIds: sources.forkliftIds
   };
+}
+
+// Kho hình của dự án: ảnh/clip của các xe + ảnh của đánh giá khách hàng (nếu có)
+export async function loadProjectAssets(sources: { forkliftIds: string[]; testimonialId: string | null }): Promise<StudioAsset[]> {
+  const [forkliftAssets, testimonial] = await Promise.all([
+    loadForkliftAssets(sources.forkliftIds),
+    sources.testimonialId ? prisma.testimonial.findUnique({ where: { id: sources.testimonialId }, select: { id: true, imageUrl: true } }) : null
+  ]);
+  const t = testimonial ? testimonialAsset(testimonial) : null;
+  return t ? [t, ...forkliftAssets] : forkliftAssets;
 }
 
 // Tạo (hoặc dùng lại) file giọng đọc + phụ đề cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại

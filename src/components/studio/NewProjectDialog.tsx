@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FaTimes, FaMagic } from 'react-icons/fa';
 import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, type ScriptStyle, type VideoFormat } from '@/lib/ai-video';
-import { VIDEO_TEMPLATES, TARGET_DURATIONS, DEFAULT_SETTINGS, type VideoTemplate } from '@/lib/video-studio';
+import { VIDEO_TEMPLATES, TARGET_DURATIONS, DEFAULT_SETTINGS, MAX_TOPIC_CHARS, type VideoTemplate } from '@/lib/video-studio';
 import { labelStyle, inputStyle } from '@/components/studio/styles';
 
 interface ForkliftOption {
@@ -14,6 +14,15 @@ interface ForkliftOption {
   internalCode: string | null;
   loadCapacity: string | null;
   status: string;
+}
+
+interface TestimonialOption {
+  id: string;
+  customerName: string;
+  companyName: string | null;
+  forkliftModel: string | null;
+  content: string;
+  rating: number;
 }
 
 interface Props {
@@ -34,6 +43,9 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
   const [targetDuration, setTargetDuration] = useState<number>(DEFAULT_SETTINGS.targetDuration);
   const [tone, setTone] = useState<ScriptStyle>('random');
   const [note, setNote] = useState('');
+  const [topic, setTopic] = useState('');
+  const [testimonials, setTestimonials] = useState<TestimonialOption[] | null>(null);
+  const [testimonialId, setTestimonialId] = useState('');
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
 
@@ -44,7 +56,23 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
       .catch(() => setForklifts([]));
   }, []);
 
-  const limits = VIDEO_TEMPLATES[template].forklifts;
+  const config = VIDEO_TEMPLATES[template];
+  const limits = config.forklifts;
+
+  // Danh sách đánh giá khách hàng chỉ tải khi chọn mẫu cần đến
+  useEffect(() => {
+    if (!config.testimonial || testimonials) return;
+    fetch('/api/testimonials')
+      .then(res => (res.ok ? res.json() : []))
+      .then(data => setTestimonials(Array.isArray(data) ? data : []))
+      .catch(() => setTestimonials([]));
+  }, [config.testimonial, testimonials]);
+
+  const chooseTemplate = (key: VideoTemplate) => {
+    setTemplate(key);
+    setSelected(s => s.slice(0, VIDEO_TEMPLATES[key].forklifts.max));
+    setTargetDuration(VIDEO_TEMPLATES[key].defaultDuration);
+  };
   const matches = useMemo(() => {
     if (!forklifts) return [];
     const q = search.trim().toLowerCase();
@@ -69,7 +97,7 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
       const res = await fetch('/api/studio/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: template, forkliftIds: selected, format, settings })
+        body: JSON.stringify({ type: template, forkliftIds: selected, topic, testimonialId, format, settings })
       });
       const project = await res.json();
       if (!res.ok) throw new Error(project.error || `HTTP ${res.status}`);
@@ -90,7 +118,11 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
   };
 
   const selectedForklifts = selected.map(id => forklifts?.find(f => f.id === id)).filter(Boolean) as ForkliftOption[];
-  const canCreate = selected.length >= limits.min && selected.length <= limits.max && !progress;
+  const canCreate = selected.length >= limits.min && selected.length <= limits.max && !progress
+    && (!config.topic || Boolean(topic.trim()))
+    && (!config.testimonial || Boolean(testimonialId));
+  // Đánh số các bước theo những phần mẫu này cần
+  let step = 1;
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -104,7 +136,7 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
 
         <div style={{ padding: '1.2rem', overflowY: 'auto', display: 'grid', gap: '1.2rem' }}>
           <section>
-            <span style={labelStyle}>1. Loại video</span>
+            <span style={labelStyle}>{step++}. Loại video</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))', gap: '0.6rem' }}>
               {(Object.keys(VIDEO_TEMPLATES) as VideoTemplate[]).map(key => {
                 const t = VIDEO_TEMPLATES[key];
@@ -114,7 +146,7 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
                     key={key}
                     type="button"
                     disabled={!t.enabled}
-                    onClick={() => { setTemplate(key); setSelected(s => s.slice(0, t.forklifts.max)); }}
+                    onClick={() => chooseTemplate(key)}
                     style={{
                       textAlign: 'left', padding: '0.7rem', borderRadius: '10px', cursor: t.enabled ? 'pointer' : 'not-allowed',
                       border: `2px solid ${active ? '#8b5cf6' : '#e2e8f0'}`, background: active ? '#f5f3ff' : '#fff', opacity: t.enabled ? 1 : 0.55
@@ -130,9 +162,40 @@ export default function NewProjectDialog({ initialForkliftId, onClose, onCreated
             </div>
           </section>
 
+          {config.topic && (
+            <section>
+              <label style={labelStyle}>{step++}. {config.topic.label}</label>
+              <textarea value={topic} onChange={e => setTopic(e.target.value)} maxLength={MAX_TOPIC_CHARS} rows={2} placeholder={config.topic.placeholder} style={{ ...inputStyle, resize: 'vertical' }} />
+            </section>
+          )}
+
+          {config.testimonial && (
+            <section>
+              <span style={labelStyle}>{step++}. Chọn đánh giá của khách hàng</span>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                {!testimonials ? (
+                  <div style={{ padding: '0.8rem', fontSize: '0.82rem', color: '#94a3b8' }}>Đang tải đánh giá...</div>
+                ) : testimonials.length === 0 ? (
+                  <div style={{ padding: '0.8rem', fontSize: '0.82rem', color: '#94a3b8' }}>Chưa có đánh giá nào. Hãy thêm trong mục Góc Khách Hàng.</div>
+                ) : testimonials.map(t => (
+                  <label key={t.id} style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 0.65rem', fontSize: '0.82rem', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', background: testimonialId === t.id ? '#f5f3ff' : undefined }}>
+                    <input type="radio" checked={testimonialId === t.id} onChange={() => setTestimonialId(t.id)} style={{ marginTop: '0.2rem' }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <strong style={{ color: '#1e293b' }}>{t.customerName}</strong>
+                      <span style={{ color: '#64748b' }}>{t.companyName ? ` · ${t.companyName}` : ''}{t.forkliftModel ? ` · ${t.forkliftModel}` : ''} · {'★'.repeat(Math.max(0, Math.min(5, t.rating)))}</span>
+                      <span style={{ display: 'block', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.content}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </section>
+          )}
+
           {limits.max > 0 && (
             <section>
-              <span style={labelStyle}>2. Chọn xe {limits.max === 1 ? '' : `(${limits.min}-${limits.max} xe, đã chọn ${selected.length})`}</span>
+              <span style={labelStyle}>
+                {step++}. Chọn xe {limits.min === 0 ? `(không bắt buộc, tối đa ${limits.max} xe để lấy ảnh)` : limits.max === 1 ? '' : `(${limits.min}-${limits.max} xe, đã chọn ${selected.length})`}
+              </span>
               {selectedForklifts.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
                   {selectedForklifts.map(f => (

@@ -25,6 +25,7 @@ interface ProjectData {
   storyboard: Scene[];
   settings: ProjectSettings;
   forkliftIds: string[];
+  sources: { topic: string };
 }
 
 interface ForkliftSummary { id: string; maker: string; model: string; year: number | null }
@@ -39,6 +40,7 @@ export default function StudioEditorPage() {
 
   const [project, setProject] = useState<ProjectData | null>(null);
   const [forklifts, setForklifts] = useState<ForkliftSummary[]>([]);
+  const [testimonial, setTestimonial] = useState<{ customerName: string; companyName: string | null } | null>(null);
   const [assets, setAssets] = useState<StudioAssetItem[]>([]);
   const [job, setJob] = useState<JobSummary | null>(null);
   const [canEdit, setCanEdit] = useState(false);
@@ -60,6 +62,7 @@ export default function StudioEditorPage() {
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
         setProject(data.project);
         setForklifts(data.forklifts || []);
+        setTestimonial(data.testimonial || null);
         setAssets(data.assets || []);
         setJob(data.latestJob);
         setCanEdit(Boolean(data.canEdit));
@@ -266,8 +269,10 @@ export default function StudioEditorPage() {
 
       <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1rem' }}>
         {template?.icon} {template?.label}
-        {forklifts.length > 0 && <> · {forklifts.map(f => (
-          <Link key={f.id} href={`/${lang}/admin/forklifts/${f.id}/edit`} style={{ color: '#7c3aed' }}>{f.maker} {f.model}{f.year ? ` (${f.year})` : ''}</Link>
+        {project.sources.topic && <> · {project.sources.topic}</>}
+        {testimonial && <> · Khách hàng: {testimonial.customerName}{testimonial.companyName ? ` (${testimonial.companyName})` : ''}</>}
+        {forklifts.length > 0 && <> · {forklifts.map((f, i) => (
+          <span key={f.id}>{i > 0 && ', '}<Link href={`/${lang}/admin/forklifts/${f.id}/edit`} style={{ color: '#7c3aed' }}>{f.maker} {f.model}{f.year ? ` (${f.year})` : ''}</Link></span>
         ))}</>}
         {' '}· {PROJECT_STATUS_LABELS[project.status] || project.status}
       </div>

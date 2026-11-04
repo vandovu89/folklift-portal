@@ -146,7 +146,7 @@ function buildFfmpegArgs({ clipFiles, clipInfo, audioFile, format, audioMode, ou
 // ===== Timeline của AI Video Studio: mỗi cảnh = ảnh (zoom/lia) | clip | thẻ chữ, kèm giọng đọc & chữ trên màn hình =====
 
 // Xuống dòng theo số ký tự (drawtext không tự xuống dòng)
-function wrapText(text, maxChars) {
+function wrapText(text, maxChars, maxLines = 4) {
   const lines = [];
   let line = '';
   for (const word of String(text).split(/\s+/).filter(Boolean)) {
@@ -158,7 +158,7 @@ function wrapText(text, maxChars) {
     }
   }
   if (line) lines.push(line);
-  return lines.slice(0, 4);
+  return lines.slice(0, maxLines);
 }
 
 // Mỗi dòng chữ là một drawtext đọc từ file riêng (tránh phải escape ký tự đặc biệt), căn giữa theo chiều ngang
@@ -309,9 +309,11 @@ async function buildTimelineArgs({ dir, scenes, sceneFiles, sceneInfo, format, c
       videoChain = `[${bg}:v][blogo${i}]overlay=(W-w)/2:${logoTop}:shortest=1,setsar=1${parts.length ? ',' + parts.join(',') : ''},trim=duration=${DV},setpts=PTS-STARTPTS`;
     } else {
       const idx = addInput('-f', 'lavfi', '-i', `color=c=${hex(visual.bg)}:s=${w}x${h}:r=30:d=${DV}`);
-      const titleSize = Math.round(w * (vertical ? 0.085 : 0.06));
-      const subSize = Math.round(titleSize * 0.55);
-      const titleLines = wrapText(visual.title, vertical ? 16 : 28);
+      // Tiêu đề dài (VD trích dẫn lời khách) dùng chữ nhỏ hơn để không bị cắt
+      const longTitle = String(visual.title).length > 40;
+      const titleSize = Math.round(w * (vertical ? (longTitle ? 0.066 : 0.085) : (longTitle ? 0.047 : 0.06)));
+      const subSize = Math.round(w * (vertical ? 0.047 : 0.033));
+      const titleLines = wrapText(visual.title, vertical ? (longTitle ? 21 : 16) : (longTitle ? 36 : 28), 6);
       const subLines = wrapText(visual.subtitle || '', vertical ? 28 : 48);
       const titleBlock = titleLines.length * Math.round(titleSize * 1.3);
       const subBlock = subLines.length * Math.round(subSize * 1.3);

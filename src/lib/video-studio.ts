@@ -8,47 +8,86 @@ export const BRAND_HOTLINE = '0362.396.092';
 
 // ===== Mẫu video =====
 // enabled = false: hiển thị "sắp có" trên giao diện, chưa tạo được dự án
-export const VIDEO_TEMPLATES = {
+export type VideoTemplate = 'forklift_intro' | 'catalog' | 'promo' | 'howto' | 'testimonial';
+
+interface TemplateConfig {
+  label: string;
+  icon: string;
+  description: string;
+  forklifts: { min: number; max: number };
+  // Chủ đề / nội dung bắt buộc nhập khi tạo dự án (VD nội dung ưu đãi, chủ đề kiến thức)
+  topic?: { label: string; placeholder: string };
+  testimonial?: boolean; // Chọn 1 đánh giá trong Góc Khách Hàng
+  defaultDuration: number;
+  enabled: boolean;
+}
+
+export const VIDEO_TEMPLATES: Record<VideoTemplate, TemplateConfig> = {
   forklift_intro: {
     label: 'Giới thiệu 1 xe',
     icon: '🚜',
     description: 'Video bán hàng cho một chiếc xe cụ thể, dùng ảnh và clip thật của xe.',
     forklifts: { min: 1, max: 1 },
+    defaultDuration: 30,
     enabled: true,
   },
   catalog: {
     label: 'Catalog "Xe mới về"',
     icon: '📦',
-    description: 'Điểm nhanh 3-8 xe mới về kho, mỗi xe một cảnh kèm thông số và giá.',
+    description: 'Điểm nhanh 2-8 xe mới về kho, mỗi xe một cảnh kèm thông số và giá.',
     forklifts: { min: 2, max: 8 },
-    enabled: false,
+    defaultDuration: 45,
+    enabled: true,
   },
   promo: {
     label: 'Khuyến mãi / Chiến dịch',
     icon: '🔥',
     description: 'Chương trình ưu đãi cho một nhóm xe, nhấn mạnh giá và thời hạn.',
     forklifts: { min: 1, max: 8 },
-    enabled: false,
+    topic: { label: 'Nội dung ưu đãi', placeholder: 'VD: Giảm 10 triệu cho xe điện 1.5-2 tấn, tặng bình điện mới, áp dụng đến hết 30/11' },
+    defaultDuration: 30,
+    enabled: true,
   },
   howto: {
     label: 'Kiến thức xe nâng',
     icon: '💡',
-    description: 'Video chia sẻ kinh nghiệm theo một chủ đề (chọn xe, bảo dưỡng ắc quy...).',
-    forklifts: { min: 0, max: 0 },
-    enabled: false,
+    description: 'Video chia sẻ kinh nghiệm theo một chủ đề (chọn xe, bảo dưỡng ắc quy...). Có thể chọn vài xe để lấy ảnh minh họa.',
+    forklifts: { min: 0, max: 3 },
+    topic: { label: 'Chủ đề', placeholder: 'VD: 5 điều cần kiểm tra khi mua xe nâng điện cũ' },
+    defaultDuration: 45,
+    enabled: true,
   },
   testimonial: {
     label: 'Khách hàng nói về chúng tôi',
     icon: '⭐',
-    description: 'Dựng từ đánh giá của khách hàng trong mục Góc Khách Hàng.',
+    description: 'Dựng từ đánh giá của khách hàng trong mục Góc Khách Hàng, có thể kèm ảnh xe đã giao.',
     forklifts: { min: 0, max: 1 },
-    enabled: false,
+    testimonial: true,
+    defaultDuration: 30,
+    enabled: true,
   },
-} as const;
-export type VideoTemplate = keyof typeof VIDEO_TEMPLATES;
+};
 
 export function isVideoTemplate(value: unknown): value is VideoTemplate {
   return typeof value === 'string' && value in VIDEO_TEMPLATES;
+}
+
+// Nguồn dữ liệu của dự án (lưu ở VideoProject.sources)
+export interface ProjectSources {
+  forkliftIds: string[];
+  topic: string;
+  testimonialId: string | null;
+}
+
+export const MAX_TOPIC_CHARS = 300;
+
+export function sanitizeSources(raw: unknown): ProjectSources {
+  const s = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    forkliftIds: Array.isArray(s.forkliftIds) ? s.forkliftIds.filter((id): id is string => typeof id === 'string').slice(0, 8) : [],
+    topic: typeof s.topic === 'string' ? s.topic.trim().slice(0, MAX_TOPIC_CHARS) : '',
+    testimonialId: typeof s.testimonialId === 'string' && s.testimonialId ? s.testimonialId : null,
+  };
 }
 
 // ===== Cảnh =====
@@ -146,6 +185,8 @@ export const MAX_SCENES = 30;
 export const MAX_SCENE_SECONDS = 30;
 export const MAX_NARRATION_CHARS = 600;
 export const MAX_SCREEN_TEXT_CHARS = 80;
+// Đủ cho một câu trích dẫn ngắn của khách hàng; worker tự thu nhỏ chữ khi tiêu đề dài
+export const MAX_CARD_TITLE_CHARS = 90;
 
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const num = (v: unknown, min: number, max: number, fallback: number) => {
@@ -168,7 +209,7 @@ function sanitizeVisual(raw: unknown): SceneVisual {
   }
   return {
     kind: 'card',
-    title: str(v.title, 60) || BRAND_NAME,
+    title: str(v.title, MAX_CARD_TITLE_CHARS) || BRAND_NAME,
     subtitle: str(v.subtitle, 120),
     theme: typeof v.theme === 'string' && v.theme in CARD_THEMES ? (v.theme as CardTheme) : 'brand',
   };
