@@ -1,12 +1,13 @@
-// Tạo ảnh (Gemini Image) và clip (Veo) bằng AI cho AI Video Studio, kèm sổ ngân sách theo tháng. Chỉ dùng phía server.
+// Tạo ảnh (Gemini Image) và clip (Gemini Omni) bằng AI cho AI Video Studio, kèm sổ ngân sách theo tháng. Chỉ dùng phía server.
 import { prisma } from '@/lib/prisma';
 
 // Biến môi trường (đều tùy chọn):
 // AI_MEDIA_MONTHLY_BUDGET_USD  Trần chi phí ảnh + clip AI mỗi tháng (mặc định 50)
 // AI_IMAGE_MODEL               Model tạo ảnh (mặc định gemini-3.1-flash-image)
 // AI_IMAGE_COST_USD            Chi phí ước tính mỗi ảnh (mặc định 0.07)
-// AI_CLIP_MODEL                Model Veo; để trống thì tự chọn model "veo-*" mà key được dùng
-// AI_CLIP_COST_PER_SECOND_USD  Chi phí ước tính mỗi giây clip (mặc định 0.4)
+// AI_CLIP_MODEL                Model tạo clip; để trống thì tự chọn model "gemini-omni-*" mà key được dùng
+// AI_CLIP_COST_USD             Chi phí ước tính giữ trước cho mỗi clip ~10 giây 720p (mặc định 1.05)
+// AI_CLIP_COST_PER_MTOK_USD    Giá 1 triệu token video, dùng tính chi phí thực tế khi clip xong (mặc định 17.5)
 const env = (name: string) => process.env[name]?.trim().replace(/^["']|["']$/g, '') || '';
 const envNumber = (name: string, fallback: number) => {
   const n = Number(env(name));
@@ -14,13 +15,12 @@ const envNumber = (name: string, fallback: number) => {
 };
 
 const API = 'https://generativelanguage.googleapis.com/v1beta';
-export const CLIP_SECONDS = 8;
 
 export const mediaConfig = () => ({
   budgetUsd: envNumber('AI_MEDIA_MONTHLY_BUDGET_USD', 50),
   imageModel: env('AI_IMAGE_MODEL') || 'gemini-3.1-flash-image',
   imageCostUsd: envNumber('AI_IMAGE_COST_USD', 0.07),
-  clipCostUsd: Math.round(envNumber('AI_CLIP_COST_PER_SECOND_USD', 0.4) * CLIP_SECONDS * 100) / 100,
+  clipCostUsd: envNumber('AI_CLIP_COST_USD', 1.05),
 });
 
 function apiKey(): string {
@@ -96,10 +96,10 @@ export async function generateImage(prompt: string, aspectRatio: '9:16' | '16:9'
   return { buffer: Buffer.from(image.inlineData.data, 'base64'), mimeType: image.inlineData.mimeType || 'image/png' };
 }
 
-// ===== Clip (Veo) =====
+// ===== Clip (Gemini Omni, Interactions API) =====
 let clipModelCache: { at: number; model: string | null } | null = null;
 
-// Model Veo mà key được dùng (danh sách model lưu tạm 10 phút); null = chưa khả dụng
+// Model Omni mà key được dùng (danh sách model lưu tạm 10 phút); null = chưa khả dụng
 export async function availableClipModel(): Promise<string | null> {
   const forced = env('AI_CLIP_MODEL');
   if (forced) return forced;
@@ -111,49 +111,60 @@ export async function availableClipModel(): Promise<string | null> {
     do {
       const data = await gemini(`models?pageSize=200${pageToken ? `&pageToken=${pageToken}` : ''}`, { signal: AbortSignal.timeout(15_000) });
       for (const m of data.models || []) {
-        if ((m.supportedGenerationMethods || []).includes('predictLongRunning') && /^models\/veo-/.test(m.name)) names.push(m.name.replace('models/', ''));
+        if (/^models\/gemini-omni-/.test(m.name)) names.push(m.name.replace('models/', ''));
       }
       pageToken = data.nextPageToken || '';
     } while (pageToken);
-    // Ưu tiên bản mới nhất, bản "fast" rẻ hơn
+    // Ưu tiên bản chính thức (không "preview"), rồi bản mới nhất
     model = names.sort((a, b) => b.localeCompare(a, 'en', { numeric: true }))
-      .sort((a, b) => Number(b.includes('fast')) - Number(a.includes('fast')))[0] || null;
+      .sort((a, b) => Number(a.includes('preview')) - Number(b.includes('preview')))[0] || null;
   } catch (err) {
-    console.warn('[AI media] Không đọc được danh sách model Veo:', err instanceof Error ? err.message : err);
+    console.warn('[AI media] Không đọc được danh sách model Omni:', err instanceof Error ? err.message : err);
   }
   clipModelCache = { at: Date.now(), model };
   return model;
 }
 
+// Chạy nền (background) để không phải giữ request 1-2 phút; trả mã interaction để hỏi tiến độ
 export async function startClip(model: string, prompt: string, aspectRatio: '9:16' | '16:9'): Promise<string> {
-  const data = await gemini(`models/${model}:predictLongRunning`, {
+  const data = await gemini('interactions', {
     method: 'POST',
-    body: JSON.stringify({ instances: [{ prompt }], parameters: { aspectRatio, durationSeconds: CLIP_SECONDS } })
+    body: JSON.stringify({
+      model,
+      input: prompt,
+      response_format: { type: 'video', aspect_ratio: aspectRatio, resolution: '720p', delivery: 'uri' },
+      background: true,
+      store: true
+    })
   });
-  if (typeof data?.name !== 'string') throw new Error('Veo không trả về mã tác vụ');
-  return data.name;
+  if (typeof data?.id !== 'string') throw new Error('Gemini Omni không trả về mã tác vụ');
+  return data.id;
 }
 
-// Kiểm tra tác vụ Veo: chưa xong -> null; xong -> link tải video (cần API key khi tải)
-export async function checkClip(operation: string): Promise<{ videoUri: string } | null> {
-  if (!/^[\w\-/.]+$/.test(operation)) throw new Error('Mã tác vụ Veo không hợp lệ');
-  const data = await gemini(operation, { signal: AbortSignal.timeout(20_000) });
-  if (!data.done) return null;
-  if (data.error) throw new Error(`Veo lỗi: ${data.error.message || 'không rõ'}`);
-  const sample = data.response?.generateVideoResponse?.generatedSamples?.[0];
-  const uri = sample?.video?.uri;
-  if (!uri) {
-    const filtered = data.response?.generateVideoResponse?.raiMediaFilteredReasons?.[0];
-    throw new Error(filtered ? `Veo từ chối nội dung: ${filtered}` : 'Veo không trả về video');
-  }
-  return { videoUri: uri };
+type ClipResult = { videoUri: string; costUsd: number | null } | { refused: string } | { failed: string };
+
+// Kiểm tra tác vụ: chưa xong -> null; xong -> link tải video + chi phí thực tế (theo số token video Google tính)
+export async function checkClip(interactionId: string): Promise<ClipResult | null> {
+  if (!/^[\w-]+$/.test(interactionId)) throw new Error('Mã tác vụ không hợp lệ');
+  const data = await gemini(`interactions/${interactionId}`, { signal: AbortSignal.timeout(30_000) });
+  if (data.status === 'in_progress' || data.status === 'queued') return null;
+  const outputTokens = Number(data.usage?.total_output_tokens) || 0;
+  const costUsd = outputTokens ? Math.round(outputTokens * envNumber('AI_CLIP_COST_PER_MTOK_USD', 17.5) / 1e4) / 100 : null;
+  const video = (data.steps || [])
+    .flatMap((step: { content?: { type?: string; uri?: string }[] }) => step.content || [])
+    .find((part: { type?: string; uri?: string }) => part.type === 'video' && part.uri);
+  if (data.status === 'completed' && video) return { videoUri: video.uri, costUsd };
+  const reason = data.error?.message || (data.status === 'completed' ? 'không có video trả về' : data.status || 'không rõ');
+  // Không sinh ra video (thường do bộ lọc nội dung) thì Google không tính token video
+  if (!outputTokens) return { refused: `AI từ chối hoặc không tạo được clip (${String(reason).slice(0, 200)}). Thử mô tả khác.` };
+  return { failed: `Gemini Omni lỗi: ${String(reason).slice(0, 200)}` };
 }
 
 export async function downloadClip(videoUri: string): Promise<Buffer> {
   const url = new URL(videoUri);
-  if (url.hostname !== 'generativelanguage.googleapis.com') throw new Error('Link video Veo không hợp lệ');
+  if (url.hostname !== 'generativelanguage.googleapis.com') throw new Error('Link video không hợp lệ');
   const res = await fetch(videoUri, { headers: { 'x-goog-api-key': apiKey() }, redirect: 'follow', signal: AbortSignal.timeout(120_000) });
-  if (!res.ok) throw new Error(`Tải video Veo thất bại (HTTP ${res.status})`);
+  if (!res.ok) throw new Error(`Tải video AI thất bại (HTTP ${res.status})`);
   return Buffer.from(await res.arrayBuffer());
 }
 
@@ -164,7 +175,7 @@ const PROMPT_MODELS = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-3.1
 export const AI_VISUAL_RULES = 'Photorealistic, natural light, no text, no captions, no watermarks, no brand names or logos. If forklifts appear they must be generic and unbranded, shown at a distance as part of the scene, never as a close-up product shot.';
 
 export async function suggestVisualPrompt(input: { narration: string; onScreenText: string; kind: 'image' | 'clip' }): Promise<string> {
-  const instruction = `You write prompts for an AI ${input.kind === 'clip' ? 'video (8 seconds, one continuous shot, describe camera movement)' : 'image'} generator.
+  const instruction = `You write prompts for an AI ${input.kind === 'clip' ? 'video (about 10 seconds, one continuous shot, describe camera movement)' : 'image'} generator.
 The visual illustrates one scene of a Vietnamese marketing video for a used Japanese forklift dealer.
 Scene narration (Vietnamese): "${input.narration}"
 ${input.onScreenText ? `On-screen text (Vietnamese): "${input.onScreenText}"\n` : ''}Write ONE English prompt (max 70 words) for a GENERIC illustrative scene (warehouse, factory floor, logistics, workers, pallets, batteries, maintenance...) that fits the narration.

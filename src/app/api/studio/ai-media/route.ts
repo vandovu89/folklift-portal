@@ -9,7 +9,7 @@ import {
 
 export const maxDuration = 120;
 
-// Ngân sách AI tháng này + chi phí ước tính mỗi lần tạo + clip (Veo) có dùng được không
+// Ngân sách AI tháng này + chi phí ước tính mỗi lần tạo + clip (Gemini Omni) có dùng được không
 export async function GET(request: Request) {
   const { role } = await getStaffUser(request);
   if (role === 'GUEST') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   const config = mediaConfig();
 
   const model = kind === 'clip' ? await availableClipModel() : config.imageModel;
-  if (!model) return NextResponse.json({ error: 'Tài khoản Gemini hiện chưa được dùng Veo để tạo clip' }, { status: 503 });
+  if (!model) return NextResponse.json({ error: 'Tài khoản Gemini hiện chưa có model tạo clip (Gemini Omni)' }, { status: 503 });
 
   let generation;
   try {

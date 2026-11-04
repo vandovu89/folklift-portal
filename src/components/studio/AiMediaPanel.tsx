@@ -65,18 +65,18 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, onCre
     setBusy('');
   };
 
-  // Clip Veo mất 1-3 phút: hỏi tiến độ mỗi 8 giây (tối đa ~10 phút)
+  // Clip AI mất 1-3 phút: hỏi tiến độ mỗi 8 giây (tối đa ~10 phút)
   const waitForClip = async (id: string): Promise<AiMediaResult> => {
     for (let attempt = 0; attempt < 75; attempt++) {
       await new Promise(r => setTimeout(r, 8000));
-      setBusy(`Veo đang tạo clip... ${Math.round(((attempt + 1) * 8) / 60 * 10) / 10} phút`);
+      setBusy(`AI đang tạo clip... ${Math.round(((attempt + 1) * 8) / 60 * 10) / 10} phút`);
       const res = await fetch(`/api/studio/ai-media/${id}`, { cache: 'no-store' });
       if (!res.ok) continue;
       const data = await res.json();
       if (data.status === 'done' && data.url) return { id, kind: 'clip', url: data.url };
       if (data.status === 'failed') throw new Error(data.error || 'Tạo clip thất bại');
     }
-    throw new Error('Veo chạy quá lâu. Mở lại bộ chọn hình sau ít phút, clip xong sẽ nằm trong kho hình của dự án.');
+    throw new Error('AI chạy quá lâu. Mở lại bộ chọn hình sau ít phút, clip xong sẽ nằm trong kho hình của dự án.');
   };
 
   const create = async () => {
@@ -121,13 +121,13 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, onCre
               type="button"
               disabled={disabled || Boolean(busy)}
               onClick={() => setKind(k)}
-              title={disabled ? 'Tài khoản Gemini hiện chưa được dùng Veo' : undefined}
+              title={disabled ? 'Tài khoản Gemini hiện chưa có model tạo clip' : undefined}
               style={{
                 padding: '0.35rem 0.7rem', borderRadius: '999px', fontSize: '0.78rem', cursor: disabled ? 'not-allowed' : 'pointer',
                 border: `1px solid ${kind === k ? '#8b5cf6' : '#d1d5db'}`, background: kind === k ? '#ede9fe' : '#fff', color: disabled ? '#9ca3af' : '#4c1d95'
               }}
             >
-              {k === 'image' ? `🖼️ Ảnh (~${usd(budget?.imageCostUsd ?? 0)})` : `🎬 Clip 8 giây (~${usd(budget?.clipCostUsd ?? 0)})${disabled ? ' · chưa khả dụng' : ''}`}
+              {k === 'image' ? `🖼️ Ảnh (~${usd(budget?.imageCostUsd ?? 0)})` : `🎬 Clip ~10 giây (~${usd(budget?.clipCostUsd ?? 0)})${disabled ? ' · chưa khả dụng' : ''}`}
             </button>
           );
         })}
