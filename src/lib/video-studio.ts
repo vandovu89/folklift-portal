@@ -107,9 +107,10 @@ export const CARD_THEMES = {
 } as const;
 export type CardTheme = keyof typeof CARD_THEMES;
 
+// ai = hình do AI tạo (video sẽ ghi "Hình minh họa AI" ở góc)
 export type SceneVisual =
-  | { kind: 'image'; url: string; motion: ImageMotion }
-  | { kind: 'clip'; url: string; trimStart: number }
+  | { kind: 'image'; url: string; motion: ImageMotion; ai?: boolean }
+  | { kind: 'clip'; url: string; trimStart: number; ai?: boolean }
   | { kind: 'card'; title: string; subtitle: string; theme: CardTheme };
 
 // Phụ đề: một cụm vài từ hiện cùng lúc, mỗi từ có thời điểm riêng để tô màu theo giọng đọc (karaoke)
@@ -202,10 +203,10 @@ function sanitizeVisual(raw: unknown): SceneVisual {
   const v = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const url = str(v.url, 2000);
   if (v.kind === 'image' && /^https:\/\//.test(url)) {
-    return { kind: 'image', url, motion: typeof v.motion === 'string' && v.motion in IMAGE_MOTIONS ? (v.motion as ImageMotion) : 'zoom_in' };
+    return { kind: 'image', url, motion: typeof v.motion === 'string' && v.motion in IMAGE_MOTIONS ? (v.motion as ImageMotion) : 'zoom_in', ...(v.ai === true ? { ai: true } : {}) };
   }
   if (v.kind === 'clip' && /^https:\/\//.test(url)) {
-    return { kind: 'clip', url, trimStart: num(v.trimStart, 0, 3600, 0) };
+    return { kind: 'clip', url, trimStart: num(v.trimStart, 0, 3600, 0), ...(v.ai === true ? { ai: true } : {}) };
   }
   return {
     kind: 'card',

@@ -18,6 +18,7 @@ export interface StudioAsset {
   category: string | null;
   isPublic: boolean;
   forkliftId: string | null;
+  ai?: boolean;
 }
 
 // Ảnh trên Cloudinary: giới hạn kích thước & ép JPEG (worker FFmpeg không đọc được HEIC, ảnh 12MP tải rất chậm)
@@ -75,14 +76,23 @@ export async function loadProject(id: string) {
   };
 }
 
-// Kho hình của dự án: ảnh/clip của các xe + ảnh của đánh giá khách hàng (nếu có)
-export async function loadProjectAssets(sources: { forkliftIds: string[]; testimonialId: string | null }): Promise<StudioAsset[]> {
-  const [forkliftAssets, testimonial] = await Promise.all([
+// Kho hình của dự án: ảnh/clip AI đã tạo + ảnh của đánh giá khách hàng (nếu có) + ảnh/clip của các xe
+export async function loadProjectAssets(projectId: string, sources: { forkliftIds: string[]; testimonialId: string | null }): Promise<StudioAsset[]> {
+  const [forkliftAssets, testimonial, aiMedia] = await Promise.all([
     loadForkliftAssets(sources.forkliftIds),
-    sources.testimonialId ? prisma.testimonial.findUnique({ where: { id: sources.testimonialId }, select: { id: true, imageUrl: true } }) : null
+    sources.testimonialId ? prisma.testimonial.findUnique({ where: { id: sources.testimonialId }, select: { id: true, imageUrl: true } }) : null,
+    prisma.aiMediaGeneration.findMany({
+      where: { projectId, status: 'done', url: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, kind: true, url: true }
+    })
   ]);
   const t = testimonial ? testimonialAsset(testimonial) : null;
-  return t ? [t, ...forkliftAssets] : forkliftAssets;
+  const ai: StudioAsset[] = aiMedia.filter(m => m.url).map(m => ({
+    id: m.id, kind: m.kind === 'clip' ? 'clip' : 'image', url: m.url as string,
+    category: m.kind === 'clip' ? 'Clip AI' : 'Ảnh AI', isPublic: false, forkliftId: null, ai: true
+  }));
+  return [...ai, ...(t ? [t] : []), ...forkliftAssets];
 }
 
 // Tạo (hoặc dùng lại) file giọng đọc + phụ đề cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại

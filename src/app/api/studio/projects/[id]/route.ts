@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: Params) {
       where: { id: { in: project.forkliftIds } },
       select: { id: true, maker: true, model: true, year: true, loadCapacity: true, powerType: true, internalCode: true }
     }),
-    loadProjectAssets(project.sources),
+    loadProjectAssets(id, project.sources),
     prisma.videoRenderJob.findFirst({
       where: { projectId: id },
       orderBy: { createdAt: 'desc' },
@@ -67,6 +67,8 @@ export async function DELETE(request: Request, { params }: Params) {
   if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const jobs = await prisma.videoRenderJob.findMany({ where: { projectId: id }, select: { outputKey: true, outputUrl: true } });
+  // File ảnh/clip AI bị xóa theo dự án; dòng trong sổ chi phí AI được giữ lại để ngân sách tháng vẫn đúng
+  const aiMedia = await prisma.aiMediaGeneration.findMany({ where: { projectId: id, url: { not: null } }, select: { url: true } });
   // Video đã gắn làm video review của xe thì giữ lại file
   const outputUrls = jobs.map(j => j.outputUrl).filter((u): u is string => Boolean(u));
   const inUse = outputUrls.length > 0
@@ -81,7 +83,8 @@ export async function DELETE(request: Request, { params }: Params) {
   // Dọn file giọng đọc & video thành phẩm trên R2 (lỗi không chặn việc xóa dự án)
   const keys = [
     ...project.storyboard.map(s => (s.audioUrl ? r2KeyFromUrl(s.audioUrl) : null)),
-    ...jobs.filter(j => !j.outputUrl || !keep.has(j.outputUrl)).map(j => j.outputKey)
+    ...jobs.filter(j => !j.outputUrl || !keep.has(j.outputUrl)).map(j => j.outputKey),
+    ...aiMedia.map(m => (m.url ? r2KeyFromUrl(m.url) : null))
   ].filter((k): k is string => Boolean(k));
   await Promise.allSettled(keys.map(k => deleteObject(k)));
 

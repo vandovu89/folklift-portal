@@ -58,6 +58,9 @@ export default function SceneCard(props: Props) {
         <div style={{ position: 'relative' }}>
           <VisualPreview visual={visual} vertical={vertical} />
           <span style={{ position: 'absolute', top: 4, left: 4, background: '#8b5cf6', color: '#fff', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700, padding: '0.1rem 0.45rem' }}>{index + 1}</span>
+          {visual.kind !== 'card' && visual.ai && (
+            <span style={{ position: 'absolute', bottom: 4, left: 4, background: 'rgba(15,23,42,0.75)', color: '#fff', borderRadius: '4px', fontSize: '0.62rem', padding: '0.1rem 0.35rem' }}>🤖 AI</span>
+          )}
         </div>
         {!readOnly && (
           <button type="button" onClick={props.onChangeVisual} style={{ ...iconButtonStyle, fontSize: '0.75rem', color: '#7c3aed', marginTop: '0.35rem', gap: '0.3rem', alignItems: 'center' }}>

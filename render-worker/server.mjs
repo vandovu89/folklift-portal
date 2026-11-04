@@ -333,6 +333,14 @@ async function buildTimelineArgs({ dir, scenes, sceneFiles, sceneInfo, format, c
       const parts = await drawLines(dir, `ost${i}`, wrapText(scene.onScreenText, vertical ? 16 : 30), { size, color: 'white', centerY: h * 0.16, box: true });
       videoChain += ',' + parts.join(',');
     }
+    // Hình do AI tạo: ghi rõ "Hình minh họa AI" ở góc trên bên trái (đối diện logo)
+    if ((visual.kind === 'image' || visual.kind === 'clip') && visual.ai === true) {
+      const size = Math.round(w * (vertical ? 0.03 : 0.018));
+      const file = path.join(dir, `ai-label${i}.txt`);
+      await writeFile(file, 'Hình minh họa AI', 'utf8');
+      videoChain += `,drawtext=fontfile=${FONT_FILE}:textfile=${file}:expansion=none:fontsize=${size}:fontcolor=white@0.9` +
+        `:x=${Math.round(w * 0.035)}:y=${Math.round(w * 0.035)}:box=1:boxcolor=black@0.4:boxborderw=${Math.round(size * 0.4)}`;
+    }
     // Cùng fps / định dạng / timebase để xfade ghép được
     filters.push(`${videoChain},fps=30,format=yuv420p,settb=AVTB[v${i}]`);
 

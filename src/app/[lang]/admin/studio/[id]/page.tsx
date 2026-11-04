@@ -469,6 +469,8 @@ export default function StudioEditorPage() {
         <AssetPicker
           projectId={project.id}
           assets={assets}
+          narration={storyboard[pickerFor]?.narration}
+          onScreenText={storyboard[pickerFor]?.onScreenText}
           onPick={pickVisual}
           onUploaded={asset => setAssets(prev => [asset, ...prev])}
           onClose={() => setPickerFor(null)}

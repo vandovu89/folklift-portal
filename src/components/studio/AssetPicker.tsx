@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FaTimes, FaUpload, FaFont } from 'react-icons/fa';
 import { uploadStudioAsset } from '@/lib/upload';
+import AiMediaPanel from '@/components/studio/AiMediaPanel';
 import { BRAND_NAME, type SceneVisual } from '@/lib/video-studio';
 
 export interface StudioAssetItem {
@@ -11,11 +12,15 @@ export interface StudioAssetItem {
   url: string;
   category: string | null;
   isPublic: boolean;
+  ai?: boolean;
 }
 
 interface Props {
   projectId: string;
   assets: StudioAssetItem[];
+  // Lời đọc / chữ trên màn hình của cảnh đang chọn hình (để AI gợi ý mô tả)
+  narration?: string;
+  onScreenText?: string;
   onPick: (visual: SceneVisual) => void;
   onUploaded: (asset: StudioAssetItem) => void;
   onClose: () => void;
@@ -33,7 +38,12 @@ async function normalizeImage(file: File): Promise<File> {
   return new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
 }
 
-export default function AssetPicker({ projectId, assets, onPick, onUploaded, onClose }: Props) {
+const toVisual = (a: { kind: 'image' | 'clip'; url: string; ai?: boolean }): SceneVisual => {
+  const ai = a.ai ? { ai: true } : {};
+  return a.kind === 'clip' ? { kind: 'clip', url: a.url, trimStart: 0, ...ai } : { kind: 'image', url: a.url, motion: 'zoom_in', ...ai };
+};
+
+export default function AssetPicker({ projectId, assets, narration = '', onScreenText = '', onPick, onUploaded, onClose }: Props) {
   const [uploading, setUploading] = useState('');
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +56,7 @@ export default function AssetPicker({ projectId, assets, onPick, onUploaded, onC
       const result = await uploadStudioAsset(ready, projectId, p => setUploading(`Đang tải lên... ${p}%`));
       const asset: StudioAssetItem = { id: result.url, kind: result.kind, url: result.url, category: 'Tải lên cho dự án', isPublic: false };
       onUploaded(asset);
-      onPick(result.kind === 'clip' ? { kind: 'clip', url: result.url, trimStart: 0 } : { kind: 'image', url: result.url, motion: 'zoom_in' });
+      onPick(toVisual(result));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Lỗi tải file');
     } finally {
@@ -73,8 +83,19 @@ export default function AssetPicker({ projectId, assets, onPick, onUploaded, onC
             </button>
           </div>
 
+          <AiMediaPanel
+            projectId={projectId}
+            narration={narration}
+            onScreenText={onScreenText}
+            onCreated={result => {
+              const asset: StudioAssetItem = { id: result.id, kind: result.kind, url: result.url, category: result.kind === 'clip' ? 'Clip AI' : 'Ảnh AI', isPublic: false, ai: true };
+              onUploaded(asset);
+              onPick(toVisual(asset));
+            }}
+          />
+
           <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>
-            Ảnh & clip thật của xe ({assets.length})
+            Kho hình của dự án ({assets.length})
           </div>
           {assets.length === 0 ? (
             <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Xe chưa có ảnh hoặc clip. Hãy tải lên ở trang sửa xe hoặc tải file riêng cho dự án.</p>
@@ -84,7 +105,7 @@ export default function AssetPicker({ projectId, assets, onPick, onUploaded, onC
                 <button
                   key={a.id}
                   type="button"
-                  onClick={() => onPick(a.kind === 'clip' ? { kind: 'clip', url: a.url, trimStart: 0 } : { kind: 'image', url: a.url, motion: 'zoom_in' })}
+                  onClick={() => onPick(toVisual(a))}
                   style={{ position: 'relative', padding: 0, border: '2px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', background: '#0f172a', aspectRatio: '1 / 1' }}
                 >
                   {a.kind === 'clip'
@@ -92,7 +113,7 @@ export default function AssetPicker({ projectId, assets, onPick, onUploaded, onC
                     // eslint-disable-next-line @next/next/no-img-element
                     : <img src={a.url} alt={a.category || 'Ảnh xe'} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                   <span style={{ position: 'absolute', left: 4, bottom: 4, background: 'rgba(15,23,42,0.75)', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
-                    {a.kind === 'clip' ? '🎬 Clip' : a.category || 'Ảnh'}{a.isPublic ? ' · web' : ''}
+                    {a.ai ? `🤖 ${a.category || 'AI'}` : a.kind === 'clip' ? '🎬 Clip' : a.category || 'Ảnh'}{a.isPublic ? ' · web' : ''}
                   </span>
                 </button>
               ))}

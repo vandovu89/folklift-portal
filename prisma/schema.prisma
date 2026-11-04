@@ -380,3 +380,23 @@ model VideoProject {
 
   @@index([createdAt])
 }
+
+// Ảnh / clip tạo bằng AI (Gemini Image, Veo) cho AI Video Studio; đồng thời là sổ chi phí để giữ ngân sách tháng
+model AiMediaGeneration {
+  id          String   @id @default(uuid())
+  kind        String   // image | clip
+  model       String
+  prompt      String   @db.Text
+  status      String   @default("pending") // pending | done | failed
+  operation   String?  // Tên long-running operation của Veo
+  costUsd     Float    // Chi phí ước tính, tính vào ngân sách tháng ngay khi bắt đầu tạo; = 0 khi chắc chắn Google không tính phí
+  url         String?
+  error       String?  @db.Text
+  projectId   String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([projectId])
+}
