@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
 import { isR2Configured, buildObjectKey, putObject } from '@/lib/storage';
-import { canEditStudio } from '@/lib/video-studio-server';
+import { canEditStudio, isRenderableUrl } from '@/lib/video-studio-server';
 import {
-  BudgetError, availableClipModel, finalVisualPrompt, generateImage, mediaConfig, monthlySpendUsd, reserveBudget, startClip
+  ANIMATE_RULES, BudgetError, availableClipModel, fetchSourceImage, finalVisualPrompt, generateImage, mediaConfig, monthlySpendUsd, reserveBudget, startClip
 } from '@/lib/ai-media';
 
 export const maxDuration = 120;
@@ -35,6 +35,9 @@ export async function POST(request: Request) {
   const kind = body.kind === 'clip' ? 'clip' : 'image';
   const prompt = typeof body.prompt === 'string' ? body.prompt.trim().slice(0, 800) : '';
   if (prompt.length < 10) return NextResponse.json({ error: 'Hãy mô tả hình ảnh cần tạo (ít nhất 10 ký tự)' }, { status: 400 });
+  // "Làm ảnh này chuyển động": ảnh gốc phải nằm trong kho của hệ thống
+  const sourceUrl = kind === 'clip' && typeof body.sourceUrl === 'string' && body.sourceUrl ? body.sourceUrl : null;
+  if (sourceUrl && !isRenderableUrl(sourceUrl)) return NextResponse.json({ error: 'Ảnh gốc không thuộc kho hình của hệ thống' }, { status: 400 });
   const project = typeof body.projectId === 'string'
     ? await prisma.videoProject.findUnique({ where: { id: body.projectId }, select: { id: true, format: true } })
     : null;
@@ -48,7 +51,8 @@ export async function POST(request: Request) {
   let generation;
   try {
     generation = await reserveBudget({
-      kind, model, prompt, projectId: project.id, createdById: userId,
+      kind, model, prompt: sourceUrl ? `[Làm ảnh chuyển động] ${sourceUrl}
+${prompt}` : prompt, projectId: project.id, createdById: userId,
       costUsd: kind === 'clip' ? config.clipCostUsd : config.imageCostUsd
     });
   } catch (err) {
@@ -61,7 +65,11 @@ export async function POST(request: Request) {
   let billed = false;
   try {
     if (kind === 'clip') {
-      const operation = await startClip(model, finalVisualPrompt(prompt), aspectRatio);
+      const operation = sourceUrl
+        ? await startClip(model, `${prompt}
+
+${ANIMATE_RULES}`, aspectRatio, await fetchSourceImage(sourceUrl))
+        : await startClip(model, finalVisualPrompt(prompt), aspectRatio);
       billed = true;
       await prisma.aiMediaGeneration.update({ where: { id: generation.id }, data: { operation } });
       return NextResponse.json({ id: generation.id, status: 'pending' });

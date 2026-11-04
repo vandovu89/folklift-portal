@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaTimes, FaUpload, FaFont } from 'react-icons/fa';
 import { uploadStudioAsset } from '@/lib/upload';
 import AiMediaPanel from '@/components/studio/AiMediaPanel';
@@ -45,6 +45,14 @@ const toVisual = (a: { kind: 'image' | 'clip'; url: string; ai?: boolean }): Sce
 
 export default function AssetPicker({ projectId, assets, narration = '', onScreenText = '', onPick, onUploaded, onClose }: Props) {
   const [uploading, setUploading] = useState('');
+  const [animateSource, setAnimateSource] = useState<string | null>(null);
+  const aiPanelRef = useRef<HTMLDivElement>(null);
+
+  // "Làm ảnh này chuyển động": đưa ảnh vào khung tạo clip AI ở trên
+  const startAnimate = (url: string) => {
+    setAnimateSource(url);
+    aiPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,16 +91,21 @@ export default function AssetPicker({ projectId, assets, narration = '', onScree
             </button>
           </div>
 
+          <div ref={aiPanelRef}>
           <AiMediaPanel
+            key={animateSource || 'new'}
             projectId={projectId}
             narration={narration}
             onScreenText={onScreenText}
+            sourceImage={animateSource}
+            onClearSource={() => setAnimateSource(null)}
             onCreated={result => {
               const asset: StudioAssetItem = { id: result.id, kind: result.kind, url: result.url, category: result.kind === 'clip' ? 'Clip AI' : 'Ảnh AI', isPublic: false, ai: true };
               onUploaded(asset);
               onPick(toVisual(asset));
             }}
           />
+          </div>
 
           <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>
             Kho hình của dự án ({assets.length})
@@ -102,11 +115,11 @@ export default function AssetPicker({ projectId, assets, narration = '', onScree
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.5rem' }}>
               {assets.map(a => (
+                <div key={a.id} style={{ position: 'relative' }}>
                 <button
-                  key={a.id}
                   type="button"
                   onClick={() => onPick(toVisual(a))}
-                  style={{ position: 'relative', padding: 0, border: '2px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', background: '#0f172a', aspectRatio: '1 / 1' }}
+                  style={{ position: 'relative', width: '100%', display: 'block', padding: 0, border: `2px solid ${animateSource === a.url ? '#8b5cf6' : '#e2e8f0'}`, borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', background: '#0f172a', aspectRatio: '1 / 1' }}
                 >
                   {a.kind === 'clip'
                     ? <video src={`${a.url}#t=0.5`} preload="metadata" muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -116,6 +129,17 @@ export default function AssetPicker({ projectId, assets, narration = '', onScree
                     {a.ai ? `🤖 ${a.category || 'AI'}` : a.kind === 'clip' ? '🎬 Clip' : a.category || 'Ảnh'}{a.isPublic ? ' · web' : ''}
                   </span>
                 </button>
+                {a.kind === 'image' && (
+                  <button
+                    type="button"
+                    onClick={() => startAnimate(a.url)}
+                    title="Dùng AI làm ảnh này chuyển động thành clip"
+                    style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(91,33,182,0.85)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.65rem', padding: '0.15rem 0.35rem', cursor: 'pointer' }}
+                  >
+                    🎬 Chuyển động
+                  </button>
+                )}
+                </div>
               ))}
             </div>
           )}

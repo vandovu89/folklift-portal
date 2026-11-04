@@ -125,13 +125,32 @@ export async function availableClipModel(): Promise<string | null> {
   return model;
 }
 
+export interface SourceImage { data: string; mimeType: string }
+
+// Tải ảnh gốc (đã kiểm tra nằm trong kho R2 / Cloudinary của hệ thống) để AI làm chuyển động
+export async function fetchSourceImage(url: string): Promise<SourceImage> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+  if (!res.ok) throw new Error(`Không tải được ảnh gốc (HTTP ${res.status})`);
+  const mimeType = (res.headers.get('content-type') || '').split(';')[0].trim();
+  if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error('Ảnh gốc phải là JPEG, PNG hoặc WebP');
+  const buffer = Buffer.from(await res.arrayBuffer());
+  if (buffer.length > 15 * 1024 * 1024) throw new Error('Ảnh gốc quá lớn (tối đa 15MB)');
+  return { data: buffer.toString('base64'), mimeType };
+}
+
+// Làm ảnh thật chuyển động: giữ nguyên mọi chi tiết, chỉ thêm chuyển động máy quay
+export const ANIMATE_RULES = 'Animate this exact photo. Keep every object exactly as it appears: do not change, add or remove vehicles, people, text, logos, colors or any details. Only add subtle, realistic camera movement and natural ambient motion. No new text or captions.';
+
 // Chạy nền (background) để không phải giữ request 1-2 phút; trả mã interaction để hỏi tiến độ
-export async function startClip(model: string, prompt: string, aspectRatio: '9:16' | '16:9'): Promise<string> {
+export async function startClip(model: string, prompt: string, aspectRatio: '9:16' | '16:9', image?: SourceImage): Promise<string> {
   const data = await gemini('interactions', {
     method: 'POST',
     body: JSON.stringify({
       model,
-      input: prompt,
+      input: image
+        ? [{ type: 'image', data: image.data, mime_type: image.mimeType }, { type: 'text', text: prompt }]
+        : prompt,
+      ...(image ? { generation_config: { video_config: { task: 'image_to_video' } } } : {}),
       response_format: { type: 'video', aspect_ratio: aspectRatio, resolution: '720p', delivery: 'uri' },
       background: true,
       store: true
