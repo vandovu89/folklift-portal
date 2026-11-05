@@ -14,13 +14,14 @@ const en = {
     { title: 'Log in with Facebook', perm: 'Facebook Login', desc: 'The Page admin logs in with Meta and approves the requested permissions.' },
     { title: 'Select your Pages', perm: 'pages_show_list', desc: 'We list the Pages you manage so you can choose which ones to connect.' },
     { title: 'Subscribe to webhooks', perm: 'pages_manage_metadata', desc: 'The app subscribes each Page to Messenger webhooks to receive new messages.' },
-    { title: 'Reply to customers', perm: 'pages_messaging', desc: 'Staff read conversations and send replies that are delivered in Messenger.' }
+    { title: 'Reply to customers', perm: 'pages_messaging', desc: 'Staff read conversations and send replies that are delivered in Messenger.' },
+    { title: 'Publish videos', perm: 'pages_manage_posts', desc: 'AI Video Studio publishes finished videos to the Page as Reels or video posts (with pages_read_engagement).' }
   ],
 
   loginTitle: 'Facebook Login',
   loginDesc: 'Log in with the Facebook account that manages your business Page. You will be asked to grant access to your Pages and Messenger.',
   loginBtn: 'Continue with Facebook',
-  loginBtnTip: 'Opens the Meta login dialog to grant pages_show_list, pages_manage_metadata and pages_messaging',
+  loginBtnTip: 'Opens the Meta login dialog to grant pages_show_list, pages_manage_metadata, pages_messaging, pages_read_engagement and pages_manage_posts',
   notConfigured: 'Facebook App ID / App Secret are not configured on the server (FACEBOOK_APP_ID, FACEBOOK_APP_SECRET).',
   loggedInAs: 'Logged in to Facebook as',
   logoutFb: 'Log out of Facebook',
@@ -153,13 +154,14 @@ const vi: typeof en = {
     { title: 'Đăng nhập Facebook', perm: 'Facebook Login', desc: 'Quản trị viên Page đăng nhập Meta và đồng ý cấp quyền.' },
     { title: 'Chọn Fanpage', perm: 'pages_show_list', desc: 'Hiển thị các Page bạn quản lý để chọn Page cần kết nối.' },
     { title: 'Đăng ký Webhook', perm: 'pages_manage_metadata', desc: 'Ứng dụng đăng ký Webhook Messenger cho từng Page để nhận tin nhắn mới.' },
-    { title: 'Trả lời khách', perm: 'pages_messaging', desc: 'Nhân viên xem hội thoại và gửi trả lời, khách nhận trong Messenger.' }
+    { title: 'Trả lời khách', perm: 'pages_messaging', desc: 'Nhân viên xem hội thoại và gửi trả lời, khách nhận trong Messenger.' },
+    { title: 'Đăng video', perm: 'pages_manage_posts', desc: 'AI Video Studio đăng video đã dựng lên Page dạng Reels hoặc bài video (kèm pages_read_engagement).' }
   ],
 
   loginTitle: 'Đăng nhập Facebook',
   loginDesc: 'Đăng nhập bằng tài khoản Facebook quản lý Fanpage. Meta sẽ hỏi bạn cấp quyền truy cập Page và Messenger.',
   loginBtn: 'Tiếp tục với Facebook',
-  loginBtnTip: 'Mở hộp thoại đăng nhập Meta để cấp pages_show_list, pages_manage_metadata và pages_messaging',
+  loginBtnTip: 'Mở hộp thoại đăng nhập Meta để cấp pages_show_list, pages_manage_metadata, pages_messaging, pages_read_engagement và pages_manage_posts',
   notConfigured: 'Chưa cấu hình Facebook App ID / App Secret trên server (FACEBOOK_APP_ID, FACEBOOK_APP_SECRET).',
   loggedInAs: 'Đã đăng nhập Facebook:',
   logoutFb: 'Đăng xuất Facebook',

@@ -7,8 +7,8 @@ import { SignJWT, jwtVerify } from 'jose';
 export const GRAPH_VERSION = process.env.FACEBOOK_GRAPH_VERSION || 'v23.0';
 const GRAPH = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
-// Các quyền xin khi đăng nhập — trùng với các quyền gửi xét duyệt
-export const FACEBOOK_SCOPES = (process.env.FACEBOOK_SCOPES || 'pages_show_list,pages_manage_metadata,pages_messaging')
+// Các quyền xin khi đăng nhập — trùng với các quyền gửi xét duyệt (pages_read_engagement + pages_manage_posts: AI Video Studio đăng video lên Page)
+export const FACEBOOK_SCOPES = (process.env.FACEBOOK_SCOPES || 'pages_show_list,pages_manage_metadata,pages_messaging,pages_read_engagement,pages_manage_posts')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean);
