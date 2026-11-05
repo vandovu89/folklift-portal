@@ -1,5 +1,6 @@
 // Tạo ảnh (Gemini Image) và clip (Gemini Omni) bằng AI cho AI Video Studio, kèm sổ ngân sách theo tháng. Chỉ dùng phía server.
 import { prisma } from '@/lib/prisma';
+import { VISUAL_STYLES, type VisualStyle } from '@/lib/ai-visual-styles';
 
 // Biến môi trường (đều tùy chọn):
 // AI_MEDIA_MONTHLY_BUDGET_USD  Trần chi phí ảnh + clip AI mỗi tháng (mặc định 50)
@@ -190,15 +191,21 @@ export async function downloadClip(videoUri: string): Promise<Buffer> {
 // ===== Viết mô tả hình ảnh từ lời đọc của cảnh =====
 const PROMPT_MODELS = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
 
-// Luật bắt buộc cho mọi hình AI: chỉ minh họa chung, không giả làm xe cụ thể đang bán, không chữ / logo
-export const AI_VISUAL_RULES = 'Photorealistic, natural light, no text, no captions, no watermarks, no brand names or logos. If forklifts appear they must be generic and unbranded, shown at a distance as part of the scene, never as a close-up product shot.';
+// Luật bắt buộc cho mọi hình AI: chỉ minh họa chung, không giả làm xe cụ thể đang bán, không chữ / logo.
+// Ảnh chân thực dễ bị nhầm là ảnh thật của xe nên xe nâng chỉ được xuất hiện ở xa; phong cách hoạt hình / minh họa thì được cận cảnh.
+export function visualRules(style: VisualStyle): string {
+  const forklift = style === 'realistic'
+    ? 'If forklifts appear they must be generic and unbranded, shown at a distance as part of the scene, never as a close-up product shot.'
+    : 'If forklifts appear they must be generic and unbranded.';
+  return `Style: ${VISUAL_STYLES[style].prompt}. No text, no captions, no watermarks, no brand names or logos. ${forklift}`;
+}
 
-export async function suggestVisualPrompt(input: { narration: string; onScreenText: string; kind: 'image' | 'clip' }): Promise<string> {
+export async function suggestVisualPrompt(input: { narration: string; onScreenText: string; kind: 'image' | 'clip'; style: VisualStyle }): Promise<string> {
   const instruction = `You write prompts for an AI ${input.kind === 'clip' ? 'video (about 10 seconds, one continuous shot, describe camera movement)' : 'image'} generator.
 The visual illustrates one scene of a Vietnamese marketing video for a used Japanese forklift dealer.
 Scene narration (Vietnamese): "${input.narration}"
 ${input.onScreenText ? `On-screen text (Vietnamese): "${input.onScreenText}"\n` : ''}Write ONE English prompt (max 70 words) for a GENERIC illustrative scene (warehouse, factory floor, logistics, workers, pallets, batteries, maintenance...) that fits the narration.
-Rules: ${AI_VISUAL_RULES}
+Rules: ${visualRules(input.style)}
 Return only the prompt text.`;
   const text = await geminiText(instruction, 'Không viết được mô tả hình ảnh');
   return text.replace(/^["']|["']$/g, '').slice(0, 800);
@@ -223,5 +230,5 @@ export async function geminiText(instruction: string, failMessage: string, maxOu
   throw lastError instanceof Error ? lastError : new Error(failMessage);
 }
 
-// Mô tả gửi cho model tạo hình = mô tả người dùng + luật bắt buộc
-export const finalVisualPrompt = (prompt: string) => `${prompt.trim()}\n\n${AI_VISUAL_RULES}`;
+// Mô tả gửi cho model tạo hình = mô tả người dùng + phong cách + luật bắt buộc
+export const finalVisualPrompt = (prompt: string, style: VisualStyle) => `${prompt.trim()}\n\n${visualRules(style)}`;

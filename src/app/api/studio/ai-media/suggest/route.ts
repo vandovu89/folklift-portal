@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStaffUser } from '@/lib/auth';
 import { canEditStudio } from '@/lib/video-studio-server';
 import { suggestVisualPrompt } from '@/lib/ai-media';
+import { isVisualStyle } from '@/lib/ai-visual-styles';
 
 // Gemini viết mô tả hình ảnh (tiếng Anh) từ lời đọc của cảnh; người dùng xem / sửa trước khi bấm tạo (mới tốn tiền)
 export async function POST(request: Request) {
@@ -14,7 +15,9 @@ export async function POST(request: Request) {
   if (!narration && !onScreenText) return NextResponse.json({ error: 'Cảnh chưa có lời đọc để gợi ý' }, { status: 400 });
 
   try {
-    const prompt = await suggestVisualPrompt({ narration, onScreenText, kind: body.kind === 'clip' ? 'clip' : 'image' });
+    const prompt = await suggestVisualPrompt({
+      narration, onScreenText, kind: body.kind === 'clip' ? 'clip' : 'image', style: isVisualStyle(body.style) ? body.style : 'realistic'
+    });
     return NextResponse.json({ prompt });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Lỗi gợi ý mô tả' }, { status: 502 });

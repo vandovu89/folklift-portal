@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
 import { isR2Configured, buildObjectKey, putObject } from '@/lib/storage';
 import { canEditStudio, isRenderableUrl } from '@/lib/video-studio-server';
+import { VISUAL_STYLES, isVisualStyle, type VisualStyle } from '@/lib/ai-visual-styles';
 import {
   ANIMATE_RULES, BudgetError, availableClipModel, fetchSourceImage, finalVisualPrompt, generateImage, mediaConfig, monthlySpendUsd, reserveBudget, startClip
 } from '@/lib/ai-media';
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const kind = body.kind === 'clip' ? 'clip' : 'image';
   const prompt = typeof body.prompt === 'string' ? body.prompt.trim().slice(0, 800) : '';
+  const style: VisualStyle = isVisualStyle(body.style) ? body.style : 'realistic';
   if (prompt.length < 10) return NextResponse.json({ error: 'Hãy mô tả hình ảnh cần tạo (ít nhất 10 ký tự)' }, { status: 400 });
   // "Làm ảnh này chuyển động": ảnh gốc phải nằm trong kho của hệ thống
   const sourceUrl = kind === 'clip' && typeof body.sourceUrl === 'string' && body.sourceUrl ? body.sourceUrl : null;
@@ -51,8 +53,7 @@ export async function POST(request: Request) {
   let generation;
   try {
     generation = await reserveBudget({
-      kind, model, prompt: sourceUrl ? `[Làm ảnh chuyển động] ${sourceUrl}
-${prompt}` : prompt, projectId: project.id, createdById: userId,
+      kind, model, prompt: sourceUrl ? `[Làm ảnh chuyển động] ${sourceUrl}\n${prompt}` : `[${VISUAL_STYLES[style].label}] ${prompt}`, projectId: project.id, createdById: userId,
       costUsd: kind === 'clip' ? config.clipCostUsd : config.imageCostUsd
     });
   } catch (err) {
@@ -66,16 +67,14 @@ ${prompt}` : prompt, projectId: project.id, createdById: userId,
   try {
     if (kind === 'clip') {
       const operation = sourceUrl
-        ? await startClip(model, `${prompt}
-
-${ANIMATE_RULES}`, aspectRatio, await fetchSourceImage(sourceUrl))
-        : await startClip(model, finalVisualPrompt(prompt), aspectRatio);
+        ? await startClip(model, `${prompt}\n\n${ANIMATE_RULES}`, aspectRatio, await fetchSourceImage(sourceUrl))
+        : await startClip(model, finalVisualPrompt(prompt, style), aspectRatio);
       billed = true;
       await prisma.aiMediaGeneration.update({ where: { id: generation.id }, data: { operation } });
       return NextResponse.json({ id: generation.id, status: 'pending' });
     }
 
-    const image = await generateImage(finalVisualPrompt(prompt), aspectRatio);
+    const image = await generateImage(finalVisualPrompt(prompt, style), aspectRatio);
     billed = true;
     const ext = image.mimeType.includes('jpeg') ? 'jpg' : image.mimeType.split('/')[1] || 'png';
     const url = await putObject(buildObjectKey(`projects/${project.id}/ai`, `image.${ext}`), image.buffer, image.mimeType);

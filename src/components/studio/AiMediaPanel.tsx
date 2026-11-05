@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FaMagic, FaRobot } from 'react-icons/fa';
 import { inputStyle } from '@/components/studio/styles';
+import { VISUAL_STYLES, type VisualStyle } from '@/lib/ai-visual-styles';
 
 interface BudgetInfo {
   budgetUsd: number;
@@ -37,6 +38,7 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, sourc
   const [budget, setBudget] = useState<BudgetInfo | null>(null);
   const [kind, setKind] = useState<'image' | 'clip'>(sourceImage ? 'clip' : 'image');
   const [prompt, setPrompt] = useState(sourceImage ? DEFAULT_MOTION : '');
+  const [style, setStyle] = useState<VisualStyle>('realistic');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
@@ -59,7 +61,7 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, sourc
       const res = await fetch('/api/studio/ai-media/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ narration, onScreenText, kind })
+        body: JSON.stringify({ narration, onScreenText, kind, style })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
@@ -91,7 +93,7 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, sourc
       const res = await fetch('/api/studio/ai-media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, kind, prompt, sourceUrl: sourceImage })
+        body: JSON.stringify({ projectId, kind, prompt, style, sourceUrl: sourceImage })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
@@ -150,6 +152,25 @@ export default function AiMediaPanel({ projectId, narration, onScreenText, sourc
           <FaMagic /> Gợi ý mô tả từ lời đọc
         </button>}
       </div>
+      {!sourceImage && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginRight: '0.15rem' }}>Phong cách:</span>
+          {(Object.keys(VISUAL_STYLES) as VisualStyle[]).map(s => (
+            <button
+              key={s}
+              type="button"
+              disabled={Boolean(busy)}
+              onClick={() => setStyle(s)}
+              style={{
+                padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.74rem', cursor: 'pointer',
+                border: `1px solid ${style === s ? '#8b5cf6' : '#d1d5db'}`, background: style === s ? '#ede9fe' : '#fff', color: '#4c1d95'
+              }}
+            >
+              {VISUAL_STYLES[s].label}
+            </button>
+          ))}
+        </div>
+      )}
       <textarea
         value={prompt}
         onChange={e => setPrompt(e.target.value)}
