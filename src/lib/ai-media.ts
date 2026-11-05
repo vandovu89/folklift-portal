@@ -200,21 +200,27 @@ Scene narration (Vietnamese): "${input.narration}"
 ${input.onScreenText ? `On-screen text (Vietnamese): "${input.onScreenText}"\n` : ''}Write ONE English prompt (max 70 words) for a GENERIC illustrative scene (warehouse, factory floor, logistics, workers, pallets, batteries, maintenance...) that fits the narration.
 Rules: ${AI_VISUAL_RULES}
 Return only the prompt text.`;
+  const text = await geminiText(instruction, 'Không viết được mô tả hình ảnh');
+  return text.replace(/^["']|["']$/g, '').slice(0, 800);
+}
+
+// Gọi Gemini viết một đoạn chữ ngắn, thử lần lượt các model (model quá tải thì sang model sau)
+export async function geminiText(instruction: string, failMessage: string, maxOutputTokens = 1024): Promise<string> {
   let lastError: unknown = null;
   for (const model of PROMPT_MODELS) {
     try {
       const data = await gemini(`models/${model}:generateContent`, {
         method: 'POST',
-        body: JSON.stringify({ contents: [{ parts: [{ text: instruction }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 1024 } }),
+        body: JSON.stringify({ contents: [{ parts: [{ text: instruction }] }], generationConfig: { temperature: 0.8, maxOutputTokens } }),
         signal: AbortSignal.timeout(30_000)
       });
       const text: string = (data?.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || '').join('').trim();
-      if (text) return text.replace(/^["']|["']$/g, '').slice(0, 800);
+      if (text) return text;
     } catch (err) {
       lastError = err;
     }
   }
-  throw lastError instanceof Error ? lastError : new Error('Không viết được mô tả hình ảnh');
+  throw lastError instanceof Error ? lastError : new Error(failMessage);
 }
 
 // Mô tả gửi cho model tạo hình = mô tả người dùng + luật bắt buộc

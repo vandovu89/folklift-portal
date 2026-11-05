@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { FaArrowLeft, FaMagic, FaPlay, FaPlus, FaDownload, FaCheck } from 'react-icons/fa';
+import { FaArrowLeft, FaMagic, FaPlay, FaPlus, FaDownload, FaCheck, FaFacebook } from 'react-icons/fa';
 import SceneCard from '@/components/studio/SceneCard';
 import AssetPicker, { type StudioAssetItem } from '@/components/studio/AssetPicker';
+import FacebookPublishDialog from '@/components/studio/FacebookPublishDialog';
 import { labelStyle, inputStyle } from '@/components/studio/styles';
 import { countSpokenWords, wordsPerSecond, TTS_MODELS, type TtsModelId } from '@/lib/vietnamese-tts';
 import { SCRIPT_STYLES, VIDEO_FORMATS, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
@@ -50,6 +51,7 @@ export default function StudioEditorPage() {
   const [busy, setBusy] = useState('');
   const [voiceBusy, setVoiceBusy] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [showFacebook, setShowFacebook] = useState(false);
   const [message, setMessage] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollingJob = useRef<string | null>(null);
@@ -459,11 +461,26 @@ export default function StudioEditorPage() {
                     <FaCheck /> Gắn vào xe
                   </button>
                 )}
+                {canEdit && (
+                  <button type="button" className="btn-secondary" onClick={() => setShowFacebook(true)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#1877f2' }}>
+                    <FaFacebook /> Đăng lên Fanpage
+                  </button>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {showFacebook && project.outputUrl && (
+        <FacebookPublishDialog
+          projectId={project.id}
+          title={project.title}
+          vertical={project.format !== 'horizontal'}
+          hasAiVisuals={storyboard.some(s => s.visual.kind !== 'card' && s.visual.ai === true)}
+          onClose={() => setShowFacebook(false)}
+        />
+      )}
 
       {pickerFor !== null && (
         <AssetPicker
