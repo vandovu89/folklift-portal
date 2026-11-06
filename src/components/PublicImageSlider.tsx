@@ -7,7 +7,8 @@ import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
 
-export default function PublicImageSlider({ media }: { media: { id: string, url: string }[] }) {
+/** `alt`: mô tả xe (VD "Xe nâng điện cũ Toyota 7FBR15 1.5 tấn đời 2016"), dùng làm alt cho từng ảnh. */
+export default function PublicImageSlider({ media, alt = 'Xe nâng' }: { media: { id: string, url: string }[], alt?: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -46,7 +47,7 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
     );
   }
 
-  const slides = media.map(m => ({ src: m.url }));
+  const slides = media.map((m, i) => ({ src: m.url, alt: i === 0 ? alt : `${alt} – ảnh ${i + 1}` }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', minWidth: 0 }}>
@@ -59,7 +60,7 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={media[currentIndex].url} 
-          alt="Main" 
+          alt={currentIndex === 0 ? alt : `${alt} – ảnh ${currentIndex + 1}`} 
           onClick={() => setIsLightboxOpen(true)}
           style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f5f5f5', borderRadius: '8px', transition: 'var(--transition)', cursor: 'zoom-in' }} 
         />
@@ -72,7 +73,7 @@ export default function PublicImageSlider({ media }: { media: { id: string, url:
             <img 
               key={m.id} 
               src={m.url} 
-              alt="Thumb" 
+              alt={index === 0 ? alt : `${alt} – ảnh ${index + 1}`}
               onClick={() => setCurrentIndex(index)}
               style={{ 
                 width: '80px', 

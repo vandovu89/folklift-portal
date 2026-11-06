@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 import { SITE_URL, PUBLIC_FORKLIFT_STATUSES } from '@/lib/seo';
+import { allLandingPages } from '@/lib/landing-pages';
 
 // Sitemap đọc DB nên render lại định kỳ thay vì đóng băng lúc build.
 export const revalidate = 3600;
@@ -19,6 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: { path: string; priority: number; changeFrequency: 'daily' | 'weekly' | 'monthly' }[] = [
     { path: '', priority: 1.0, changeFrequency: 'daily' },
     { path: '/catalog', priority: 0.9, changeFrequency: 'daily' },
+    // Trang đích theo từ khóa (xe nâng điện cũ, xe nâng Toyota cũ, ...)
+    ...allLandingPages().map((p) => ({ path: p.path, priority: 0.9, changeFrequency: 'daily' as const })),
     { path: '/find-forklift', priority: 0.7, changeFrequency: 'weekly' },
     { path: '/customer-stories', priority: 0.6, changeFrequency: 'weekly' },
     { path: '/media', priority: 0.6, changeFrequency: 'weekly' },

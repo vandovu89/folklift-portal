@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { formatCapacity, powerKind } from '@/lib/utils';
 
 /**
  * Domain chính thức mà Google nên index.
@@ -66,4 +67,40 @@ export function pageMetadata({
     },
     ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
+}
+
+type HeadlineForklift = {
+  maker: string;
+  model: string;
+  powerType: string | null;
+  loadCapacity: string | null;
+  year: number | null;
+};
+
+function powerLabel(powerType: string | null, lang: Lang): string {
+  const kind = powerKind(powerType);
+  if (kind === 'electric') return lang === 'vi' ? 'điện' : 'electric';
+  if (kind === 'diesel') return lang === 'vi' ? 'dầu' : 'diesel';
+  if (kind === 'gas') return lang === 'vi' ? 'gas' : 'LPG';
+  return '';
+}
+
+/** VD: "Xe nâng điện cũ Toyota 7FBR15 1.5 tấn đời 2016" — khớp cách khách tìm trên Google. */
+export function forkliftHeadline(f: HeadlineForklift, lang: string): string {
+  const l = normalizeLang(lang);
+  const power = powerLabel(f.powerType, l);
+  const cap = f.loadCapacity ? formatCapacity(f.loadCapacity, l) : '';
+  if (l === 'vi') {
+    return ['Xe nâng', power, 'cũ', f.maker, f.model, cap, f.year ? `đời ${f.year}` : '']
+      .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+  }
+  return ['Used', f.maker, f.model, power, 'forklift', cap, f.year ? `(${f.year})` : '']
+    .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Alt ảnh xe: tiêu đề mô tả + "ảnh N" khi có nhiều ảnh, để Google Images hiểu nội dung. */
+export function forkliftImageAlt(f: HeadlineForklift, lang: string, index?: number): string {
+  const base = forkliftHeadline(f, lang);
+  if (index === undefined || index === 0) return base;
+  return normalizeLang(lang) === 'vi' ? `${base} – ảnh ${index + 1}` : `${base} – photo ${index + 1}`;
 }

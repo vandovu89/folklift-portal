@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getDictionary } from '@/dictionaries';
+import { allLandingPages } from '@/lib/landing-pages';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaUniversity } from 'react-icons/fa';
 
 export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
@@ -61,6 +62,16 @@ export default async function PublicFooter({ lang }: { lang: 'en' | 'vi' }) {
             <li><Link href={`/${lang}/terms-of-service`} className="footer-link">{dict.footer.terms_of_service || 'Điều khoản dịch vụ'}</Link></li>
             <li><Link href={`/${lang}/data-deletion`} className="footer-link">{dict.footer.data_deletion || 'Xóa dữ liệu người dùng'}</Link></li>
             <li><Link href={`/${lang}/contact`} className="footer-link">{dict.nav.contact}</Link></li>
+          </ul>
+        </div>
+
+        {/* Danh mục xe nâng (trang đích theo từ khóa) */}
+        <div>
+          <h4 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '2rem', color: '#38bdf8' }}>{lang === 'vi' ? 'Xe nâng cũ Nhật Bản' : 'Used Japanese forklifts'}</h4>
+          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {allLandingPages().map((p) => (
+              <li key={p.path}><Link href={`/${lang}${p.path}`} className="footer-link">{p.label[lang]}</Link></li>
+            ))}
           </ul>
         </div>
 

@@ -8,35 +8,17 @@ import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
-import { formatCapacity, parseCapacityKg, isElectricPower } from '@/lib/utils';
+import { formatCapacity, parseCapacityKg, powerKind } from '@/lib/utils';
 import type { Metadata } from 'next';
-import { pageMetadata, normalizeLang, PUBLIC_FORKLIFT_STATUSES, SITE_URL } from '@/lib/seo';
+import { pageMetadata, normalizeLang, PUBLIC_FORKLIFT_STATUSES, SITE_URL, forkliftHeadline } from '@/lib/seo';
+import { POWER_PAGES, brandPage, brandSlugForMaker, type LandingContent } from '@/lib/landing-pages';
+import { findSimilarForklifts } from '@/lib/forklift-queries';
+import ForkliftCard from '@/components/ForkliftCard';
 import RoiCalculator from '@/components/RoiCalculator';
 import ConditionMap from '@/components/ConditionMap';
 import { FaMoneyBillWave, FaFilePdf, FaPrint, FaQrcode } from 'react-icons/fa';
 import VideoEmbed from '@/components/VideoEmbed';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
-
-function powerLabel(powerType: string | null, lang: 'vi' | 'en'): string {
-  const p = (powerType || '').toLowerCase();
-  if (isElectricPower(powerType)) return lang === 'vi' ? 'điện' : 'electric';
-  if (p.includes('dầu') || p.includes('dau') || p.includes('diesel')) return lang === 'vi' ? 'dầu' : 'diesel';
-  if (p.includes('gas') || p.includes('lpg')) return lang === 'vi' ? 'gas' : 'LPG';
-  if (p.includes('xăng') || p.includes('xang') || p.includes('gasoline')) return lang === 'vi' ? 'xăng' : 'gasoline';
-  return '';
-}
-
-/** VD: "Xe nâng điện cũ Toyota 7FBR15 1.5 tấn đời 2016" — khớp cách khách tìm trên Google. */
-function forkliftHeadline(f: { maker: string; model: string; powerType: string | null; loadCapacity: string | null; year: number | null }, lang: 'vi' | 'en'): string {
-  const power = powerLabel(f.powerType, lang);
-  const cap = f.loadCapacity ? formatCapacity(f.loadCapacity, lang) : '';
-  if (lang === 'vi') {
-    return ['Xe nâng', power, 'cũ', f.maker, f.model, cap, f.year ? `đời ${f.year}` : '']
-      .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
-  }
-  return ['Used', f.maker, f.model, power, 'forklift', cap, f.year ? `(${f.year})` : '']
-    .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string, lang: string }> }): Promise<Metadata> {
   const { id, lang: rawLang } = await params;
@@ -138,7 +120,28 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
         }
       : {}),
   };
-  const isElectric = forklift.powerType?.toLowerCase().includes('điện') || forklift.powerType?.toLowerCase().includes('dien') || forklift.powerType?.toLowerCase().includes('battery') || forklift.powerType?.toLowerCase().includes('electric');
+  const kind = powerKind(forklift.powerType);
+  const isElectric = kind === 'electric';
+  const headline = forkliftHeadline(forklift, lang);
+
+  // Breadcrumb: Trang chủ › Xe nâng điện cũ › Xe nâng Toyota cũ › model
+  const powerPage = kind ? POWER_PAGES[kind] : POWER_PAGES.japan;
+  const brandSlug = brandSlugForMaker(forklift.maker);
+  const crumbs: { name: string; href: string }[] = [
+    { name: lang === 'vi' ? 'Trang chủ' : 'Home', href: `/${lang}` },
+    ...[powerPage, brandSlug ? brandPage(brandSlug) : null]
+      .filter((p): p is LandingContent => p !== null)
+      .map((p) => ({ name: p.label[lang], href: `/${lang}${p.path}` })),
+  ];
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      ...crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: `${SITE_URL}${c.href}` })),
+      { '@type': 'ListItem', position: crumbs.length + 1, name: `${forklift.maker} ${forklift.model}` },
+    ],
+  };
+  const similar = await findSimilarForklifts(forklift);
 
   return (
     <div>
@@ -146,10 +149,20 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+      />
       <main style={{ padding: '3rem 5%', maxWidth: '1600px', margin: '0 auto' }}>
-        <Link href={`/${resolvedParams.lang}/catalog`} style={{ color: 'var(--primary)', fontWeight: '600', display: 'inline-block', marginBottom: '1.5rem', textDecoration: 'none' }}>
-          &larr; {dict.common.back}
-        </Link>
+        <nav aria-label="Breadcrumb" style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
+          {crumbs.map((c) => (
+            <span key={c.href} style={{ display: 'inline-flex', gap: '0.4rem' }}>
+              <Link href={c.href} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{c.name}</Link>
+              <span aria-hidden="true">›</span>
+            </span>
+          ))}
+          <span aria-current="page">{forklift.maker} {forklift.model}</span>
+        </nav>
         
         {/* FOMO Banner */}
         <div className="fomo-banner">
@@ -161,7 +174,7 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
           
           {/* Cột Trái (60%) */}
           <div style={{ flex: '1 1 60%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', minWidth: '300px' }}>
-            <PublicImageSlider media={forklift.media} />
+            <PublicImageSlider media={forklift.media} alt={headline} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
               <DownloadForkliftImagesButton
                 images={forklift.media.map(m => m.url)}
@@ -415,6 +428,21 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
             </table>
           </div>
         </div>
+
+        {/* Xe tương tự — liên kết nội bộ giữa các trang xe */}
+        {similar.length > 0 && (
+          <section style={{ marginTop: '3rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', color: '#1e293b', margin: 0 }}>{lang === 'vi' ? 'Xe tương tự' : 'Similar forklifts'}</h2>
+              <Link href={crumbs[crumbs.length - 1].href} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+                {lang === 'vi' ? `Xem tất cả ${crumbs[crumbs.length - 1].name.toLowerCase()} →` : `See all ${crumbs[crumbs.length - 1].name.toLowerCase()} →`}
+              </Link>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+              {similar.map((fl) => <ForkliftCard key={fl.id} fl={fl} lang={lang} dict={dict} />)}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Mobile Bottom Navigation */}

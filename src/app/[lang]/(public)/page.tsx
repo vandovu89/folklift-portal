@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { pageMetadata, SITE_URL } from '@/lib/seo';
+import { pageMetadata, SITE_URL, PUBLIC_FORKLIFT_STATUSES, forkliftImageAlt } from '@/lib/seo';
+import { POWER_PAGES, brandSlugForMaker } from '@/lib/landing-pages';
 import Link from 'next/link';
 import fs from 'fs';
 import path from 'path';
@@ -42,7 +43,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   }
 
   const featuredForklifts = await prisma.forklift.findMany({
-    where: { status: { in: ['Available', 'Incoming', 'Reserved', 'Unpacking', 'InJapan'] } },
+    where: { status: { in: PUBLIC_FORKLIFT_STATUSES } },
     orderBy: { createdAt: 'desc' },
     take: 6,
     include: {
@@ -107,8 +108,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </h3>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.7 }}>
           {brands.map(brand => (
-            <Link key={brand} href={`/${resolvedParams.lang}/catalog?maker=${brand}`} style={{ textDecoration: 'none', color: '#1e293b', fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-1px' }}>
+            <Link key={brand} href={brandSlugForMaker(brand) ? `/${resolvedParams.lang}/hang/${brandSlugForMaker(brand)}` : `/${resolvedParams.lang}/catalog?maker=${brand}`} style={{ textDecoration: 'none', color: '#1e293b', fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-1px' }}>
               {brand}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Danh mục theo loại xe — liên kết nội bộ tới các trang đích */}
+      <section style={{ padding: '0 5% 3rem', background: 'white' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          {[POWER_PAGES.electric, POWER_PAGES.japan, POWER_PAGES.diesel, POWER_PAGES.gas].map(p => (
+            <Link key={p.path} href={`/${resolvedParams.lang}${p.path}`} className="glass-panel hover-lift" style={{ padding: '1.5rem', textDecoration: 'none', color: '#0f172a', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.4rem' }}>{p.label[resolvedParams.lang === 'en' ? 'en' : 'vi']}</h2>
+              <span style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>{resolvedParams.lang === 'vi' ? 'Xem xe & hướng dẫn chọn mua →' : 'View units & buying guide →'}</span>
             </Link>
           ))}
         </div>
@@ -145,7 +158,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                   <div style={{ height: '280px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
                     {fl.media && fl.media.length > 0 ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={fl.media[0].url} alt={fl.model} className="hover-scale" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <img src={fl.media[0].url} alt={forkliftImageAlt(fl, resolvedParams.lang)} className="hover-scale" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
                       <span style={{ color: '#ccc' }}>[ NO IMAGE ]</span>
                     )}

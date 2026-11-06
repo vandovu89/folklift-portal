@@ -56,3 +56,17 @@ export function isElectricPower(powerType?: string | null): boolean {
   const p = (powerType || '').toLowerCase();
   return p.includes('điện') || p.includes('dien') || p.includes('battery') || p.includes('electric');
 }
+
+export type PowerKind = 'electric' | 'diesel' | 'gas';
+
+/**
+ * Phân loại nhiên liệu: điện / dầu (diesel) / gas-xăng (LPG, gasoline).
+ * Xe Nhật chạy xăng thường được lắp thêm bộ gas nên gộp chung nhóm "gas".
+ */
+export function powerKind(powerType?: string | null): PowerKind | null {
+  if (isElectricPower(powerType)) return 'electric';
+  const p = (powerType || '').toLowerCase();
+  if (p.includes('dầu') || p.includes('dau') || p.includes('diesel')) return 'diesel';
+  if (p.includes('gas') || p.includes('lpg') || p.includes('xăng') || p.includes('xang')) return 'gas';
+  return null;
+}

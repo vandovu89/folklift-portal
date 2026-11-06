@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo';
+import { pageMetadata, PUBLIC_FORKLIFT_STATUSES } from '@/lib/seo';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { parseCapacityKg, parseLiftHeightMm, formatCapacity } from '@/lib/utils';
-import { FaGasPump, FaBatteryFull, FaCalendarAlt } from 'react-icons/fa';
+import { parseCapacityKg, parseLiftHeightMm } from '@/lib/utils';
 import { getDictionary } from '@/dictionaries';
-import LangSwitcher from '@/components/LangSwitcher';
 
 import PublicCatalogFilter from './PublicCatalogFilter';
-import CatalogInquiryButton from '@/components/CatalogInquiryButton';
+import ForkliftCard from '@/components/ForkliftCard';
 import Pagination from '@/components/Pagination';
-import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +33,7 @@ export default async function PublicCatalog({
   const resolvedSearchParams = await searchParams;
   const dict = await getDictionary(resolvedParams.lang as 'en' | 'vi');
 
-  const whereClause: any = { status: { in: ['Available', 'Incoming', 'Reserved', 'Unpacking', 'InJapan'] } };
+  const whereClause: any = { status: { in: PUBLIC_FORKLIFT_STATUSES } };
 
   const andConditions: any[] = [];
   
@@ -166,94 +163,7 @@ export default async function PublicCatalog({
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {paginatedForklifts.map((fl) => (
-              <div key={fl.id} className="glass-panel hover-scale" style={{ overflow: 'hidden', transition: 'var(--transition)', padding: '1rem', backgroundColor: 'white' }}>
-                <Link href={`/${resolvedParams.lang}/machine/${fl.id}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
-                {/* Top Section: Image & Title */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                  {/* Image */}
-                  <div style={{ flex: '0 0 50%', height: '120px', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
-                    {fl.status === 'Incoming' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#f97316', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Sắp về</span>}
-                    {fl.status === 'Reserved' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#eab308', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đã cọc</span>}
-                    {fl.status === 'Unpacking' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#8b5cf6', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Đang Rút Container</span>}
-                    {fl.status === 'InJapan' && <span className="badge" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, backgroundColor: '#ec4899', color: 'white', fontSize: '0.7rem', padding: '0.2rem 0.4rem', borderTopLeftRadius: '8px', borderBottomRightRadius: '8px' }}>Nhật Bản</span>}
-                    
-                    {fl.media && fl.media.length > 0 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={fl.media[0].url} alt={fl.model} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '0.8rem', textAlign: 'center' }}>No image</div>
-                    )}
-                  </div>
-                  
-                  {/* Title */}
-                  <div style={{ flex: '1' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '700', marginBottom: '0.25rem', textTransform: 'uppercase' }}>
-                      {resolvedParams.lang === 'vi' ? 'Xe nâng ' : 'Forklift '}
-                    </div>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', lineHeight: '1.3', color: '#0f172a', marginBottom: '0.5rem' }}>
-                      {fl.maker} {fl.model}
-                    </h3>
-                    <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.4' }}>
-                      {fl.loadCapacity ? `${formatCapacity(fl.loadCapacity, resolvedParams.lang as 'vi' | 'en')} / ` : ''}
-                      {fl.powerType}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Middle Section: Specs Grid */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', fontSize: '0.85rem', color: '#334155', marginBottom: '1rem', lineHeight: '1.8' }}>
-                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Mã số' : 'Ref No'}</span><span style={{ width: '50%' }}>{fl.internalCode || '-'}</span></div>
-                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Năm SX' : 'Year'}</span><span style={{ width: '50%' }}>{fl.year || '-'}</span></div>
-                  
-                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Tải trọng' : 'Capacity'}</span><span style={{ width: '50%' }}>{fl.loadCapacity || '-'}</span></div>
-                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Nhiên liệu' : 'Fuel'}</span><span style={{ width: '50%' }}>{fl.powerType || '-'}</span></div>
-                  
-                  <div style={{ width: '50%', display: 'flex', paddingRight: '0.5rem' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Nâng cao' : 'Height'}</span><span style={{ width: '50%' }}>{fl.liftHeight || '-'}</span></div>
-                  <div style={{ width: '50%', display: 'flex' }}><span style={{ width: '50%', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Giờ HĐ' : 'Hours'}</span><span style={{ width: '50%' }}>{fl.hour || '-'}</span></div>
-                  
-                  <div style={{ width: '100%', display: 'flex', marginTop: '0.2rem' }}><span style={{ width: 'calc(25% - 0.25rem)', color: '#0f172a', fontWeight: '600' }}>{resolvedParams.lang === 'vi' ? 'Phụ kiện' : 'Attach'}</span><span style={{ width: 'calc(75% + 0.25rem)' }}>{fl.attachment || '-'}</span></div>
-                </div>
-
-                {/* Price Box */}
-                <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '3px solid #cbd5e1', paddingLeft: '1rem', marginBottom: '1rem', marginTop: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
-                    {resolvedParams.lang === 'vi' ? 'Giá bán (Đã gồm VAT)' : 'Sales Price (Incl. Tax)'}
-                  </div>
-                  <div style={{ color: '#c2272d', fontWeight: 900, fontSize: '1.6rem', letterSpacing: '-0.5px', lineHeight: 1 }}>
-                    {fl.price ? (
-                      <>
-                        {fl.price.toLocaleString('vi-VN')}
-                        <span style={{ fontSize: '0.9rem', color: '#475569', marginLeft: '0.2rem', fontWeight: 700 }}>VNĐ</span>
-                      </>
-                    ) : (
-                      dict.common.contact
-                    )}
-                  </div>
-                </div>
-                </Link>
-
-                {/* Buttons */}
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                  <CatalogInquiryButton 
-                    lang={resolvedParams.lang as string}
-                    dict={dict}
-                    forkliftId={fl.id}
-                    forkliftName={`${fl.maker} ${fl.model}`}
-                    internalCode={fl.internalCode || ''}
-                  />
-                  <a href="tel:84362396092" style={{ flex: 1, minWidth: '85px', backgroundColor: 'white', color: '#f97316', border: '1px solid #f97316', textAlign: 'center', padding: '0.75rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
-                    📞 {resolvedParams.lang === 'vi' ? 'Gọi' : 'Call'}
-                  </a>
-                  <DownloadForkliftImagesButton 
-                    forkliftId={fl.id}
-                    forkliftName={`${fl.maker} ${fl.model}`}
-                    internalCode={fl.internalCode || ''}
-                    lang={resolvedParams.lang}
-                    variant="card"
-                  />
-                </div>
-
-              </div>
+              <ForkliftCard key={fl.id} fl={fl} lang={resolvedParams.lang} dict={dict} />
             ))}
           </div>
         )}
