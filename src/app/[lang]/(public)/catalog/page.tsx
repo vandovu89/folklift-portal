@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { parseCapacityKg, parseLiftHeightMm, formatCapacity } from '@/lib/utils';
@@ -11,6 +13,17 @@ import Pagination from '@/components/Pagination';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/catalog',
+    title: isEn ? 'Used Japanese Forklifts in Stock – Electric, Diesel, LPG' : 'Danh Sách Xe Nâng Cũ Nhật Bản – Xe Nâng Điện, Dầu, Gas Có Sẵn',
+    description: isEn ? 'Browse every used Japanese forklift in stock at MCK: electric, diesel and LPG forklifts 1–5 t from Toyota, Komatsu, TCM, Nichiyu, Mitsubishi. Real photos, published prices.' : 'Xem toàn bộ xe nâng cũ Nhật Bản đang có tại kho Xe Nâng MCK: xe nâng điện cũ, xe nâng dầu, xe nâng gas 1–5 tấn của Toyota, Komatsu, TCM, Nichiyu, Mitsubishi. Hình ảnh thực tế, giá công khai.',
+  });
+}
 
 export default async function PublicCatalog({ 
   params,

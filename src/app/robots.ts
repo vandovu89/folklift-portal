@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/seo';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,11 +9,16 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         '/admin/',
         '/*/admin/',
-        '/login/',
-        '/*/login/',
+        '/login',
+        '/*/login',
+        '/*/customer$',
+        '/*/customer/',
+        '/*/quotation/',
+        '/*/print-qr',
         '/api/',
       ],
     },
-    sitemap: 'https://xenangmck.jp/sitemap.xml',
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

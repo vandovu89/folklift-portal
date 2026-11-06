@@ -8,12 +8,76 @@ import PublicImageSlider from '@/components/PublicImageSlider';
 import InquiryForm from './InquiryForm';
 import CatalogInquiryButton from '@/components/CatalogInquiryButton';
 import { getBaseUrl } from '@/lib/url';
-import { formatCapacity, parseCapacityKg } from '@/lib/utils';
+import { formatCapacity, parseCapacityKg, isElectricPower } from '@/lib/utils';
+import type { Metadata } from 'next';
+import { pageMetadata, normalizeLang, PUBLIC_FORKLIFT_STATUSES, SITE_URL } from '@/lib/seo';
 import RoiCalculator from '@/components/RoiCalculator';
 import ConditionMap from '@/components/ConditionMap';
 import { FaMoneyBillWave, FaFilePdf, FaPrint, FaQrcode } from 'react-icons/fa';
 import VideoEmbed from '@/components/VideoEmbed';
 import DownloadForkliftImagesButton from '@/components/DownloadForkliftImagesButton';
+
+function powerLabel(powerType: string | null, lang: 'vi' | 'en'): string {
+  const p = (powerType || '').toLowerCase();
+  if (isElectricPower(powerType)) return lang === 'vi' ? 'điện' : 'electric';
+  if (p.includes('dầu') || p.includes('dau') || p.includes('diesel')) return lang === 'vi' ? 'dầu' : 'diesel';
+  if (p.includes('gas') || p.includes('lpg')) return lang === 'vi' ? 'gas' : 'LPG';
+  if (p.includes('xăng') || p.includes('xang') || p.includes('gasoline')) return lang === 'vi' ? 'xăng' : 'gasoline';
+  return '';
+}
+
+/** VD: "Xe nâng điện cũ Toyota 7FBR15 1.5 tấn đời 2016" — khớp cách khách tìm trên Google. */
+function forkliftHeadline(f: { maker: string; model: string; powerType: string | null; loadCapacity: string | null; year: number | null }, lang: 'vi' | 'en'): string {
+  const power = powerLabel(f.powerType, lang);
+  const cap = f.loadCapacity ? formatCapacity(f.loadCapacity, lang) : '';
+  if (lang === 'vi') {
+    return ['Xe nâng', power, 'cũ', f.maker, f.model, cap, f.year ? `đời ${f.year}` : '']
+      .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+  }
+  return ['Used', f.maker, f.model, power, 'forklift', cap, f.year ? `(${f.year})` : '']
+    .filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string, lang: string }> }): Promise<Metadata> {
+  const { id, lang: rawLang } = await params;
+  const lang = normalizeLang(rawLang);
+  const f = await prisma.forklift.findUnique({
+    where: { id },
+    select: {
+      maker: true, model: true, powerType: true, loadCapacity: true, year: true, hour: true,
+      liftHeight: true, price: true, status: true,
+      media: { where: { isPublic: true, fileType: 'IMAGE' }, orderBy: [{ isThumbnail: 'desc' }, { order: 'asc' }], take: 1, select: { url: true } },
+    },
+  });
+  if (!f) return { title: lang === 'vi' ? 'Không tìm thấy xe' : 'Forklift not found', robots: { index: false } };
+
+  const headline = forkliftHeadline(f, lang);
+  const lift = f.liftHeight && /^\d+$/.test(f.liftHeight.trim()) ? `${f.liftHeight.trim()} mm` : f.liftHeight;
+  const details = lang === 'vi'
+    ? [
+        f.hour ? `${f.hour.toLocaleString('vi-VN')} giờ hoạt động` : '',
+        lift ? `nâng cao ${lift}` : '',
+        f.price ? `giá ${f.price.toLocaleString('vi-VN')} VNĐ` : 'liên hệ báo giá',
+      ]
+    : [
+        f.hour ? `${f.hour.toLocaleString('en-US')} hours` : '',
+        lift ? `lift height ${lift}` : '',
+        f.price ? `price ${f.price.toLocaleString('en-US')} VND` : 'contact for price',
+      ];
+  const description = lang === 'vi'
+    ? `${headline} nhập khẩu trực tiếp từ Nhật Bản: ${details.filter(Boolean).join(', ')}. Hình ảnh thực tế, bảo hành 12 tháng tại Xe Nâng MCK.`
+    : `${headline} imported directly from Japan: ${details.filter(Boolean).join(', ')}. Real photos, 12-month warranty at MCK Forklift.`;
+
+  return pageMetadata({
+    lang,
+    path: `/machine/${id}`,
+    title: lang === 'vi' ? `${headline} – Nhập khẩu Nhật Bản` : headline,
+    description,
+    images: f.media.map((m) => m.url),
+    // Xe đã bán / nháp vẫn xem được qua link cũ nhưng không nên chiếm chỗ trong index.
+    noindex: !PUBLIC_FORKLIFT_STATUSES.includes(f.status),
+  });
+}
 
 export default async function MachineDetail({ params }: { params: Promise<{ id: string, lang: string }> }) {
   const resolvedParams = await params;
@@ -43,10 +107,45 @@ export default async function MachineDetail({ params }: { params: Promise<{ id: 
 
   const baseUrl = getBaseUrl();
   const qrUrl = `${baseUrl}/${resolvedParams.lang}/machine/${forklift.id}`;
+  const lang = normalizeLang(resolvedParams.lang);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: forkliftHeadline(forklift, lang),
+    brand: { '@type': 'Brand', name: forklift.maker },
+    model: forklift.model,
+    sku: forklift.internalCode || forklift.id,
+    category: lang === 'vi' ? 'Xe nâng' : 'Forklift',
+    image: forklift.media.map((m) => m.url),
+    url: `${SITE_URL}/${lang}/machine/${forklift.id}`,
+    itemCondition: 'https://schema.org/UsedCondition',
+    ...(forklift.year ? { productionDate: String(forklift.year) } : {}),
+    ...(forklift.price
+      ? {
+          offers: {
+            '@type': 'Offer',
+            price: forklift.price,
+            priceCurrency: 'VND',
+            itemCondition: 'https://schema.org/UsedCondition',
+            availability: forklift.status === 'Available'
+              ? 'https://schema.org/InStock'
+              : PUBLIC_FORKLIFT_STATUSES.includes(forklift.status)
+                ? 'https://schema.org/PreOrder'
+                : 'https://schema.org/SoldOut',
+            url: `${SITE_URL}/${lang}/machine/${forklift.id}`,
+            seller: { '@type': 'Organization', name: 'Xe Nâng MCK' },
+          },
+        }
+      : {}),
+  };
   const isElectric = forklift.powerType?.toLowerCase().includes('điện') || forklift.powerType?.toLowerCase().includes('dien') || forklift.powerType?.toLowerCase().includes('battery') || forklift.powerType?.toLowerCase().includes('electric');
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }}
+      />
       <main style={{ padding: '3rem 5%', maxWidth: '1600px', margin: '0 auto' }}>
         <Link href={`/${resolvedParams.lang}/catalog`} style={{ color: 'var(--primary)', fontWeight: '600', display: 'inline-block', marginBottom: '1.5rem', textDecoration: 'none' }}>
           &larr; {dict.common.back}

@@ -1,4 +1,17 @@
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 import { getDictionary } from '@/dictionaries';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/about',
+    title: isEn ? 'About Us – Importer of Used Japanese Forklifts' : 'Giới Thiệu – Đơn Vị Nhập Khẩu Xe Nâng Cũ Nhật Bản',
+    description: isEn ? 'MCK imports used forklifts directly from Japan, inspects every unit and backs them with a 12-month warranty. Learn about our team and process.' : 'Xe Nâng MCK nhập khẩu trực tiếp xe nâng cũ từ Nhật Bản, kiểm tra kỹ thuật và bảo hành 12 tháng. Tìm hiểu về đội ngũ và quy trình của chúng tôi.',
+  });
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;

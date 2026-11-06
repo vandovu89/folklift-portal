@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SITE_URL, SITE_NAME } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -9,34 +10,24 @@ const inter = Inter({
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  const baseUrl = 'https://xenangmck.jp';
-  const currentUrl = `${baseUrl}/${lang}`;
 
+  // Lưu ý: KHÔNG đặt alternates/canonical ở đây — metadata được merge nông,
+  // trang nào không tự khai báo sẽ thừa hưởng canonical của layout và bị Google
+  // coi là bản trùng của trang chủ. Mỗi trang công khai tự gọi pageMetadata().
   return {
-    metadataBase: new URL(baseUrl),
+    metadataBase: new URL(SITE_URL),
     title: {
-      default: "Xe Nâng MCK | Bán Xe Nâng Cũ Nhập Khẩu Trực Tiếp Từ Nhật Bản",
+      default: "Xe Nâng MCK | Xe Nâng Cũ Nhật Bản Nhập Khẩu Trực Tiếp",
       template: "%s | Xe Nâng MCK",
     },
-    description: "Xe Nâng MCK chuyên cung cấp, bán và cho thuê các loại xe nâng bãi, xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản: Komatsu, Toyota, TCM... Uy tín, chất lượng.",
-    keywords: ["xe nâng", "xe nâng cũ", "xe nâng Nhật Bản", "xe nâng nhập khẩu", "bán xe nâng", "xe nâng Komatsu", "xe nâng Toyota", "Xe nâng MCK"],
-    authors: [{ name: "Xe Nâng MCK" }],
-    creator: "Xe Nâng MCK",
-    publisher: "Xe Nâng MCK",
-    alternates: {
-      canonical: currentUrl,
-      languages: {
-        'vi': `${baseUrl}/vi`,
-        'en': `${baseUrl}/en`,
-        'x-default': `${baseUrl}/vi`,
-      },
-    },
+    description: "Xe Nâng MCK bán xe nâng cũ Nhật Bản nhập khẩu trực tiếp: xe nâng điện cũ, xe nâng dầu, xe nâng gas Toyota, Komatsu, TCM, Nichiyu. Giá tốt, bảo hành 12 tháng.",
+    applicationName: SITE_NAME,
+    authors: [{ name: SITE_NAME }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
     openGraph: {
-      title: "Xe Nâng MCK | Xe Nâng Nhập Khẩu Trực Tiếp Từ Nhật Bản",
-      description: "Chuyên cung cấp, bán và cho thuê các loại xe nâng bãi, xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản. Đảm bảo chất lượng và uy tín.",
-      url: currentUrl,
-      siteName: "Xe Nâng MCK",
-      locale: lang === 'vi' ? 'vi_VN' : 'en_US',
+      siteName: SITE_NAME,
+      locale: lang === 'en' ? 'en_US' : 'vi_VN',
       type: "website",
     },
     robots: {

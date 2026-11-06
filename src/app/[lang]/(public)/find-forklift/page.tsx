@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { getDictionary } from '@/dictionaries';
 import FindForkliftWizard from './FindForkliftWizard';
@@ -5,12 +6,13 @@ import RoiCalculator from '@/components/RoiCalculator';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  return {
-    title: lang === 'vi' ? 'Trợ lý Chọn Xe Nâng Phù Hợp | Xe Nâng MCK Japan' : 'Find My Forklift | MCK Japan Forklifts',
-    description: lang === 'vi'
-      ? 'Trả lời 4 câu hỏi đơn giản để nhận gợi ý 3 chiếc xe nâng phù hợp nhất trong kho của Xe Nâng MCK Japan.'
-      : 'Answer 4 simple questions to get the 3 best-matching forklifts in stock at MCK Japan.'
-  };
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/find-forklift',
+    title: isEn ? 'Find the Right Forklift' : 'Trợ Lý Chọn Xe Nâng Phù Hợp',
+    description: isEn ? 'Answer 4 simple questions to get the 3 used Japanese forklifts in stock that best match your load, workplace and budget.' : 'Trả lời 4 câu hỏi đơn giản để nhận gợi ý 3 chiếc xe nâng cũ Nhật Bản phù hợp nhất với nhu cầu, tải trọng và ngân sách của bạn.',
+  });
 }
 
 export default async function FindForkliftPage({ params }: { params: Promise<{ lang: string }> }) {

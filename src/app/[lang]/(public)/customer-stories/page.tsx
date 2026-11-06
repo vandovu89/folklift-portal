@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo';
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
@@ -6,14 +7,13 @@ import { FaStar, FaQuoteLeft, FaCheckCircle, FaMapMarkerAlt, FaTruck } from 'rea
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  return {
-    title: lang === 'en'
-      ? 'Customer Deliveries & Testimonials | MCK Japan Forklift'
-      : 'Góc Khách Hàng - Hình Ảnh Bàn Giao & Đánh Giá | Xe Nâng MCK Japan',
-    description: lang === 'en'
-      ? 'Actual forklift delivery photos, company customer stories, and genuine reviews.'
-      : 'Hình ảnh bàn giao xe nâng thực tế tại nhà máy kho xưởng, đánh giá và cảm nhận thực tế từ các doanh nghiệp đối tác.'
-  };
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/customer-stories',
+    title: isEn ? 'Customer Deliveries & Testimonials' : 'Khách Hàng – Hình Ảnh Bàn Giao Xe Nâng & Đánh Giá',
+    description: isEn ? 'Real delivery photos of used Japanese forklifts at customer factories and warehouses, plus reviews from businesses that bought from MCK.' : 'Hình ảnh bàn giao xe nâng cũ Nhật Bản thực tế tại nhà máy, kho xưởng và đánh giá từ các doanh nghiệp đã mua xe tại Xe Nâng MCK.',
+  });
 }
 
 export default async function CustomerStoriesPage({ params }: { params: Promise<{ lang: string }> }) {

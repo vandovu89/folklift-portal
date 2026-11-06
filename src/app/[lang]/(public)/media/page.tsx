@@ -1,17 +1,19 @@
+import { pageMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import MediaGalleryClient from './MediaGalleryClient';
 import { FadeIn } from '@/components/animations/FadeIn';
 
-export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  const isVi = lang === 'vi';
-  return {
-    title: isVi ? 'Thư Viện Video & Truyền Thông | Xe Nâng MCK' : 'Media Gallery & Videos | MCK Forklift',
-    description: isVi
-      ? 'Tổng hợp video thực tế bàn giao xe, kiểm tra test máy, bốc dỡ container và kho bãi xe nâng nhập khẩu Nhật Bản của Xe Nâng MCK.'
-      : 'Explore real delivery videos, forklift inspection tests, unboxing containers and warehouse operations of MCK Forklift.'
-  };
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/media',
+    title: isEn ? 'Forklift Videos – Tests, Deliveries, Container Unloading' : 'Video Xe Nâng Thực Tế – Test Máy, Bàn Giao, Rút Container',
+    description: isEn ? 'Real videos of forklift tests, customer deliveries and container unloading of used Japanese forklifts at MCK.' : 'Video thực tế test máy, bàn giao và rút container xe nâng cũ nhập khẩu Nhật Bản tại kho Xe Nâng MCK.',
+  });
 }
 
 export default async function MediaGalleryPage({ params }: { params: Promise<{ lang: string }> }) {

@@ -1,5 +1,18 @@
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 import Link from 'next/link';
 import { getDictionary } from '@/dictionaries';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/policies',
+    title: isEn ? 'Warranty & Sales Policies' : 'Chính Sách Bảo Hành & Mua Bán',
+    description: isEn ? 'Warranty, delivery, payment and privacy policies for buying a used Japanese forklift from MCK.' : 'Chính sách bảo hành, giao hàng, thanh toán và quyền riêng tư khi mua xe nâng cũ Nhật Bản tại Xe Nâng MCK.',
+  });
+}
 
 export default async function PoliciesPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;

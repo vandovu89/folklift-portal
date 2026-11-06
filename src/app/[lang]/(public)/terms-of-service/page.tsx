@@ -1,16 +1,16 @@
+import { pageMetadata } from '@/lib/seo';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  return {
-    title: lang === 'en' 
-      ? 'Terms of Service | MCK Japan Forklifts' 
-      : 'Điều Khoản Dịch Vụ | Xe Nâng MCK Japan',
-    description: lang === 'en'
-      ? 'Terms of Service for MCK Japan Forklift portal and Facebook Messenger services.'
-      : 'Điều khoản dịch vụ áp dụng cho cổng thông tin xe nâng và ứng dụng chatbot Facebook Messenger.'
-  };
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/terms-of-service',
+    title: isEn ? 'Terms of Service' : 'Điều Khoản Dịch Vụ',
+    description: isEn ? 'Terms of Service for the MCK Forklift website and Facebook Messenger services.' : 'Điều khoản dịch vụ áp dụng cho website Xe Nâng MCK và chatbot Facebook Messenger.',
+  });
 }
 
 export default async function TermsOfServicePage({ params }: { params: Promise<{ lang: string }> }) {

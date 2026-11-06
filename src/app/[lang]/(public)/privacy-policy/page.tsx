@@ -1,16 +1,16 @@
+import { pageMetadata } from '@/lib/seo';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  return {
-    title: lang === 'en' 
-      ? 'Privacy Policy | MCK Japan Forklifts' 
-      : 'Chính Sách Quyền Riêng Tư & Bảo Mật | Xe Nâng MCK Japan',
-    description: lang === 'en'
-      ? 'Privacy Policy for MCK Japan Forklift portal and Facebook Messenger services.'
-      : 'Chính sách bảo mật thông tin và quyền riêng tư cho cổng thông tin xe nâng và ứng dụng Facebook Messenger.'
-  };
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/privacy-policy',
+    title: isEn ? 'Privacy Policy' : 'Chính Sách Quyền Riêng Tư & Bảo Mật',
+    description: isEn ? 'Privacy Policy for the MCK Forklift website and Facebook Messenger services.' : 'Chính sách bảo mật thông tin và quyền riêng tư cho website Xe Nâng MCK và ứng dụng Facebook Messenger.',
+  });
 }
 
 export default async function PrivacyPolicyPage({ params }: { params: Promise<{ lang: string }> }) {

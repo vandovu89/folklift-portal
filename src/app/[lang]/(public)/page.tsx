@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { pageMetadata, SITE_URL } from '@/lib/seo';
 import Link from 'next/link';
 import fs from 'fs';
 import path from 'path';
@@ -9,6 +11,18 @@ import { FadeIn } from '@/components/animations/FadeIn';
 import { StaggerContainer } from '@/components/animations/StaggerContainer';
 import HeroSlider from '@/components/HeroSlider';
 import HomeQuickSearch from '@/components/HomeQuickSearch';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '',
+    title: isEn ? 'Used Japanese Forklifts Imported Directly | MCK Forklift' : 'Xe Nâng Cũ Nhật Bản Nhập Khẩu Trực Tiếp | Xe Nâng MCK',
+    description: isEn ? 'MCK sells used Japanese forklifts imported directly from Japan: electric, diesel and LPG forklifts from Toyota, Komatsu, TCM, Nichiyu. In stock, fair prices, 12-month warranty.' : 'Xe Nâng MCK bán xe nâng cũ Nhật Bản nhập khẩu trực tiếp: xe nâng điện cũ, xe nâng dầu, xe nâng gas Toyota, Komatsu, TCM, Nichiyu. Xe có sẵn tại kho, giá tốt, bảo hành 12 tháng.',
+    absoluteTitle: true,
+  });
+}
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
@@ -62,8 +76,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     '@context': 'https://schema.org',
     '@type': 'AutoDealer',
     name: 'Xe Nâng MCK',
-    url: 'https://xenangmck.jp',
-    logo: 'https://xenangmck.jp/icon.png',
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.png`,
     description: 'Xe Nâng MCK chuyên cung cấp, bán và cho thuê các loại xe nâng bãi, xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản: Komatsu, Toyota, TCM... Uy tín, chất lượng.',
     address: {
       '@type': 'PostalAddress',

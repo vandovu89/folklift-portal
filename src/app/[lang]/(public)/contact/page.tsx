@@ -1,6 +1,19 @@
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 import { getDictionary } from '@/dictionaries';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaUniversity } from 'react-icons/fa';
 import ContactForm from './ContactForm';
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === 'en';
+  return pageMetadata({
+    lang,
+    path: '/contact',
+    title: isEn ? 'Contact Us – Buy a Used Japanese Forklift' : 'Liên Hệ Mua Xe Nâng Cũ Nhật Bản',
+    description: isEn ? 'Contact MCK for advice and quotes on used Japanese electric, diesel and LPG forklifts. Hotline/Zalo +84 362 396 092.' : 'Liên hệ Xe Nâng MCK để được tư vấn và báo giá xe nâng điện cũ, xe nâng dầu, xe nâng gas nhập khẩu Nhật Bản. Hotline/Zalo 0362 396 092.',
+  });
+}
 
 export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = await params;
