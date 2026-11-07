@@ -1,0 +1,68 @@
+// Chuỗi giao diện hộp thoại "Đăng video lên Fanpage" (EN dùng khi quay video xét duyệt Meta App Review)
+const vi = {
+  openBtn: 'Đăng lên Fanpage',
+  title: 'Đăng video lên Fanpage',
+  close: 'Đóng',
+  cancel: 'Huỷ',
+  received: (draft: boolean) => `✅ Facebook đã nhận video ${draft ? 'dạng nháp ' : ''}trên Fanpage`,
+  processing: '⏳ Facebook đang xử lý video (thường 1-5 phút)... Có thể đóng cửa sổ này.',
+  draftReady: '📝 Video đã xử lý xong, đang ở dạng nháp. Vào Meta Business Suite để xem và đăng.',
+  publishedDone: '🎉 Video đã được đăng.',
+  processedDone: 'Video đã xử lý xong.',
+  openOnFacebook: 'Mở bài trên Facebook →',
+  loadingPages: 'Đang tải danh sách Fanpage...',
+  noPages: 'Chưa kết nối Fanpage nào. Vào mục "Fanpage & Bot" để kết nối trước.',
+  page: 'Fanpage',
+  format: 'Dạng đăng',
+  reel: '🎞️ Reels',
+  video: '🎬 Bài video thường',
+  reelNeedsVertical: 'Reels cần video khung dọc 9:16',
+  reelHint: 'Reels: video dọc 3-90 giây, Facebook ưu tiên đề xuất cho người chưa theo dõi Page.',
+  caption: 'Nội dung bài đăng',
+  aiCaption: 'AI viết nội dung',
+  draftOnly: 'Chỉ lưu nháp (chưa công khai, xem lại trong Meta Business Suite rồi đăng)',
+  aiVisuals: (reel: boolean) => `Video có cảnh dùng hình AI${reel ? ': bài Reels sẽ được khai báo "nội dung tạo bằng AI" với Facebook.' : '.'}`,
+  saveDraftBtn: 'Lưu nháp lên Facebook',
+  publishBtn: 'Đăng lên Fanpage',
+  writingCaption: 'AI đang viết nội dung bài đăng...',
+  captionError: 'Lỗi viết nội dung',
+  confirmPublish: (reel: boolean, page: string) => `Đăng công khai ${reel ? 'Reels' : 'video'} này lên Fanpage "${page}"?`,
+  sending: 'Đang gửi video sang Facebook...',
+  publishError: 'Lỗi đăng video'
+};
+
+export type FbPublishDict = typeof vi;
+
+const en: FbPublishDict = {
+  openBtn: 'Publish to Facebook Page',
+  title: 'Publish video to Facebook Page',
+  close: 'Close',
+  cancel: 'Cancel',
+  received: (draft: boolean) => `✅ Facebook received the ${draft ? 'draft ' : ''}video on the Page`,
+  processing: '⏳ Facebook is processing the video (usually 1-5 minutes)... You can close this window.',
+  draftReady: '📝 The video is processed and saved as a draft. Open Meta Business Suite to review and publish it.',
+  publishedDone: '🎉 The video has been published.',
+  processedDone: 'The video has been processed.',
+  openOnFacebook: 'Open the post on Facebook →',
+  loadingPages: 'Loading Facebook Pages...',
+  noPages: 'No Facebook Page is connected yet. Connect one under "Facebook Pages" first.',
+  page: 'Facebook Page',
+  format: 'Post format',
+  reel: '🎞️ Reel',
+  video: '🎬 Regular video post',
+  reelNeedsVertical: 'Reels require a vertical 9:16 video',
+  reelHint: 'Reels: vertical videos of 3-90 seconds, recommended by Facebook to people who don\'t follow the Page yet.',
+  caption: 'Post caption',
+  aiCaption: 'Write caption with AI',
+  draftOnly: 'Save as draft only (not public; review in Meta Business Suite before publishing)',
+  aiVisuals: (reel: boolean) => `This video contains AI-generated images${reel ? ': the Reel will be labeled as "AI-generated content" on Facebook.' : '.'}`,
+  saveDraftBtn: 'Save draft to Facebook',
+  publishBtn: 'Publish to Page',
+  writingCaption: 'AI is writing the caption...',
+  captionError: 'Could not write the caption',
+  confirmPublish: (reel: boolean, page: string) => `Publish this ${reel ? 'Reel' : 'video'} publicly to the Facebook Page "${page}"?`,
+  sending: 'Sending the video to Facebook...',
+  publishError: 'Could not publish the video'
+};
+
+export const getFbPublishDict = (lang: string): FbPublishDict => (lang === 'en' ? en : vi);

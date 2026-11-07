@@ -55,7 +55,18 @@ export async function POST(request: Request, { params }: Params) {
   if (body.action === 'caption') {
     const narration = project.storyboard.map(s => s.narration.trim()).filter(Boolean).join(' ').slice(0, 3000);
     const templateLabel = isVideoTemplate(project.type) ? VIDEO_TEMPLATES[project.type].label : 'video';
-    const instruction = `Bạn là người viết nội dung Fanpage cho "${BRAND_NAME}", đơn vị bán xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản.
+    // lang=en: caption tiếng Anh (dùng khi quay video xét duyệt Meta App Review với giao diện tiếng Anh)
+    const english = body.lang === 'en';
+    const instruction = english
+      ? `You write Facebook Page posts for "${BRAND_NAME}", a dealer of used forklifts imported directly from Japan.
+Write an English caption for a Facebook video titled: "${project.title}".
+Video narration (Vietnamese): "${narration}"
+Requirements:
+- First line is a catchy hook (one emoji allowed), then 2-4 short lines with the key points, using only information from the narration (do not invent prices, specs or promotions).
+- End with a call to action including the hotline ${BRAND_HOTLINE}.
+- Finish with 3-6 relevant forklift hashtags.
+- At most 120 words. Return only the caption.`
+      : `Bạn là người viết nội dung Fanpage cho "${BRAND_NAME}", đơn vị bán xe nâng cũ nhập khẩu trực tiếp từ Nhật Bản.
 Viết caption tiếng Việt cho một ${templateLabel} đăng Facebook, tiêu đề dự án: "${project.title}".
 Lời đọc trong video: "${narration}"
 Yêu cầu:

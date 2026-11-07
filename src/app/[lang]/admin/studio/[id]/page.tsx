@@ -7,6 +7,7 @@ import { FaArrowLeft, FaMagic, FaPlay, FaPlus, FaDownload, FaCheck, FaFacebook }
 import SceneCard from '@/components/studio/SceneCard';
 import AssetPicker, { type StudioAssetItem } from '@/components/studio/AssetPicker';
 import FacebookPublishDialog from '@/components/studio/FacebookPublishDialog';
+import { getFbPublishDict } from '@/components/studio/facebook-publish-i18n';
 import { labelStyle, inputStyle } from '@/components/studio/styles';
 import { countSpokenWords, wordsPerSecond, TTS_MODELS, type TtsModelId } from '@/lib/vietnamese-tts';
 import { SCRIPT_STYLES, VIDEO_FORMATS, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
@@ -463,7 +464,7 @@ export default function StudioEditorPage() {
                 )}
                 {canEdit && (
                   <button type="button" className="btn-secondary" onClick={() => setShowFacebook(true)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#1877f2' }}>
-                    <FaFacebook /> Đăng lên Fanpage
+                    <FaFacebook /> {getFbPublishDict(lang).openBtn}
                   </button>
                 )}
               </div>
@@ -478,6 +479,7 @@ export default function StudioEditorPage() {
           title={project.title}
           vertical={project.format !== 'horizontal'}
           hasAiVisuals={storyboard.some(s => s.visual.kind !== 'card' && s.visual.ai === true)}
+          lang={lang}
           onClose={() => setShowFacebook(false)}
         />
       )}
