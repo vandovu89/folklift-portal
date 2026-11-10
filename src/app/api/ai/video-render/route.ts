@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
-import { wordsPerSecond, DEFAULT_TTS_MODEL, isTtsModel, type TtsModelId } from '@/lib/vietnamese-tts';
-import { cleanScriptForTts, synthesizeSpeech } from '@/lib/elevenlabs';
-import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID } from '@/lib/ai-video';
+import { wordsPerSecond, DEFAULT_TTS_MODEL, isTtsModel, ttsProviderOf, type TtsModelId } from '@/lib/vietnamese-tts';
+import { cleanScriptForTts } from '@/lib/elevenlabs';
+import { synthesize, ttsConfigError } from '@/lib/tts';
+import { buildVideoTransformation, cloudinaryCloudBase, cloudinaryPublicIdFromUrl, isVideoFormat, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, defaultVoiceFor, isVoiceForProvider } from '@/lib/ai-video';
 import { getStaffUser } from '@/lib/auth';
 import { isR2Configured, isR2Url, putObject, buildObjectKey } from '@/lib/storage';
 import { isRenderWorkerConfigured, dispatchRenderJob } from '@/lib/render-worker';
@@ -15,8 +16,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Tạo giọng (Vbee chạy bất đồng bộ, có thể tạo lại 1 lần để khớp thời lượng) + upload
+export const maxDuration = 300;
+
 const MIN_SPEED = 0.85; // Chậm hơn nữa giọng đọc bị lê thê, không tự động giảm dưới mức này
-const MAX_SPEED = 1.2;  // Giới hạn tối đa của ElevenLabs
+const MAX_SPEED = 1.2;  // Giới hạn tối đa của ElevenLabs (dùng chung cho Vbee)
 
 export async function POST(request: Request) {
   try {
@@ -56,12 +60,9 @@ export async function POST(request: Request) {
 const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
     const format = isVideoFormat(videoFormat) ? videoFormat : DEFAULT_VIDEO_FORMAT;
 
-    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
-    if (!elevenLabsApiKey) {
-      return NextResponse.json({
-        success: false,
-        error: 'ELEVENLABS_API_KEY chưa được cấu hình trong biến môi trường.'
-      }, { status: 500 });
+    const configError = ttsConfigError(model);
+    if (configError) {
+      return NextResponse.json({ success: false, error: `${configError} trong biến môi trường.` }, { status: 500 });
     }
 
     // 1. Chuẩn hóa nội dung lời thoại
@@ -70,16 +71,17 @@ const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
       return NextResponse.json({ success: false, error: 'Kịch bản không có nội dung chữ hợp lệ để đọc.' }, { status: 400 });
     }
 
-    // 2. Gọi ElevenLabs Text-to-Speech API
-    // Giọng chọn từ danh sách ElevenLabs của tài khoản, mặc định "Xe Nâng MCK Japan" - Nam giọng Bắc
-    const selectedVoiceId = typeof voiceId === 'string' && /^[A-Za-z0-9]{10,40}$/.test(voiceId) ? voiceId : DEFAULT_VOICE_ID;
+    // 2. Gọi Text-to-Speech (ElevenLabs hoặc Vbee tùy model)
+    // Giọng chọn từ danh sách của nhà cung cấp, mặc định ElevenLabs "Xe Nâng MCK Japan" / Vbee "HN - Ngọc Huyền"
+    const provider = ttsProviderOf(model);
+    const selectedVoiceId = isVoiceForProvider(voiceId, provider) ? voiceId : defaultVoiceFor(provider);
     const requestedSpeed = speed ? Math.max(0.7, Math.min(MAX_SPEED, parseFloat(speed))) : 0.95;
     const videoSeconds = Number(videoDuration) > 0 ? Number(videoDuration) : 0;
 
     let appliedSpeed = requestedSpeed;
     let tts;
     try {
-      tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, appliedSpeed, model);
+      tts = await synthesize(model, selectedVoiceId, cleanedScript, appliedSpeed);
 
       // 2b. Đo thời lượng giọng đọc thật, nếu lệch so với video thì tạo lại 1 lần với tốc độ đã hiệu chỉnh
       if (videoSeconds > 0) {
@@ -94,12 +96,12 @@ const model: TtsModelId = isTtsModel(ttsModel) ? ttsModel : DEFAULT_TTS_MODEL;
         adjustedSpeed = Math.round(adjustedSpeed * 100) / 100;
         if (Math.abs(adjustedSpeed - appliedSpeed) >= 0.02) {
           console.log(`[AI Video Render] Audio ${tts.duration.toFixed(1)}s vs video ${videoSeconds}s => speed ${appliedSpeed} -> ${adjustedSpeed}`);
-          tts = await synthesizeSpeech(elevenLabsApiKey, selectedVoiceId, cleanedScript, adjustedSpeed, model);
+          tts = await synthesize(model, selectedVoiceId, cleanedScript, adjustedSpeed);
           appliedSpeed = adjustedSpeed;
         }
       }
     } catch (ttsErr) {
-      const message = ttsErr instanceof Error ? ttsErr.message : 'Lỗi tạo giọng đọc từ ElevenLabs';
+      const message = ttsErr instanceof Error ? ttsErr.message : 'Lỗi tạo giọng đọc';
       return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 

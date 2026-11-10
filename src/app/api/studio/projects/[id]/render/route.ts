@@ -6,6 +6,7 @@ import { isR2Url } from '@/lib/storage';
 import { isRenderWorkerConfigured, dispatchRenderJob } from '@/lib/render-worker';
 import { buildTimelinePayload, canEditStudio, ensureSceneAudio, loadProject, mapLimit } from '@/lib/video-studio-server';
 import { sanitizeFormat, sanitizeSettings, sanitizeStoryboard } from '@/lib/video-studio';
+import { ttsConfigError } from '@/lib/tts';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,9 +21,6 @@ export async function POST(request: Request, { params }: Params) {
   if (!isRenderWorkerConfigured()) {
     return NextResponse.json({ error: 'Chưa cấu hình Cloudflare R2 và worker render (RENDER_WORKER_URL / RENDER_WORKER_SECRET). Xem docs/r2-cloud-run.md.' }, { status: 503 });
   }
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: 'ELEVENLABS_API_KEY chưa được cấu hình' }, { status: 500 });
-
   const { id } = await params;
   const project = await loadProject(id);
   if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -32,6 +30,8 @@ export async function POST(request: Request, { params }: Params) {
   const settings = body.settings !== undefined ? sanitizeSettings(body.settings) : project.settings;
   const format = body.format !== undefined ? sanitizeFormat(body.format) : project.format;
 
+  const configError = ttsConfigError(settings.ttsModel);
+  if (configError) return NextResponse.json({ error: configError }, { status: 500 });
   if (storyboard.length === 0) return NextResponse.json({ error: 'Storyboard chưa có cảnh nào' }, { status: 400 });
   const badMedia = storyboard.findIndex(s => s.visual.kind !== 'card' && !isR2Url(s.visual.url) && !s.visual.url.includes('res.cloudinary.com'));
   if (badMedia >= 0) {
@@ -40,7 +40,7 @@ export async function POST(request: Request, { params }: Params) {
 
   let scenes;
   try {
-    scenes = await mapLimit(storyboard, 3, scene => ensureSceneAudio(id, scene, settings, apiKey));
+    scenes = await mapLimit(storyboard, 3, scene => ensureSceneAudio(id, scene, settings));
   } catch (err) {
     // Lưu lại các cảnh đã có giọng để lần sau không phải tạo lại
     await prisma.videoProject.update({ where: { id }, data: { storyboard: storyboard as object[], settings: { ...settings }, format } });

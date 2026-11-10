@@ -1,4 +1,5 @@
 // Cấu hình dùng chung cho AI Video Studio (client + server, không phụ thuộc Node)
+import type { TtsProvider } from '@/lib/vietnamese-tts';
 
 // ===== Phong cách kịch bản =====
 export const SCRIPT_STYLES = {
@@ -125,8 +126,18 @@ export function buildVideoTransformation({ clipPublicIds, format, audioLayerId, 
   return steps.join('/');
 }
 
-// ===== Giọng đọc ElevenLabs =====
-export const DEFAULT_VOICE_ID = '7o71dj6r5wK2rRwMRJhN'; // "Xe Nâng MCK Japan" - Nam giọng Bắc
+// ===== Giọng đọc (ElevenLabs / Vbee) =====
+export const DEFAULT_VOICE_ID = '7o71dj6r5wK2rRwMRJhN'; // ElevenLabs "Xe Nâng MCK Japan" - Nam giọng Bắc
+export const DEFAULT_VBEE_VOICE_ID = 'hn_female_ngochuyen_full_48k-fhg'; // Vbee "HN - Ngọc Huyền"
+
+// Mã giọng ElevenLabs: 20 ký tự chữ-số; mã giọng Vbee: dạng "hn_female_ngochuyen_full_48k-fhg" (luôn có dấu "_")
+export const isVbeeVoiceId = (id: string) => /^[a-z0-9]+(?:[_-][a-z0-9]+)+$/i.test(id) && id.includes('_') && id.length <= 80;
+export const isElevenLabsVoiceId = (id: string) => /^[A-Za-z0-9]{10,40}$/.test(id);
+
+export function isVoiceForProvider(id: unknown, provider: TtsProvider): id is string {
+  return typeof id === 'string' && (provider === 'vbee' ? isVbeeVoiceId(id) : isElevenLabsVoiceId(id));
+}
+export const defaultVoiceFor = (provider: TtsProvider) => (provider === 'vbee' ? DEFAULT_VBEE_VOICE_ID : DEFAULT_VOICE_ID);
 
 export interface VoiceOption {
   id: string;
@@ -138,10 +149,14 @@ export interface VoiceOption {
   previewUrl: string | null;
 }
 
-// Dùng khi chưa tải được danh sách giọng từ ElevenLabs
+// Dùng khi chưa tải được danh sách giọng
 export const FALLBACK_VOICES: VoiceOption[] = [
   { id: DEFAULT_VOICE_ID, name: 'Xe Nâng MCK Japan', language: 'vi', gender: 'male', accent: 'northern', category: 'professional', previewUrl: null },
 ];
+export const FALLBACK_VBEE_VOICES: VoiceOption[] = [
+  { id: DEFAULT_VBEE_VOICE_ID, name: 'HN - Ngọc Huyền', language: 'vi', gender: 'female', accent: 'northern', category: 'vbee', previewUrl: null },
+];
+export const fallbackVoicesFor = (provider: TtsProvider) => (provider === 'vbee' ? FALLBACK_VBEE_VOICES : FALLBACK_VOICES);
 
 const GENDER_LABELS: Record<string, string> = { male: 'Nam', female: 'Nữ', neutral: 'Trung tính' };
 const ACCENT_LABELS: Record<string, string> = { northern: 'Bắc', 'vi-northern': 'Bắc', southern: 'Nam', central: 'Trung' };
@@ -152,5 +167,5 @@ export function voiceLabel(v: VoiceOption): string {
     v.language === 'vi' && v.accent ? `giọng ${ACCENT_LABELS[v.accent] || v.accent}` : null,
     v.language && v.language !== 'vi' ? v.language.toUpperCase() : null,
   ].filter(Boolean).join(', ');
-  return `${v.id === DEFAULT_VOICE_ID ? '⭐ ' : ''}${v.name}${details ? ` (${details})` : ''}`;
+  return `${v.id === DEFAULT_VOICE_ID || v.id === DEFAULT_VBEE_VOICE_ID ? '⭐ ' : ''}${v.name}${details ? ` (${details})` : ''}`;
 }

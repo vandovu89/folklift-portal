@@ -130,6 +130,21 @@ Trang **Admin → AI Video Studio** (`/admin/studio`) dùng chung R2 + worker �
 - Logo đóng gói sẵn trong image worker (`render-worker/assets/`): `logo-mark.png` (huy hiệu tròn, nền trong suốt, đặt ở góc) và `logo-full.png` (logo đầy đủ cho cảnh mở đầu / kết thúc). Đổi logo: thay 2 file này rồi deploy lại worker.
 - Cần **deploy lại worker** sau khi cập nhật code (job có thêm `subtitles`, `transition`, `logo` và cảnh loại `brand`).
 
+**Giọng đọc Vbee (thay cho ElevenLabs khi hết credit):**
+
+- Chọn model **Vbee** ở ô "Model giọng" (Studio) hoặc "Model giọng đọc" (Video AI của xe); danh sách giọng tự chuyển sang giọng tiếng Việt của Vbee (gồm giọng riêng của tài khoản nếu có).
+- Tạo app tại https://studio.vbee.vn/apps → **Tích hợp API** → **Tạo ứng dụng** (nên chọn thời hạn **Vĩnh viễn**, token có hạn sẽ bị vô hiệu khi hết hạn). Lấy App ID và token trong trang chi tiết app, khai báo trên Vercel:
+
+  | Biến | Giá trị |
+  |---|---|
+  | `VBEE_APP_ID` | App ID |
+  | `VBEE_API_TOKEN` | Token (không có chữ `Bearer`) |
+  | `VBEE_WEBHOOK_URL` | (Tùy chọn) Mặc định `NEXT_PUBLIC_APP_URL` (hoặc `https://www.xenangmck.jp`) + `/api/ai/vbee-webhook` |
+
+- Hệ thống gọi Vbee ở chế độ `async` rồi tự hỏi trạng thái đến khi có file MP3 (thường vài giây). Webhook chỉ để thỏa yêu cầu bắt buộc của Vbee, không xử lý gì.
+- Vbee **không trả thời điểm từng chữ**, nên phụ đề được **ước tính** theo độ dài chữ và khoảng nghỉ ở dấu câu — có thể lệch nhẹ so với giọng đọc, nhất là ở hiệu ứng tô màu karaoke.
+- Tốc độ đọc: 0.95x trong hệ thống tương ứng tốc độ chuẩn 1.0 của Vbee. Tốc độ đọc ước tính ~3.6 từ/giây (để AI viết kịch bản vừa thời lượng) — nên đo lại với giọng hay dùng và chỉnh `wordsPerSec` của `vbee` trong `src/lib/vietnamese-tts.ts`.
+
 ---
 
 ## Chi phí ước tính

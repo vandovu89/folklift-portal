@@ -9,8 +9,8 @@ import AssetPicker, { type StudioAssetItem } from '@/components/studio/AssetPick
 import FacebookPublishDialog from '@/components/studio/FacebookPublishDialog';
 import { getFbPublishDict } from '@/components/studio/facebook-publish-i18n';
 import { labelStyle, inputStyle } from '@/components/studio/styles';
-import { countSpokenWords, wordsPerSecond, TTS_MODELS, type TtsModelId } from '@/lib/vietnamese-tts';
-import { SCRIPT_STYLES, VIDEO_FORMATS, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
+import { countSpokenWords, wordsPerSecond, ttsProviderOf, TTS_MODELS, type TtsModelId, type TtsProvider } from '@/lib/vietnamese-tts';
+import { SCRIPT_STYLES, VIDEO_FORMATS, FALLBACK_VOICES, defaultVoiceFor, fallbackVoicesFor, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
 import {
   BRAND_NAME, BRAND_HOTLINE, TARGET_DURATIONS, VIDEO_TEMPLATES, MAX_SCENES, PROJECT_STATUS_LABELS, SUBTITLE_STYLES, TRANSITIONS,
   estimateSceneSeconds, estimateTotalSeconds, isVideoTemplate, newSceneId,
@@ -47,7 +47,7 @@ export default function StudioEditorPage() {
   const [job, setJob] = useState<JobSummary | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [loadError, setLoadError] = useState('');
-  const [voices, setVoices] = useState<VoiceOption[]>(FALLBACK_VOICES);
+  const [voicesByProvider, setVoicesByProvider] = useState<Partial<Record<TtsProvider, VoiceOption[]>>>({});
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [busy, setBusy] = useState('');
   const [voiceBusy, setVoiceBusy] = useState<string | null>(null);
@@ -71,12 +71,21 @@ export default function StudioEditorPage() {
         setCanEdit(Boolean(data.canEdit));
       })
       .catch(err => setLoadError(err instanceof Error ? err.message : 'Không tải được dự án'));
-    fetch('/api/ai/voices')
-      .then(res => res.json())
-      .then(data => { if (Array.isArray(data.voices) && data.voices.length > 0) setVoices(data.voices); })
-      .catch(() => {});
     return () => { pollingJob.current = null; };
   }, [id]);
+
+  // ===== Danh sách giọng theo nhà cung cấp của model đang chọn (ElevenLabs / Vbee) =====
+  const voiceProvider = project ? ttsProviderOf(project.settings.ttsModel) : null;
+  const voices = voiceProvider ? voicesByProvider[voiceProvider] || fallbackVoicesFor(voiceProvider) : FALLBACK_VOICES;
+  useEffect(() => {
+    if (!voiceProvider) return;
+    fetch(`/api/ai/voices?provider=${voiceProvider}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data.voices) && data.voices.length > 0) setVoicesByProvider(prev => ({ ...prev, [voiceProvider]: data.voices }));
+      })
+      .catch(() => {});
+  }, [voiceProvider]);
 
   // ===== Tự lưu sau 1.2 giây kể từ lần sửa cuối =====
   const persist = useCallback(async (next: ProjectData) => {
@@ -356,7 +365,12 @@ export default function StudioEditorPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               <div>
                 <label style={labelStyle}>Model giọng</label>
-                <select value={settings.ttsModel} disabled={readOnly} onChange={e => updateSettings({ ttsModel: e.target.value as TtsModelId })} style={inputStyle}>
+                <select value={settings.ttsModel} disabled={readOnly} onChange={e => {
+                  const ttsModel = e.target.value as TtsModelId;
+                  const provider = ttsProviderOf(ttsModel);
+                  // Đổi sang nhà cung cấp khác thì giọng cũ không dùng được: chuyển về giọng mặc định của nhà cung cấp mới
+                  updateSettings(provider === ttsProviderOf(settings.ttsModel) ? { ttsModel } : { ttsModel, voiceId: defaultVoiceFor(provider) });
+                }} style={inputStyle}>
                   {(Object.keys(TTS_MODELS) as TtsModelId[]).map(k => <option key={k} value={k}>{TTS_MODELS[k].label.split(' (')[0]}</option>)}
                 </select>
               </div>

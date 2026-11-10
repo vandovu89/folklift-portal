@@ -4,16 +4,18 @@ import { getStaffUser } from '@/lib/auth';
 import { isR2Configured } from '@/lib/storage';
 import { canEditStudio, ensureSceneAudio, loadProject } from '@/lib/video-studio-server';
 import { sanitizeSettings, sanitizeStoryboard } from '@/lib/video-studio';
+import { ttsConfigError } from '@/lib/tts';
 
 type Params = { params: Promise<{ id: string }> };
+
+// Vbee tạo giọng bất đồng bộ (phải chờ vài giây đến vài chục giây)
+export const maxDuration = 120;
 
 // Nghe thử giọng đọc của 1 cảnh: tạo file MP3 (hoặc dùng lại nếu lời đọc không đổi) và lưu vào storyboard
 export async function POST(request: Request, { params }: Params) {
   const { role } = await getStaffUser(request);
   if (!canEditStudio(role)) return NextResponse.json({ error: 'Bạn không có quyền tạo giọng đọc' }, { status: 401 });
 
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: 'ELEVENLABS_API_KEY chưa được cấu hình' }, { status: 500 });
   if (!isR2Configured()) return NextResponse.json({ error: 'Chưa cấu hình Cloudflare R2 để lưu giọng đọc' }, { status: 503 });
 
   const { id } = await params;
@@ -26,10 +28,12 @@ export async function POST(request: Request, { params }: Params) {
   const settings = body.settings !== undefined ? sanitizeSettings(body.settings) : project.settings;
   const index = storyboard.findIndex(s => s.id === body.sceneId);
   if (index < 0) return NextResponse.json({ error: 'Không tìm thấy cảnh' }, { status: 404 });
+  const configError = ttsConfigError(settings.ttsModel);
+  if (configError) return NextResponse.json({ error: configError }, { status: 500 });
   if (!storyboard[index].narration.trim()) return NextResponse.json({ error: 'Cảnh này chưa có lời đọc' }, { status: 400 });
 
   try {
-    storyboard[index] = await ensureSceneAudio(id, storyboard[index], settings, apiKey);
+    storyboard[index] = await ensureSceneAudio(id, storyboard[index], settings);
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Lỗi tạo giọng đọc' }, { status: 502 });
   }

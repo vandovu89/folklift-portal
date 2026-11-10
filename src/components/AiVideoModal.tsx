@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FaVideo, FaTimes, FaMagic, FaUpload, FaPlay, FaFacebook, FaRobot, FaArrowUp, FaArrowDown, FaTrash, FaVolumeUp, FaStop } from 'react-icons/fa';
 import { uploadMediaDirectly } from '@/lib/upload';
-import { countSpokenWords, wordsPerSecond, TTS_MODELS, DEFAULT_TTS_MODEL, type TtsModelId } from '@/lib/vietnamese-tts';
-import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID, FALLBACK_VOICES, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
+import { countSpokenWords, wordsPerSecond, ttsProviderOf, TTS_MODELS, DEFAULT_TTS_MODEL, type TtsModelId } from '@/lib/vietnamese-tts';
+import { SCRIPT_STYLES, VIDEO_FORMATS, DEFAULT_VIDEO_FORMAT, MAX_CLIPS, DEFAULT_VOICE_ID, FALLBACK_VOICES, defaultVoiceFor, fallbackVoicesFor, voiceLabel, type ScriptStyle, type VideoFormat, type VoiceOption } from '@/lib/ai-video';
 
 interface AiVideoModalProps {
   isOpen: boolean;
@@ -128,20 +128,34 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
       .catch(console.error);
   }, [isOpen, forkliftId]);
 
-  // Danh sách giọng trong tài khoản ElevenLabs (gồm các giọng mới thêm / clone)
+  // Danh sách giọng của nhà cung cấp theo model đang chọn: ElevenLabs (gồm giọng mới thêm / clone) hoặc Vbee
+  const voiceProvider = ttsProviderOf(ttsModel);
   const loadVoices = (refresh = false) =>
-    fetch(`/api/ai/voices${refresh ? '?refresh=1' : ''}`)
+    fetch(`/api/ai/voices?provider=${voiceProvider}${refresh ? '&refresh=1' : ''}`)
       .then(async res => {
         const data = await res.json();
         if (!res.ok || !Array.isArray(data.voices)) throw new Error(data.error || `HTTP ${res.status}`);
-        setVoices(data.voices.length > 0 ? data.voices : FALLBACK_VOICES);
+        setVoices(data.voices.length > 0 ? data.voices : fallbackVoicesFor(voiceProvider));
         setVoicesError('');
       })
       .catch(err => setVoicesError(err instanceof Error ? err.message : 'Không tải được danh sách giọng'));
 
   useEffect(() => {
     if (isOpen) loadVoices();
-  }, [isOpen]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tải lại khi mở modal hoặc đổi nhà cung cấp
+  }, [isOpen, voiceProvider]);
+
+  const changeTtsModel = (next: TtsModelId) => {
+    const provider = ttsProviderOf(next);
+    if (provider !== voiceProvider) {
+      // Đổi nhà cung cấp: giọng cũ không dùng được, chuyển về giọng mặc định của nhà cung cấp mới
+      previewAudio?.pause();
+      setPreviewAudio(null);
+      setVoices(fallbackVoicesFor(provider));
+      setSelectedVoice(defaultVoiceFor(provider));
+    }
+    setTtsModel(next);
+  };
 
   // Dừng nghe thử khi đóng modal
   useEffect(() => {
@@ -556,7 +570,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
                       <button
                         type="button"
                         onClick={() => loadVoices(true)}
-                        title="Tải lại danh sách giọng từ ElevenLabs (sau khi thêm giọng mới)"
+                        title={`Tải lại danh sách giọng từ ${voiceProvider === 'vbee' ? 'Vbee' : 'ElevenLabs'} (sau khi thêm giọng mới)`}
                         style={{ background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', fontSize: '0.72rem', padding: 0 }}
                       >
                         ↻ Tải lại
@@ -590,7 +604,7 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
 
                   <div>
                     <label style={labelStyle}>🧠 Model giọng đọc:</label>
-                    <select value={ttsModel} onChange={e => setTtsModel(e.target.value as TtsModelId)} style={selectStyle}>
+                    <select value={ttsModel} onChange={e => changeTtsModel(e.target.value as TtsModelId)} style={selectStyle}>
                       {(Object.keys(TTS_MODELS) as TtsModelId[]).map(key => (
                         <option key={key} value={key}>{TTS_MODELS[key].label}</option>
                       ))}

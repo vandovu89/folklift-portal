@@ -1,7 +1,7 @@
 // Cấu hình & kiểu dữ liệu dùng chung cho AI Video Studio (client + server, không phụ thuộc Node)
 // Một dự án = 1 mẫu video + nguồn dữ liệu + storyboard gồm nhiều cảnh; mỗi cảnh có hình ảnh, lời đọc và chữ trên màn hình
-import { DEFAULT_TTS_MODEL, BASE_SPEED, isTtsModel, type TtsModelId } from '@/lib/vietnamese-tts';
-import { DEFAULT_VOICE_ID, isScriptStyle, isVideoFormat, DEFAULT_VIDEO_FORMAT, type ScriptStyle, type VideoFormat } from '@/lib/ai-video';
+import { DEFAULT_TTS_MODEL, BASE_SPEED, isTtsModel, ttsProviderOf, type TtsModelId } from '@/lib/vietnamese-tts';
+import { DEFAULT_VOICE_ID, defaultVoiceFor, isVoiceForProvider, isScriptStyle, isVideoFormat, DEFAULT_VIDEO_FORMAT, type ScriptStyle, type VideoFormat } from '@/lib/ai-video';
 
 export const BRAND_NAME = 'Xe Nâng MCK Japan';
 export const BRAND_HOTLINE = '0362.396.092';
@@ -254,7 +254,7 @@ function sanitizeCaptions(raw: unknown): CaptionChunk[] | undefined {
 const MAX_CAPTION_WORDS = 5;
 const MAX_CAPTION_CHARS = 26;
 
-// Ghép thời điểm từng ký tự (ElevenLabs /with-timestamps) thành các cụm phụ đề ngắn, ngắt ở dấu câu
+// Ghép thời điểm từng ký tự (ElevenLabs /with-timestamps, hoặc ước tính với Vbee) thành các cụm phụ đề ngắn, ngắt ở dấu câu
 export function buildCaptions(characters: string[], starts: number[], ends: number[]): CaptionChunk[] {
   const words: CaptionWord[] = [];
   let current: CaptionWord | null = null;
@@ -293,9 +293,12 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export function sanitizeSettings(raw: unknown): ProjectSettings {
   const s = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const ttsModel = isTtsModel(s.ttsModel) ? s.ttsModel : DEFAULT_SETTINGS.ttsModel;
+  const provider = ttsProviderOf(ttsModel);
   return {
-    voiceId: typeof s.voiceId === 'string' && /^[A-Za-z0-9]{10,40}$/.test(s.voiceId) ? s.voiceId : DEFAULT_SETTINGS.voiceId,
-    ttsModel: isTtsModel(s.ttsModel) ? s.ttsModel : DEFAULT_SETTINGS.ttsModel,
+    // Giọng phải thuộc đúng nhà cung cấp của model (ElevenLabs / Vbee), sai thì dùng giọng mặc định của nhà cung cấp đó
+    voiceId: isVoiceForProvider(s.voiceId, provider) ? s.voiceId : defaultVoiceFor(provider),
+    ttsModel,
     speed: num(s.speed, 0.7, 1.2, DEFAULT_SETTINGS.speed),
     tone: isScriptStyle(s.tone) ? s.tone : DEFAULT_SETTINGS.tone,
     targetDuration: num(s.targetDuration, 10, 180, DEFAULT_SETTINGS.targetDuration),

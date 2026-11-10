@@ -1,13 +1,19 @@
-// Tiện ích chuẩn hóa văn bản tiếng Việt cho Text-To-Speech (ElevenLabs)
+// Tiện ích chuẩn hóa văn bản tiếng Việt cho Text-To-Speech (ElevenLabs / Vbee)
 
-// Model ElevenLabs hỗ trợ tiếng Việt và tốc độ đọc đo thực tế ở speed 0.95 với giọng "Xe Nâng MCK Japan"
-// (đo ngày 2026-10-20 bằng đoạn 69 từ: v4 ~4.1 từ/giây, turbo v2.5 ~2.8 từ/giây)
+export type TtsProvider = 'elevenlabs' | 'vbee';
+
+// Model giọng đọc và tốc độ đọc ở speed 0.95.
+// ElevenLabs đo thực tế với giọng "Xe Nâng MCK Japan" (2026-10-20, đoạn 69 từ: v4 ~4.1 từ/giây, turbo v2.5 ~2.8 từ/giây).
+// Vbee: ước tính ~3.6 từ/giây (giọng đọc tin tức ở tốc độ chuẩn) - cần đo lại khi có tài khoản.
 export const TTS_MODELS = {
-  eleven_v4: { label: 'Eleven v4 (Khuyên dùng - phát âm tiếng Việt chuẩn nhất)', wordsPerSec: 4.1 },
-  eleven_v4_turbo: { label: 'Eleven v4 Turbo (Nhanh hơn)', wordsPerSec: 4.1 },
-  eleven_turbo_v2_5: { label: 'Eleven Turbo v2.5 (Bản cũ - dễ bị ngọng tiếng Việt)', wordsPerSec: 2.8 },
-} as const;
+  eleven_v4: { label: 'Eleven v4 (Khuyên dùng - phát âm tiếng Việt chuẩn nhất)', wordsPerSec: 4.1, provider: 'elevenlabs' },
+  eleven_v4_turbo: { label: 'Eleven v4 Turbo (Nhanh hơn)', wordsPerSec: 4.1, provider: 'elevenlabs' },
+  eleven_turbo_v2_5: { label: 'Eleven Turbo v2.5 (Bản cũ - dễ bị ngọng tiếng Việt)', wordsPerSec: 2.8, provider: 'elevenlabs' },
+  vbee: { label: 'Vbee (Giọng Việt bản xứ - không tốn credit ElevenLabs)', wordsPerSec: 3.6, provider: 'vbee' },
+} as const satisfies Record<string, { label: string; wordsPerSec: number; provider: TtsProvider }>;
 export type TtsModelId = keyof typeof TTS_MODELS;
+
+export const ttsProviderOf = (model: TtsModelId): TtsProvider => TTS_MODELS[model].provider;
 export const DEFAULT_TTS_MODEL: TtsModelId = 'eleven_v4';
 export const BASE_SPEED = 0.95;
 

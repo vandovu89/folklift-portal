@@ -1,7 +1,8 @@
 // Tiện ích phía server của AI Video Studio: tải dự án, kho ảnh/clip của xe, giọng đọc từng cảnh, dựng job render
 import { prisma } from '@/lib/prisma';
 import { ADMIN_ONLY_MEDIA_CATEGORIES } from '@/lib/permissions';
-import { cleanScriptForTts, synthesizeSpeechWithTimestamps } from '@/lib/elevenlabs';
+import { cleanScriptForTts } from '@/lib/elevenlabs';
+import { synthesizeWithTimestamps } from '@/lib/tts';
 import { buildObjectKey, putObject, deleteObject, r2KeyFromUrl, isR2Url } from '@/lib/storage';
 import type { TimelineJobPayload } from '@/lib/render-worker';
 import {
@@ -95,9 +96,9 @@ export async function loadProjectAssets(projectId: string, sources: { forkliftId
   return [...ai, ...(t ? [t] : []), ...forkliftAssets];
 }
 
-// Tạo (hoặc dùng lại) file giọng đọc + phụ đề cho 1 cảnh. Lời đọc / giọng / tốc độ không đổi thì không gọi ElevenLabs lại
+// Tạo (hoặc dùng lại) file giọng đọc + phụ đề cho 1 cảnh. Lời đọc / giọng / model / tốc độ không đổi thì không gọi ElevenLabs / Vbee lại
 // (trừ giọng tạo từ giai đoạn 1 chưa có phụ đề mà dự án đang bật phụ đề).
-export async function ensureSceneAudio(projectId: string, scene: Scene, settings: ProjectSettings, apiKey: string): Promise<Scene> {
+export async function ensureSceneAudio(projectId: string, scene: Scene, settings: ProjectSettings): Promise<Scene> {
   const text = cleanScriptForTts(scene.narration);
   if (!text) {
     return { id: scene.id, visual: scene.visual, narration: scene.narration, onScreenText: scene.onScreenText, minDuration: scene.minDuration };
@@ -106,7 +107,7 @@ export async function ensureSceneAudio(projectId: string, scene: Scene, settings
   const needCaptions = settings.subtitles !== 'off' && !scene.captions;
   if (scene.audioKey === key && scene.audioUrl && !needCaptions) return scene;
 
-  const tts = await synthesizeSpeechWithTimestamps(apiKey, settings.voiceId, text, settings.speed, settings.ttsModel);
+  const tts = await synthesizeWithTimestamps(settings.ttsModel, settings.voiceId, text, settings.speed);
   const captions = tts.alignment
     ? buildCaptions(tts.alignment.characters, tts.alignment.character_start_times_seconds, tts.alignment.character_end_times_seconds)
     : undefined;
@@ -120,7 +121,7 @@ export async function ensureSceneAudio(projectId: string, scene: Scene, settings
   return { ...scene, audioUrl, audioKey: key, audioDuration: Math.round(tts.duration * 100) / 100, captions };
 }
 
-// Chạy tối đa `limit` tác vụ cùng lúc (tránh bị ElevenLabs chặn khi tạo giọng cho nhiều cảnh)
+// Chạy tối đa `limit` tác vụ cùng lúc (tránh bị ElevenLabs / Vbee chặn khi tạo giọng cho nhiều cảnh)
 export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let next = 0;
