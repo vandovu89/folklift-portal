@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getStaffUser } from '@/lib/auth';
 
 // Job đứng yên quá lâu (worker sập / mất callback) thì coi như thất bại để người dùng tạo lại
-const STALE_AFTER_MS = 20 * 60 * 1000;
+const STALE_AFTER_MS = 5 * 60 * 1000;
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { role } = await getStaffUser(request);
@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if ((job.status === 'queued' || job.status === 'processing') && Date.now() - job.createdAt.getTime() > STALE_AFTER_MS) {
     job = await prisma.videoRenderJob.update({
       where: { id },
-      data: { status: 'failed', error: 'Quá thời gian chờ máy chủ render (20 phút). Vui lòng tạo lại video.', finishedAt: new Date() },
+      data: { status: 'failed', error: 'Quá thời gian chờ máy chủ render (5 phút). Vui lòng tạo lại video.', finishedAt: new Date() },
       select: { id: true, forkliftId: true, projectId: true, status: true, outputUrl: true, error: true, durationSec: true, sizeBytes: true, createdAt: true, startedAt: true, finishedAt: true }
     });
     if (job.projectId) {

@@ -334,12 +334,12 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     setVideoStatus('timeout');
   };
 
-  // Worker FFmpeg (Cloud Run): hỏi trạng thái job mỗi 5 giây đến khi xong / lỗi (tối đa ~20 phút)
+  // Worker FFmpeg (Cloud Run): hỏi trạng thái job mỗi 5 giây đến khi xong / lỗi (tối đa ~6 phút)
   const waitForRenderJob = async (jobId: string) => {
     setLastJobId(jobId);
     setVideoStatus('processing');
     setRenderError('');
-    for (let attempt = 0; attempt < 240; attempt++) {
+    for (let attempt = 0; attempt < 72; attempt++) {
       await new Promise(r => setTimeout(r, 5000));
       try {
         const res = await fetch(`/api/ai/render-jobs/${jobId}`, { cache: 'no-store' });

@@ -32,8 +32,15 @@ const ALLOWED_HOSTS = new Set(
   ['res.cloudinary.com', R2_PUBLIC_URL && new URL(R2_PUBLIC_URL).host, ...env('ALLOWED_MEDIA_HOSTS').split(',')]
     .map(h => (h || '').trim()).filter(Boolean)
 );
-// Chỉ gọi callback về web của hệ thống
-const CALLBACK_PREFIXES = env('CALLBACK_URL_PREFIXES').split(',').map(s => s.trim()).filter(Boolean);
+// Chỉ gọi callback về web của hệ thống (tự chấp nhận cả bản có / không có "www." của cùng domain)
+const CALLBACK_PREFIXES = env('CALLBACK_URL_PREFIXES')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+  .flatMap(p => {
+    const alt = p.includes('://www.') ? p.replace('://www.', '://') : p.replace('://', '://www.');
+    return [p, alt];
+  });
 
 const s3 = new S3Client({
   region: 'auto',
@@ -90,53 +97,70 @@ async function probe(file) {
   };
 }
 
-// Dựng lệnh FFmpeg: chuẩn hóa từng clip về cùng khung hình / 30fps, nối lại, rồi lồng giọng đọc
-function buildFfmpegArgs({ clipFiles, clipInfo, audioFile, format, audioMode, output, totalDuration }) {
+// Bước 1: Chuẩn hóa từng clip riêng lẻ về đúng khung hình / 30fps / H.264.
+// Xử lý từng clip một giúp chỉ mở 1 bộ giải mã video trong RAM tại mỗi thời điểm (tránh OOM trên Cloud Run).
+function buildNormalizeClipArgs({ inputFile, hasAudio, duration, format, audioMode, outputFile }) {
   const { w, h, mode } = FORMATS[format] || FORMATS.vertical_blur;
-  const n = clipFiles.length;
+  const d = duration.toFixed(3);
   const filters = [];
-  const concatInputs = [];
 
-  clipFiles.forEach((_, i) => {
-    if (mode === 'fill') {
-      filters.push(`[${i}:v]fps=30,scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,format=yuv420p[v${i}]`);
-    } else {
-      // Nền mờ phóng to + khung hình gốc giữ trọn ở giữa (video ngang vẫn đăng Reels/TikTok đẹp)
-      filters.push(
-        `[${i}:v]fps=30,split=2[bg${i}][fg${i}]`,
-        `[bg${i}]scale=${Math.round(w / 4)}:${Math.round(h / 4)}:force_original_aspect_ratio=increase,crop=${Math.round(w / 4)}:${Math.round(h / 4)},boxblur=10:2,scale=${w}:${h}[bgb${i}]`,
-        `[fg${i}]scale=${w}:${h}:force_original_aspect_ratio=decrease[fgs${i}]`,
-        `[bgb${i}][fgs${i}]overlay=(W-w)/2:(H-h)/2,setsar=1,format=yuv420p[v${i}]`
-      );
-    }
-    if (audioMode === 'mix') {
-      // Giữ tiếng máy xe ở 30%; clip không có tiếng thì chèn khoảng lặng cùng độ dài
-      filters.push(clipInfo[i].hasAudio
-        ? `[${i}:a]aresample=48000,aformat=channel_layouts=stereo,volume=0.3,atrim=0:${clipInfo[i].duration},asetpts=PTS-STARTPTS[a${i}]`
-        : `aevalsrc=0:c=stereo:s=48000:d=${clipInfo[i].duration}[a${i}]`);
-      concatInputs.push(`[v${i}][a${i}]`);
-    } else {
-      concatInputs.push(`[v${i}]`);
-    }
-  });
-
-  if (audioMode === 'mix') {
-    filters.push(`${concatInputs.join('')}concat=n=${n}:v=1:a=1[vcat][acat]`);
-    filters.push(`[${n}:a]aresample=48000,aformat=channel_layouts=stereo,apad[voice]`);
-    filters.push(`[acat][voice]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`);
+  if (mode === 'fill') {
+    filters.push(`[0:v]fps=30,scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,format=yuv420p,trim=duration=${d},setpts=PTS-STARTPTS[vout]`);
   } else {
-    filters.push(`${concatInputs.join('')}concat=n=${n}:v=1:a=0[vcat]`);
-    filters.push(`[${n}:a]aresample=48000,aformat=channel_layouts=stereo,apad[aout]`);
+    // Nền mờ phóng to (hạ xuống 1/6 trước khi boxblur để nhẹ CPU/RAM) + khung hình gốc giữ trọn ở giữa
+    const sw = Math.round(w / 6), sh = Math.round(h / 6);
+    filters.push(
+      `[0:v]fps=30,split=2[bg][fg]`,
+      `[bg]scale=${sw}:${sh}:force_original_aspect_ratio=increase,crop=${sw}:${sh},boxblur=8:2,scale=${w}:${h}[bgb]`,
+      `[fg]scale=${w}:${h}:force_original_aspect_ratio=decrease[fgs]`,
+      `[bgb][fgs]overlay=(W-w)/2:(H-h)/2,setsar=1,format=yuv420p,trim=duration=${d},setpts=PTS-STARTPTS[vout]`
+    );
+  }
+
+  const maps = ['-map', '[vout]'];
+  const audioArgs = [];
+  if (audioMode === 'mix') {
+    // Giữ tiếng máy xe ở 30%; clip không có tiếng thì chèn khoảng lặng cùng độ dài
+    filters.push(hasAudio
+      ? `[0:a]aresample=48000,aformat=channel_layouts=stereo,volume=0.3,apad,atrim=0:${d},asetpts=PTS-STARTPTS[aout]`
+      : `aevalsrc=0:c=stereo:s=48000:d=${d}[aout]`);
+    maps.push('-map', '[aout]');
+    audioArgs.push('-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-ac', '2');
+  } else {
+    audioArgs.push('-an');
   }
 
   return [
     '-hide_banner', '-y',
-    ...clipFiles.flatMap(f => ['-i', f]),
+    '-i', inputFile,
+    '-filter_complex', filters.join(';'),
+    ...maps,
+    '-t', d,
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-profile:v', 'high', '-level', '4.1', '-pix_fmt', 'yuv420p', '-r', '30', '-video_track_timescale', '30000',
+    ...audioArgs,
+    outputFile,
+  ];
+}
+
+// Bước 2: Nối các clip đã chuẩn hóa bằng concat demuxer (-c:v copy, không encode lại hình) + lồng giọng đọc AI
+function buildConcatAndMuxArgs({ concatListFile, audioFile, audioMode, output, totalDuration }) {
+  const filters = audioMode === 'mix'
+    ? [
+        `[1:a]aresample=48000,aformat=channel_layouts=stereo,apad[voice]`,
+        `[0:a][voice]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`,
+      ]
+    : [
+        `[1:a]aresample=48000,aformat=channel_layouts=stereo,apad[aout]`,
+      ];
+
+  return [
+    '-hide_banner', '-y',
+    '-f', 'concat', '-safe', '0', '-i', concatListFile,
     '-i', audioFile,
     '-filter_complex', filters.join(';'),
-    '-map', '[vcat]', '-map', '[aout]',
+    '-map', '0:v:0', '-map', '[aout]',
     '-t', totalDuration.toFixed(3),
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', '30',
+    '-c:v', 'copy',
     '-c:a', 'aac', '-b:a', '160k',
     '-movflags', '+faststart',
     output,
@@ -197,10 +221,10 @@ function fitFilters(input, label, w, h, mode) {
   if (mode === 'fill') {
     return [`${input}scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1[${label}]`];
   }
-  const sw = Math.round(w / 4), sh = Math.round(h / 4);
+  const sw = Math.round(w / 6), sh = Math.round(h / 6);
   return [
     `${input}split=2[${label}bg][${label}fg]`,
-    `[${label}bg]scale=${sw}:${sh}:force_original_aspect_ratio=increase,crop=${sw}:${sh},boxblur=10:2,scale=${w}:${h}[${label}bgb]`,
+    `[${label}bg]scale=${sw}:${sh}:force_original_aspect_ratio=increase,crop=${sw}:${sh},boxblur=8:2,scale=${w}:${h}[${label}bgb]`,
     `[${label}fg]scale=${w}:${h}:force_original_aspect_ratio=decrease[${label}fgs]`,
     `[${label}bgb][${label}fgs]overlay=(W-w)/2:(H-h)/2,setsar=1[${label}]`,
   ];
@@ -287,8 +311,8 @@ async function buildTimelineArgs({ dir, scenes, sceneFiles, sceneInfo, format, c
 
     if (visual.kind === 'image') {
       const idx = addInput('-i', sceneFiles[i].visual);
-      // Dựng khung hình ở độ phân giải gấp đôi rồi zoompan về kích thước đầu ra để chuyển động mượt
-      filters.push(...fitFilters(`[${idx}:v]`, `base${i}`, w * 2, h * 2, mode));
+      // Dựng khung hình ở độ phân giải 1.25x (đủ cho zoom 1.15x, tiết kiệm 60% RAM so với 2x) rồi zoompan về kích thước đầu ra
+      filters.push(...fitFilters(`[${idx}:v]`, `base${i}`, Math.round(w * 1.25), Math.round(h * 1.25), mode));
       const z = zoompanExpr(visual.motion, frames);
       videoChain = `[base${i}]zoompan=z='${z.z}':x='${z.x}':y='${z.y}':d=${frames}:s=${w}x${h}:fps=30,trim=duration=${DV},setpts=PTS-STARTPTS`;
     } else if (visual.kind === 'clip') {
@@ -492,18 +516,35 @@ async function processJob(job) {
   try {
     await callback(callbackUrl, { jobId, status: 'processing' });
 
-    log(jobId, `Tải ${clips.length} clip + giọng đọc`);
-    const clipFiles = clips.map((_, i) => path.join(dir, `clip${i}`));
     const audioFile = path.join(dir, 'voice.mp3');
-    await Promise.all([...clips.map((url, i) => download(url, clipFiles[i])), download(audioUrl, audioFile)]);
+    await download(audioUrl, audioFile);
 
-    const clipInfo = await Promise.all(clipFiles.map(probe));
-    const totalDuration = clipInfo.reduce((sum, c) => sum + c.duration, 0);
-    if (!(totalDuration > 0)) throw new Error('Không đọc được thời lượng clip');
+    // Xử lý cuốn chiếu từng clip: tải -> chuẩn hóa về MP4 1080p 30fps -> xóa ngay clip gốc
+    // để ổ tạm /tmp (trên RAM của Cloud Run) và bộ giải mã FFmpeg không bao giờ bị tràn bộ nhớ
+    const segFiles = [];
+    let totalDuration = 0;
+    for (let i = 0; i < clips.length; i++) {
+      const rawFile = path.join(dir, `raw-${i}`);
+      const segFile = path.join(dir, `seg-${i}.mp4`);
+      log(jobId, `Clip ${i + 1}/${clips.length}: tải & chuẩn hóa (${format}, ${audioMode})`);
+      await download(clips[i], rawFile);
+      const info = await probe(rawFile);
+      if (!(info.duration > 0)) throw new Error(`Không đọc được thời lượng clip ${i + 1}`);
+      await run('ffmpeg', buildNormalizeClipArgs({
+        inputFile: rawFile, hasAudio: info.hasAudio, duration: info.duration, format, audioMode, outputFile: segFile,
+      }));
+      await rm(rawFile, { force: true });
+      segFiles.push(segFile);
+      totalDuration += info.duration;
+    }
+
+    const concatListFile = path.join(dir, 'concat.txt');
+    await writeFile(concatListFile, segFiles.map(f => `file '${path.basename(f)}'`).join('\n') + '\n', 'utf8');
 
     const output = path.join(dir, 'output.mp4');
-    log(jobId, `FFmpeg: ${clips.length} clip, ${totalDuration.toFixed(1)}s, ${format}, ${audioMode}`);
-    await run('ffmpeg', buildFfmpegArgs({ clipFiles, clipInfo, audioFile, format, audioMode, output, totalDuration }));
+    log(jobId, `Ghép ${clips.length} clip (${totalDuration.toFixed(1)}s) + lồng giọng đọc`);
+    await run('ffmpeg', buildConcatAndMuxArgs({ concatListFile, audioFile, audioMode, output, totalDuration }));
+    await Promise.all([...segFiles, audioFile, concatListFile].map(f => rm(f, { force: true })));
 
     const { size } = await stat(output);
     log(jobId, `Tải lên R2: ${outputKey} (${(size / 1e6).toFixed(1)}MB)`);

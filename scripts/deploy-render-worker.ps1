@@ -74,8 +74,8 @@ try {
   Invoke-Gcloud run deploy $Service `
     --source $source `
     --region $Region --project $ProjectId `
-    --cpu 2 --memory 2Gi --no-cpu-throttling `
-    --concurrency 10 --min-instances 0 --max-instances 2 --timeout 300 `
+    --cpu 4 --memory 4Gi --no-cpu-throttling `
+    --concurrency 10 --min-instances 0 --max-instances 2 --timeout 600 `
     --allow-unauthenticated `
     --update-env-vars "R2_BUCKET=$Bucket,CALLBACK_URL_PREFIXES=$CallbackPrefixes" `
     --update-secrets "WORKER_SECRET=${secretName}:latest" `
