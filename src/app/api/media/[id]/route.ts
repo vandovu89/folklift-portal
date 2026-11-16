@@ -38,9 +38,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         url && url.includes('res.cloudinary.com') && (url.includes(`/${media.publicId}.`) || url.includes(`l_video:${layerId}`))
       );
       if (!inUse) {
-        // Video / âm thanh phải xóa với resource_type 'video', nếu không file vẫn nằm lại trên Cloudinary
+        // Video / âm thanh phải xóa với resource_type 'video', nếu không file vẫn nằm lại trên Cloudinary.
+        // Bọc try/catch để nếu tài khoản Cloudinary cũ đã bị khoá (401 disabled customer) thì vẫn xoá được bản ghi trong DB.
         const resourceType = ['VIDEO', 'AUDIO'].includes(media.fileType) ? 'video' : 'image';
-        await cloudinary.uploader.destroy(media.publicId, { resource_type: resourceType });
+        try {
+          await cloudinary.uploader.destroy(media.publicId, { resource_type: resourceType });
+        } catch (cloudErr) {
+          console.warn('Cloudinary destroy skipped/failed:', cloudErr);
+        }
       }
     }
 
