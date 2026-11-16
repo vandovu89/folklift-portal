@@ -269,7 +269,10 @@ export default function AiVideoModal({ isOpen, onClose, forkliftId }: AiVideoMod
     if (!confirm(`Xóa clip #${index + 1} khỏi danh sách ghép? File video gốc sẽ bị xóa khỏi thư viện.`)) return;
     if (clip.id) {
       const res = await fetch(`/api/media/${clip.id}`, { method: 'DELETE' });
-      if (!res.ok) return alert('Không xóa được clip.');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        return alert(data?.error || 'Không xóa được clip.');
+      }
     }
     const next = clips.filter((_, i) => i !== index);
     setClips(next);
